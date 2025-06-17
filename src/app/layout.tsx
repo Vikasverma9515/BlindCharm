@@ -6,6 +6,7 @@ import FloatingShapes from '@/components/shared/FloatingShapes'
 import BackgroundPattern from '@/components/shared/BackgroundPattern'
 import Navbar from '@/components/shared/Navbar'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import FloatingLogo from '@/components/FloatingLogo'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,6 +24,7 @@ export default function RootLayout({
         <Navbar />
         <ErrorBoundary>
       <FloatingShapes />
+      {/* <FloatingLogo /> */}
       <BackgroundPattern />
       
           {children}

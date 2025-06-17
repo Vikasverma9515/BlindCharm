@@ -24,7 +24,7 @@
 //             .select('*')
 //             .eq('id', session.user.id)
 //             .single()
-          
+
 //           setUser(profile)
 //         }
 //       } catch (error) {
@@ -43,7 +43,7 @@
 //           .select('*')
 //           .eq('id', session.user.id)
 //           .single()
-        
+
 //         setUser(profile)
 //       } else {
 //         setUser(null)
@@ -93,7 +93,7 @@
 //                 >
 //                   Lobby
 //                 </Link>
-                
+
 //                 <div className="relative">
 //                   <button
 //                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -278,7 +278,12 @@ import Link from 'next/link'
 import LogoutButton from '../auth/LogoutButton'
 
 export default function Navbar() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+
+  // Prevent hydration mismatch
+  if (status === 'loading') {
+    return null // or a loading spinner
+  }
 
   return (
     <nav className="">
@@ -298,16 +303,22 @@ export default function Navbar() {
               <>
                 {/* <span className="mr-4 text-black">{session.user?.email}</span> */}
                 <Link
-                         href="/profile"
-                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                       >
-                         Profile
-                      </Link>
+                  href="/profile"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-400 rounded-l font-bold"
+                >
+                  Profile
+                </Link>
                 <Link
-                   href="/lobby"
-                   className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium"
-                 >
-                   Lobby
+                  href="/lobby"
+                  className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-bold"
+                >
+                  Lobby
+                </Link>
+                <Link
+                  href="/matches"
+                  className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-bold"
+                >
+                  Matches
                 </Link>
 
                 <LogoutButton />
