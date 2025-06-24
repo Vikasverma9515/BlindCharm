@@ -292,7 +292,7 @@ export default function Navbar() {
           <div className="flex">
             <Link href="/" className="flex-shrink-0 flex items-center">
               <img className="h-12 w-auto" src="/logo2.png" alt="Logo" />
-              <span className="ml-2 text-xl font-semibold text-rose-600">
+              <span className="ml-2 text-xl font-bold font-family-sans-serif text-gray-900 hover:text-red-600 transition-colors duration-300 flex items-center">
                 BlindCharm
               </span>
             </Link>
@@ -319,6 +319,18 @@ export default function Navbar() {
                   className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-bold"
                 >
                   Matches
+                </Link>
+
+                {/* {
+    name: 'Whispers',
+    href: '/whispers',
+    icon: MessageCircle
+  } */}.        
+                <Link
+                  href="/whispers"
+                  className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-bold"
+                > 
+                  Whispers
                 </Link>
 
                 <LogoutButton />

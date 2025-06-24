@@ -1,0 +1,62 @@
+-- -- Fixed SQL triggers for whisper counts
+-- -- Run this in Supabase SQL editor to replace the existing triggers
+
+-- -- Drop existing triggers and function
+-- DROP TRIGGER IF EXISTS update_whisper_reaction_count ON whisper_reactions;
+-- DROP TRIGGER IF EXISTS update_whisper_comment_count ON whisper_comments;
+-- DROP FUNCTION IF EXISTS update_whisper_counts();
+
+-- -- Create improved function to update whisper counts
+-- CREATE OR REPLACE FUNCTION update_whisper_counts() 
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--   IF TG_OP = 'INSERT' THEN
+--     -- Increment count
+--     IF TG_TABLE_NAME = 'whisper_reactions' THEN
+--       UPDATE whispers 
+--       SET likes_count = COALESCE(likes_count, 0) + 1 
+--       WHERE id = NEW.whisper_id;
+--     ELSIF TG_TABLE_NAME = 'whisper_comments' THEN
+--       UPDATE whispers 
+--       SET comments_count = COALESCE(comments_count, 0) + 1 
+--       WHERE id = NEW.whisper_id;
+--     END IF;
+--     RETURN NEW;
+--   ELSIF TG_OP = 'DELETE' THEN
+--     -- Decrement count
+--     IF TG_TABLE_NAME = 'whisper_reactions' THEN
+--       UPDATE whispers 
+--       SET likes_count = GREATEST(COALESCE(likes_count, 0) - 1, 0) 
+--       WHERE id = OLD.whisper_id;
+--     ELSIF TG_TABLE_NAME = 'whisper_comments' THEN
+--       UPDATE whispers 
+--       SET comments_count = GREATEST(COALESCE(comments_count, 0) - 1, 0) 
+--       WHERE id = OLD.whisper_id;
+--     END IF;
+--     RETURN OLD;
+--   END IF;
+--   RETURN NULL;
+-- END;
+-- $$ LANGUAGE plpgsql;
+
+-- -- Create triggers for reactions and comments
+-- CREATE TRIGGER update_whisper_reaction_count
+--   AFTER INSERT OR DELETE ON whisper_reactions
+--   FOR EACH ROW EXECUTE FUNCTION update_whisper_counts();
+
+-- CREATE TRIGGER update_whisper_comment_count
+--   AFTER INSERT OR DELETE ON whisper_comments
+--   FOR EACH ROW EXECUTE FUNCTION update_whisper_counts();
+
+-- -- Ensure the counts are properly initialized for existing whispers
+-- UPDATE whispers SET 
+--   likes_count = COALESCE((
+--     SELECT COUNT(*) 
+--     FROM whisper_reactions 
+--     WHERE whisper_id = whispers.id
+--   ), 0),
+--   comments_count = COALESCE((
+--     SELECT COUNT(*) 
+--     FROM whisper_comments 
+--     WHERE whisper_id = whispers.id
+--   ), 0);

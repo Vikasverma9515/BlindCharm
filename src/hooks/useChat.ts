@@ -94,50 +94,50 @@
 //   }
 // }
 
-// src/hooks/useChat.ts
-import { useState, useEffect } from 'react';
-import { ChatService } from '@/lib/chat/ChatService';
-import { Message } from '@/types/chat';
-import { useAuth } from '@/hooks/useAuth';
+// // src/hooks/useChat.ts
+// import { useState, useEffect } from 'react';
+// import { ChatService } from '@/lib/chat/ChatService';
+// import { Message } from '@/types/chat';
+// import { useAuth } from '@/hooks/useAuth';
 
-export function useChat(matchId: string) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
-  const [chatService, setChatService] = useState<ChatService | null>(null);
+// export function useChat(matchId: string) {
+//   const [messages, setMessages] = useState<Message[]>([]);
+//   const [isTyping, setIsTyping] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+//   const { user } = useAuth();
+//   const [chatService, setChatService] = useState<ChatService | null>(null);
 
-  useEffect(() => {
-    if (user?.id) {
-      const service = new ChatService(user.id);
-      setChatService(service);
+//   useEffect(() => {
+//     if (user?.id) {
+//       const service = new ChatService(user.id);
+//       setChatService(service);
 
-      return () => {
-        service.disconnect();
-      };
-    }
-  }, [user?.id]);
+//       return () => {
+//         service.disconnect();
+//       };
+//     }
+//   }, [user?.id]);
 
-  const sendMessage = async (content: string) => {
-    try {
-      if (!chatService) throw new Error('Chat service not initialized');
+//   const sendMessage = async (content: string) => {
+//     try {
+//       if (!chatService) throw new Error('Chat service not initialized');
       
-      const message = await chatService.sendMessage(matchId, content);
-      setMessages(prev => [...prev, message]);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send message');
-    }
-  };
+//       const message = await chatService.sendMessage(matchId, content);
+//       setMessages(prev => [...prev, message]);
+//     } catch (error) {
+//       setError(error instanceof Error ? error.message : 'Failed to send message');
+//     }
+//   };
 
-  const handleTyping = (isTyping: boolean) => {
-    chatService?.emitTyping(matchId, isTyping);
-  };
+//   const handleTyping = (isTyping: boolean) => {
+//     chatService?.emitTyping(matchId, isTyping);
+//   };
 
-  return {
-    messages,
-    isTyping,
-    error,
-    sendMessage,
-    handleTyping
-  };
-}
+//   return {
+//     messages,
+//     isTyping,
+//     error,
+//     sendMessage,
+//     handleTyping
+//   };
+// }

@@ -50,17 +50,18 @@ function EditSection({ section, formData, onChange, onArrayChange, onSubmit, loa
 
       case 'gender':
         return (
-          <select
-            name="gender"
-            value={formData.gender || ''}
-            onChange={onChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">Select gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
+          // In your profile form component
+<select
+  name="gender"
+  value={formData.gender?.toLowerCase() || ''}
+  onChange={onChange}
+  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+>
+  <option value="">Select gender</option>
+  <option value="male">Male</option>
+  <option value="female">Female</option>
+  <option value="other">Other</option>
+</select>
         );
 
       case 'dob':
