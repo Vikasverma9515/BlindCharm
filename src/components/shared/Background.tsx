@@ -5,31 +5,21 @@ export default function Background() {
         {/* Base Background */}
         <div className="absolute inset-0 bg-[#fff8f8]" />
   
-        {/* Diagonal Lines Pattern */}
+        {/* Subtle Pattern */}
         <div 
           className="absolute inset-0"
           style={{
-            backgroundImage: `
-              linear-gradient(45deg, 
-                rgba(255, 0, 0, 0.03) 25%, 
-                transparent 25%, 
-                transparent 75%, 
-                rgba(255, 0, 0, 0.03) 75%, 
-                rgba(255, 0, 0, 0.03)
-              )`,
+            backgroundColor: 'rgba(255, 0, 0, 0.02)',
             backgroundSize: '100px 100px',
             opacity: 0.5
           }}
         />
   
-        {/* Soft Gradient Overlays */}
+        {/* Soft Overlays */}
         <div 
           className="absolute inset-0"
           style={{
-            background: `
-              radial-gradient(circle at 0% 0%, rgba(255, 228, 230, 0.7) 0%, transparent 50%),
-              radial-gradient(circle at 100% 100%, rgba(254, 202, 202, 0.7) 0%, transparent 50%)
-            `
+            backgroundColor: 'rgba(255, 228, 230, 0.3)'
           }}
         />
   
@@ -48,10 +38,7 @@ export default function Background() {
         <div 
           className="absolute inset-0"
           style={{
-            backgroundImage: `
-              linear-gradient(rgba(255, 0, 0, 0.02) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255, 0, 0, 0.02) 1px, transparent 1px)
-            `,
+            backgroundColor: 'rgba(255, 0, 0, 0.01)',
             backgroundSize: '40px 40px'
           }}
         />

@@ -31,6 +31,7 @@ export interface LobbyParticipant {
   status: string;
   joined_at: string;
   user: User;
+  blur_profile?: boolean;
 }
 
 export interface Lobby {

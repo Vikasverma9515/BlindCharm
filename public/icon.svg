@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="128" fill="url(#gradient)"/>
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF8E8E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFB3B3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Heart Icon -->
+  <path d="M256 448C256 448 64 320 64 208C64 146.144 114.144 96 176 96C207.328 96 235.2 110.656 256 134.656C276.8 110.656 304.672 96 336 96C397.856 96 448 146.144 448 208C448 320 256 448 256 448Z" fill="white" opacity="0.9"/>
+  
+  <!-- Sparkle effects -->
+  <circle cx="150" cy="150" r="8" fill="white" opacity="0.7"/>
+  <circle cx="380" cy="180" r="6" fill="white" opacity="0.8"/>
+  <circle cx="120" cy="280" r="4" fill="white" opacity="0.6"/>
+  <circle cx="400" cy="320" r="5" fill="white" opacity="0.7"/>
+  
+  <!-- Text -->
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="white" opacity="0.9">BC</text>
+</svg>

@@ -43,8 +43,9 @@ function EditSection({ section, formData, onChange, onArrayChange, onSubmit, loa
             name={field}
             value={formData[field] || ''}
             onChange={onChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
             placeholder={`Enter your ${field.replace('_', ' ')}`}
+            style={{ fontSize: '16px' }}
           />
         );
 
@@ -71,7 +72,8 @@ function EditSection({ section, formData, onChange, onArrayChange, onSubmit, loa
             name="dob"
             value={formData.dob || ''}
             onChange={onChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
+            style={{ fontSize: '16px' }}
           />
         );
 
@@ -82,8 +84,9 @@ function EditSection({ section, formData, onChange, onArrayChange, onSubmit, loa
             value={formData.bio || ''}
             onChange={onChange}
             rows={4}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
             placeholder="Tell us about yourself..."
+            style={{ fontSize: '16px' }}
           />
         );
 
@@ -94,8 +97,9 @@ function EditSection({ section, formData, onChange, onArrayChange, onSubmit, loa
             name="height"
             value={formData.height || ''}
             onChange={onChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
             placeholder="Height in cm"
+            style={{ fontSize: '16px' }}
           />
         );
 
@@ -112,8 +116,9 @@ function EditSection({ section, formData, onChange, onArrayChange, onSubmit, loa
             type="text"
             value={formData[field]?.join(', ') || ''}
             onChange={(e) => onArrayChange(field as keyof UserProfile, e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
             placeholder={`Enter ${field.replace('_', ' ')} (comma-separated)`}
+            style={{ fontSize: '16px' }}
           />
         );
 
@@ -125,8 +130,9 @@ function EditSection({ section, formData, onChange, onArrayChange, onSubmit, loa
             name={field}
             value={formData[field] || ''}
             onChange={onChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
             placeholder={`Enter your ${field}`}
+            style={{ fontSize: '16px' }}
           />
         );
 
@@ -138,15 +144,17 @@ function EditSection({ section, formData, onChange, onArrayChange, onSubmit, loa
               name="city"
               value={formData.location?.city || ''}
               onChange={e => handleLocationChange('city', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
               placeholder="City"
+              style={{ fontSize: '16px' }}
             />
             <input
               type="text"
               name="country"
               value={formData.location?.country || ''}
               onChange={e => handleLocationChange('country', e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
+              style={{ fontSize: '16px' }}
               placeholder="Country"
             />
           </div>

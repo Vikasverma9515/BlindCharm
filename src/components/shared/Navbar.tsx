@@ -275,85 +275,216 @@
 
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import LogoutButton from '../auth/LogoutButton'
+import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { signOut } from 'next-auth/react'
+import { 
+  Home, 
+  User, 
+  Users, 
+  Heart, 
+  MessageCircle, 
+  LogIn, 
+  UserPlus,
+  LogOut 
+} from 'lucide-react'
 
 export default function Navbar() {
   const { data: session, status } = useSession()
+  const router = useRouter()
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Prevent hydration mismatch
   if (status === 'loading') {
-    return null // or a loading spinner
+    return null
+  }
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' })
   }
 
   return (
-    <nav className="">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <Link href="/" className="flex-shrink-0 flex items-center">
-              <img className="h-12 w-auto" src="/logo2.png" alt="Logo" />
-              <span className="ml-2 text-xl font-bold font-family-sans-serif text-gray-900 hover:text-red-600 transition-colors duration-300 flex items-center">
+    <>
+      {/* Mobile Top Header */}
+      {isMobile && (
+        <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+          <div className="flex justify-center items-center h-16 px-4">
+            <Link href="/" className="flex items-center">
+              <img className="h-10 w-auto" src="/logo2.png" alt="Logo" />
+              <span className="ml-3 text-xl brand-font-bold text-gray-900 hover:text-red-600 transition-colors duration-300">
                 BlindCharm
               </span>
             </Link>
           </div>
+        </header>
+      )}
 
-          <div className="flex items-center">
+      {/* Desktop Navigation - Logo and Nav in same line */}
+      {!isMobile && (
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex justify-between items-center h-16">
+              {/* Logo */}
+              <Link href="/" className="flex items-center">
+                <img className="h-10 w-auto" src="/logo2.png" alt="Logo" />
+                <span className="ml-3 text-xl brand-font-bold text-gray-900 hover:text-red-600 transition-colors duration-300">
+                  BlindCharm
+                </span>
+              </Link>
+
+              {/* Navigation Items */}
+              <div className="flex items-center space-x-6">
+                {session ? (
+                  <>
+                    <Link
+                      href="/lobby"
+                      className="flex items-center space-x-2 text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 font-medium"
+                    >
+                      <Users size={18} />
+                      <span>Lobby</span>
+                    </Link>
+                    <Link
+                      href="/matches"
+                      className="flex items-center space-x-2 text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 font-medium"
+                    >
+                      <Heart size={18} />
+                      <span>Matches</span>
+                    </Link>
+                    <Link
+                      href="/whispers"
+                      className="flex items-center space-x-2 text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 font-medium"
+                    >
+                      <MessageCircle size={18} />
+                      <span>Whispers</span>
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="flex items-center space-x-2 text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 font-medium"
+                    >
+                      <User size={18} />
+                      <span>Profile</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-2 text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 font-medium"
+                    >
+                      <LogOut size={18} />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/"
+                      className="flex items-center space-x-2 text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 font-medium"
+                    >
+                      <Home size={18} />
+                      <span>Home</span>
+                    </Link>
+                    <Link
+                      href="/login"
+                      className="flex items-center space-x-2 text-gray-700 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 font-medium"
+                    >
+                      <LogIn size={18} />
+                      <span>Login</span>
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="flex items-center space-x-2 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-all duration-200 font-medium shadow-md"
+                    >
+                      <UserPlus size={18} />
+                      <span>Sign Up</span>
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </nav>
+      )}
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-lg">
+          <div className="flex justify-around items-center h-16 px-2">
             {session ? (
               <>
-                {/* <span className="mr-4 text-black">{session.user?.email}</span> */}
-                <Link
-                  href="/profile"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-400 rounded-l font-bold"
-                >
-                  Profile
-                </Link>
                 <Link
                   href="/lobby"
-                  className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-bold"
+                  className="flex flex-col items-center justify-center p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
                 >
-                  Lobby
+                  <Users size={20} />
+                  <span className="text-xs mt-1 font-medium">Lobby</span>
                 </Link>
                 <Link
                   href="/matches"
-                  className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-bold"
+                  className="flex flex-col items-center justify-center p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
                 >
-                  Matches
+                  <Heart size={20} />
+                  <span className="text-xs mt-1 font-medium">Matches</span>
                 </Link>
-
-                {/* {
-    name: 'Whispers',
-    href: '/whispers',
-    icon: MessageCircle
-  } */}.        
                 <Link
                   href="/whispers"
-                  className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-bold"
-                > 
-                  Whispers
+                  className="flex flex-col items-center justify-center p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
+                >
+                  <MessageCircle size={20} />
+                  <span className="text-xs mt-1 font-medium">Whispers</span>
                 </Link>
-
-                <LogoutButton />
+                <Link
+                  href="/profile"
+                  className="flex flex-col items-center justify-center p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
+                >
+                  <User size={20} />
+                  <span className="text-xs mt-1 font-medium">Profile</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex flex-col items-center justify-center p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
+                >
+                  <LogOut size={20} />
+                  <span className="text-xs mt-1 font-medium">Logout</span>
+                </button>
               </>
             ) : (
-              <div className="space-x-4">
+              <>
+                <Link
+                  href="/"
+                  className="flex flex-col items-center justify-center p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
+                >
+                  <Home size={20} />
+                  <span className="text-xs mt-1 font-medium">Home</span>
+                </Link>
                 <Link
                   href="/login"
-                  className="text-gray-700 hover:text-gray-900"
+                  className="flex flex-col items-center justify-center p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
                 >
-                  Login
+                  <LogIn size={20} />
+                  <span className="text-xs mt-1 font-medium">Login</span>
                 </Link>
                 <Link
                   href="/register"
-                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                  className="flex flex-col items-center justify-center p-2 text-red-600 hover:text-red-700 transition-colors duration-200"
                 >
-                  Sign Up
+                  <UserPlus size={20} />
+                  <span className="text-xs mt-1 font-medium">Sign Up</span>
                 </Link>
-              </div>
+              </>
             )}
           </div>
-        </div>
-      </div>
-    </nav>
+        </nav>
+      )}
+    </>
   )
 }

@@ -53,7 +53,7 @@ export default function FeaturesSection() {
               className="relative group"
             >
               <div className="text-center p-6 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300 blur" />
+                <div className="absolute -inset-0.5 bg-red-600 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300 blur" />
                 <div className="relative bg-white rounded-2xl p-6">
                   <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6 text-red-600 group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}

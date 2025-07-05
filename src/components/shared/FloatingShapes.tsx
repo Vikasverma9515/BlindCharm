@@ -33,10 +33,12 @@ const Shape: React.FC<ShapeProps> = ({ color, size, x, y, duration, delay }) => 
         viewBox="0 0 50 50"
         style={{ display: 'block' }}
       >
-        <path
-          d="M25,0 L50,25 L25,50 L0,25 Z"
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
           fill={color}
-          opacity="0.5"
+          opacity="0.6"
         />
       </svg>
     </div>
@@ -47,18 +49,26 @@ const FloatingShapes: React.FC = () => {
   const [shapes, setShapes] = useState<ShapeProps[]>([])
 
   useEffect(() => {
-    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD']
-    const sizes = [20, 30, 40]
+    // Soft, romantic colors suitable for dating apps
+    const colors = [
+      'rgba(236, 72, 153, 0.1)', // Soft pink
+      'rgba(219, 39, 119, 0.08)', // Rose
+      'rgba(168, 85, 247, 0.06)', // Soft purple  
+      'rgba(244, 114, 182, 0.09)', // Light pink
+      'rgba(196, 181, 253, 0.07)', // Lavender
+      'rgba(251, 207, 232, 0.12)', // Very light pink
+    ]
+    const sizes = [15, 25, 35] // Slightly smaller for subtlety
 
     if (typeof window !== 'undefined') {
-      const newShapes = Array.from({ length: 15 }, (_, i) => ({
+      const newShapes = Array.from({ length: 8 }, (_, i) => ({ // Fewer shapes for cleaner look
         id: i,
         color: colors[Math.floor(Math.random() * colors.length)],
         size: sizes[Math.floor(Math.random() * sizes.length)],
-        x: Math.random() * (window.innerWidth * 0.8),
-        y: Math.random() * (window.innerHeight * 0.8),
-        duration: 3 + Math.random() * 2, // Random duration between 3-5s
-        delay: Math.random() * 2, // Random delay between 0-2s
+        x: Math.random() * (window.innerWidth * 0.9),
+        y: Math.random() * (window.innerHeight * 0.9),
+        duration: 4 + Math.random() * 3, // Slower, more relaxed movement (4-7s)
+        delay: Math.random() * 3, // Random delay between 0-3s
       }))
 
       setShapes(newShapes)

@@ -36,12 +36,12 @@ export function CreateWhisperForm({ onSubmit }: CreateWhisperFormProps) {
   ];
 
   const backgroundThemes: Record<string, string> = {
-    mysterious: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white',
-    happy: 'bg-gradient-to-r from-yellow-300 to-orange-500 text-white',
-    sad: 'bg-gradient-to-r from-blue-400 to-blue-600 text-white',
-    exciting: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
-    love: 'bg-gradient-to-r from-pink-400 to-red-500 text-white',
-    funny: 'bg-gradient-to-r from-green-400 to-blue-500 text-white',
+    mysterious: 'bg-purple-600 text-white',
+    happy: 'bg-orange-500 text-white',
+    sad: 'bg-blue-600 text-white',
+    exciting: 'bg-red-600 text-white',
+    love: 'bg-pink-600 text-white',
+    funny: 'bg-green-600 text-white',
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,19 +74,17 @@ export function CreateWhisperForm({ onSubmit }: CreateWhisperFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4">Share a Whisper</h2>
-      
-      <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="space-y-4">
         <div className="mb-4">
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Share your secret whisper..."
-            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-base"
             rows={4}
             maxLength={500}
             required
+            style={{ fontSize: '16px' }}
           />
           <div className="text-right text-sm text-gray-500 mt-1">
             {content.length}/500
@@ -106,7 +104,7 @@ export function CreateWhisperForm({ onSubmit }: CreateWhisperFormProps) {
                 onClick={() => setSelectedMood(mood.id)}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-full border transition-colors ${
                   selectedMood === mood.id
-                    ? 'bg-purple-100 border-purple-500 text-purple-700'
+                    ? 'bg-red-100 border-red-500 text-red-700'
                     : 'bg-gray-50 border-gray-300 hover:bg-gray-100'
                 }`}
                 title={mood.label}
@@ -127,7 +125,7 @@ export function CreateWhisperForm({ onSubmit }: CreateWhisperFormProps) {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               {categories.map((category) => (
                 <option key={category} value={category}>
@@ -179,17 +177,16 @@ export function CreateWhisperForm({ onSubmit }: CreateWhisperFormProps) {
           </div>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-4">
           <button
             type="submit"
             disabled={!content.trim() || isSubmitting}
-            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
             {isSubmitting ? 'Sharing...' : 'Share Whisper'}
           </button>
         </div>
-      </form>
-    </div>
+    </form>
   );
 }
 

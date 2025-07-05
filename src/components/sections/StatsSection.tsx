@@ -19,7 +19,7 @@ export default function StatsSection() {
   })
 
   return (
-    <section ref={ref} className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-red-50/50 to-white/50 backdrop-blur-sm">
+    <section ref={ref} className="py-24 px-4 sm:px-6 lg:px-8 bg-red-50/50 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-3 gap-12">
           {stats.map((stat, index) => (
@@ -30,7 +30,7 @@ export default function StatsSection() {
               transition={{ delay: index * 0.2, duration: 0.5 }}
               className="relative group cursor-pointer"
             >
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300 blur" />
+              <div className="absolute -inset-0.5 bg-red-600 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300 blur" />
               <div className="relative p-8 bg-white rounded-2xl shadow-xl">
                 <span className="text-4xl font-bold text-gray-900">
                   {inView ? `${stat.value}${stat.suffix}` : '...'}

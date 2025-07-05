@@ -1,39 +1,14 @@
-// // src/app/(protected)/chat/[matchId]/page.tsx
-// 'use client'
+// src/app/(protected)/chat/[matchId]/page.tsx
+'use client'
 
-// import { useEffect, useState } from 'react';
-// import { supabase } from '@/lib/supabase';
-// import { ChatWindow } from '@/components/chat/ChatWindow';
-// import type { Match } from '@/types/chat';
-
-// export default function ChatPage({ params }: { params: { matchId: string } }) {
-//   const [match, setMatch] = useState<Match | null>(null);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     const fetchMatch = async () => {
-//       const { data, error } = await supabase
-//         .from('matches')
-//         .select('*')
-//         .eq('id', params.matchId)
-//         .single();
-
-//       if (!error && data) {
-//         setMatch(data);
-//       }
-//       setLoading(false);
-//     };
-
-//     fetchMatch();
-//   }, [params.matchId]);
-
-//   if (loading) return <div>Loading...</div>;
-//   if (!match) return <div>Match not found</div>;
-
-//   return (
-//     <div className="h-screen p-4">
-//       {/* Pass matchId and match to ChatWindow */}
-//       <ChatWindow matchId={params.matchId} match={match} />
-//     </div>
-//   );
-// }
+export default function ChatPage({ params }: { params: { matchId: string } }) {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Chat Coming Soon</h1>
+        <p className="text-gray-600">Chat functionality will be available soon.</p>
+        <p className="text-sm text-gray-500 mt-2">Match ID: {params.matchId}</p>
+      </div>
+    </div>
+  )
+}

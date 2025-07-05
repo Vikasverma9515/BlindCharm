@@ -1,23 +1,23 @@
-
-
 // src/app/(protected)/whispers/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Plus, X } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 import { WhisperService } from '@/lib/services/WhisperService';
 import { WhisperCard } from '@/components/whispers/WhisperCard';
-import { CreateWhisperForm } from '@/components/whispers/CreateWhisperForm';
+import { WhisperDrawer } from '@/components/whispers/WhisperDrawer';
 import { Whisper } from '@/types/whispers';
-import { supabase } from '@/lib/supabase';
+import SimpleTopNav from '@/components/shared/SimpleTopNav';
+import SimpleBottomNav from '@/components/shared/SimpleBottomNav';
 
 export default function WhispersPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [whispers, setWhispers] = useState<Whisper[]>([]);
 
   useEffect(() => {
@@ -82,77 +82,88 @@ export default function WhispersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-4 mx-auto animate-spin">
+            <div className="w-3 h-3 bg-white rounded-full"></div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400">Loading whispers...</p>
+        </div>
       </div>
     );
   }
 
+  const actionButton = (
+    <WhisperDrawer onSubmit={handleCreateWhisper}>
+      <button className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors">
+        <Plus className="w-5 h-5" />
+      </button>
+    </WhisperDrawer>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 bg-white z-10 shadow-sm">
-        <div className="max-w-lg mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">Whispers</h1>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="p-2 rounded-full bg-purple-500 text-white hover:bg-purple-600 transition-colors"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="pt-16 pb-20 px-4">
-        <div className="max-w-lg mx-auto space-y-4">
-          {whispers.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">No whispers yet</p>
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-              >
-                Share your first whisper
-              </button>
-            </div>
-          ) : (
-            whispers.map((whisper) => (
-              <WhisperCard
-                key={whisper.id}
-                whisper={whisper}
-                onLike={handleLike}
-                onComment={handleComment}
-              />
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Create Whisper Modal */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-              <div className="p-4 border-b flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Create Whisper</h2>
-                <button
-                  onClick={() => setShowCreateForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <CreateWhisperForm
-                onSubmit={async (whisper) => {
-                  await handleCreateWhisper(whisper);
-                  setShowCreateForm(false);
-                }}
-              />
-            </div>
+    <>
+      <SimpleTopNav pageName="Whispers" actionButton={actionButton} />
+      
+      <main className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        {/* Header - Desktop only */}
+        <div className="hidden md:block bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Whispers</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">Share your thoughts anonymously</p>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Main Content */}
+        <div className="max-w-2xl mx-auto px-4 py-4 pb-32">
+          {whispers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-20 h-20 bg-slate-200 dark:bg-gray-700 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8 text-slate-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No whispers yet</h3>
+              <p className="text-slate-600 dark:text-gray-400 text-center mb-6 max-w-sm">
+                Be the first to share your thoughts anonymously with the community!
+              </p>
+              <WhisperDrawer onSubmit={handleCreateWhisper}>
+                <button className="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors shadow-sm">
+                  Share Your First Whisper
+                </button>
+              </WhisperDrawer>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {whispers.map((whisper) => (
+                <WhisperCard
+                  key={whisper.id}
+                  whisper={whisper}
+                  onLike={handleLike}
+                  onComment={handleComment}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Floating Action Button */}
+      <div className="fixed bottom-24 right-6 z-30">
+        <WhisperDrawer onSubmit={handleCreateWhisper}>
+          <motion.button
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="w-14 h-14 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg flex items-center justify-center transition-colors"
+          >
+            <Plus className="w-6 h-6" />
+          </motion.button>
+        </WhisperDrawer>
+      </div>
+      
+      <SimpleBottomNav />
+    </>
   );
 }

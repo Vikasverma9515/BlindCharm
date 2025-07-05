@@ -77,6 +77,7 @@ export class MatchingService {
       const males = typedParticipants.filter(p => p.user.gender === 'male');
       const females = typedParticipants.filter(p => p.user.gender === 'female');
       
+      
       const shuffle = (array: any[]) => {
         for (let i = array.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -86,6 +87,7 @@ export class MatchingService {
 
       shuffle(males);
       shuffle(females);
+      
 
       // Create matches
       const matches = [];
@@ -115,38 +117,72 @@ export class MatchingService {
         }
 
         console.log('✅ Matches inserted successfully:', matchData);
-        console.log('🔔 Creating notifications manually for both users in each match...');
+        console.log('🔔 Sending broadcast notifications to both users in each match...');
         
-        // Create notifications for both users in each match
-        const notifications = [];
-        for (const match of matchData) {
-          // Create notification for user1
-          notifications.push({
-            user_id: match.user1_id,
-            match_id: match.id,
-            message: 'You have been matched!',
-            notified: false
-          });
-          
-          // Create notification for user2
-          notifications.push({
-            user_id: match.user2_id,
-            match_id: match.id,
-            message: 'You have been matched!',
-            notified: false
-          });
-        }
-        
-        // if (notifications.length > 0) {
-        //   const { data: notificationData, error: notificationError } = await supabase
-        //     .from('match_notifications')
-        //     .insert(notifications)
-        //     .select();
-            
-        //   if (notificationData && notificationData.length > 0) {
-        //     console.log('✅ Notifications created successfully for all matched users:', notificationData.length, 'notifications');
-        //   }
-        // }
+        // Create a map of user_id to username from our participants data
+        const userIdToUsername = new Map<string, string>();
+        typedParticipants.forEach(p => {
+          userIdToUsername.set(p.user_id, p.user.username);
+        });
+
+        // Send broadcast notifications for each match
+        const notificationPromises = matchData?.map(async (match) => {
+          try {
+            // Get usernames from our participant data
+            const user1Username = userIdToUsername.get(match.user1_id);
+            const user2Username = userIdToUsername.get(match.user2_id);
+
+            console.log(`📡 Sending notifications for match ${match.id}: ${user1Username} & ${user2Username}`);
+
+            // Create notification channels for both users
+            const channel1 = supabase.channel(`match_notifications_${match.user1_id}`);
+           const channel2 = supabase.channel(`match_notifications_${match.user2_id}`);
+
+            await Promise.all([
+              channel1.subscribe(),
+              channel2.subscribe()
+             ]);
+
+            // Send match notification to both users
+            await Promise.all([
+              channel1.send({
+                type: 'broadcast',
+                event: 'match_success',
+                payload: {
+                  matchId: match.id,
+                  user1Id: match.user1_id,
+                  user2Id: match.user2_id,
+                  user1Username: user1Username,
+                  user2Username: user2Username
+                }
+              }),
+              channel2.send({
+                type: 'broadcast',
+                event: 'match_success',
+                payload: {
+                  matchId: match.id,
+                  user1Id: match.user1_id,
+                  user2Id: match.user2_id,
+                  user1Username: user1Username,
+                  user2Username: user2Username
+                }
+              })
+            ]);
+
+            console.log(`✅ Broadcast notifications sent for match ${match.id}`);
+
+            // Clean up channels after a short delay
+            setTimeout(() => {
+              channel1.unsubscribe();
+              channel2.unsubscribe();
+            }, 2000);
+
+          } catch (notificationError) {
+            console.error('❌ Error sending broadcast notifications for match:', match.id, notificationError);
+          }
+        }) || [];
+
+        await Promise.all(notificationPromises);
 
         // Remove participants
         const matchedUserIds = matches.flatMap(m => [m.user1_id, m.user2_id]);

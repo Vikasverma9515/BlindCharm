@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="512" height="512" style="display: none;"></canvas>
+    <div id="downloads"></div>
+
+    <script>
+        function createIcon(size) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#FF6B6B');
+            gradient.addColorStop(0.5, '#FF8E8E');
+            gradient.addColorStop(1, '#FFB3B3');
+            
+            // Draw rounded rectangle background
+            const radius = size * 0.25;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+            
+            // Draw heart
+            const heartSize = size * 0.4;
+            const centerX = size / 2;
+            const centerY = size / 2 - size * 0.05;
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            
+            // Heart shape
+            const topCurveHeight = heartSize * 0.3;
+            ctx.moveTo(centerX, centerY + topCurveHeight);
+            
+            // Left side of heart
+            ctx.bezierCurveTo(
+                centerX - heartSize / 2, centerY - topCurveHeight,
+                centerX - heartSize, centerY + topCurveHeight / 3,
+                centerX, centerY + heartSize
+            );
+            
+            // Right side of heart
+            ctx.bezierCurveTo(
+                centerX + heartSize, centerY + topCurveHeight / 3,
+                centerX + heartSize / 2, centerY - topCurveHeight,
+                centerX, centerY + topCurveHeight
+            );
+            
+            ctx.fill();
+            
+            // Add sparkles
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            const sparkleSize = size * 0.02;
+            
+            // Sparkle positions
+            const sparkles = [
+                {x: size * 0.2, y: size * 0.25},
+                {x: size * 0.8, y: size * 0.3},
+                {x: size * 0.15, y: size * 0.7},
+                {x: size * 0.85, y: size * 0.75}
+            ];
+            
+            sparkles.forEach(sparkle => {
+                ctx.beginPath();
+                ctx.arc(sparkle.x, sparkle.y, sparkleSize, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            
+            // Add text "BC"
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = `bold ${size * 0.12}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('BC', centerX, size * 0.85);
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        // Create icons of different sizes
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const downloads = document.getElementById('downloads');
+        
+        sizes.forEach(size => {
+            const dataUrl = createIcon(size);
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `icon-${size}x${size}.png`;
+            link.textContent = `Download ${size}x${size} icon`;
+            link.style.display = 'block';
+            link.style.margin = '10px 0';
+            downloads.appendChild(link);
+        });
+        
+        // Also create favicon
+        const faviconUrl = createIcon(32);
+        const faviconLink = document.createElement('a');
+        faviconLink.href = faviconUrl;
+        faviconLink.download = 'favicon.ico';
+        faviconLink.textContent = 'Download favicon (32x32)';
+        faviconLink.style.display = 'block';
+        faviconLink.style.margin = '10px 0';
+        downloads.appendChild(faviconLink);
+    </script>
+</body>
+</html>

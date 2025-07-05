@@ -64,6 +64,7 @@ export function LobbyProvider({ children }: { children: React.ReactNode }) {
         .insert({
           lobby_id: lobbyId,
           user_id: user.id,
+          status: 'waiting',
           joined_at: new Date().toISOString()
         })
 

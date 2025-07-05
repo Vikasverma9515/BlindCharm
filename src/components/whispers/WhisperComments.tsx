@@ -54,7 +54,7 @@ export function WhisperComments({ whisperId, onComment }: WhisperCommentsProps) 
   };
 
   return (
-    <div className="bg-white p-4 space-y-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 space-y-4 transition-colors duration-300">
       {/* Comments list */}
       <div className="space-y-4">
         {comments.map((comment) => (
@@ -68,14 +68,14 @@ export function WhisperComments({ whisperId, onComment }: WhisperCommentsProps) 
             )}
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-medium">
+                <span className="font-medium text-gray-900 dark:text-gray-100">
                   {comment.is_anonymous ? 'Anonymous' : comment.user?.username}
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   {new Date(comment.created_at).toLocaleTimeString()}
                 </span>
               </div>
-              <p className="text-gray-700">{comment.content}</p>
+              <p className="text-gray-700 dark:text-gray-300">{comment.content}</p>
             </div>
           </div>
         ))}
@@ -87,8 +87,9 @@ export function WhisperComments({ whisperId, onComment }: WhisperCommentsProps) 
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write a comment..."
-          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300 text-base"
           rows={2}
+          style={{ fontSize: '16px' }}
         />
         <div className="flex items-center justify-between">
           <label className="flex items-center space-x-2">
@@ -98,11 +99,11 @@ export function WhisperComments({ whisperId, onComment }: WhisperCommentsProps) 
               onChange={(e) => setIsAnonymous(e.target.checked)}
               className="rounded text-blue-500"
             />
-            <span className="text-sm text-gray-700">Post anonymously</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Post anonymously</span>
           </label>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="px-4 py-2 bg-indigo-400 hover:bg-indigo-500 text-white rounded-lg transition-colors duration-300"
           >
             Comment
           </button>

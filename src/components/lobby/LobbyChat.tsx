@@ -3,17 +3,18 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Send, Loader2 } from 'lucide-react'
-import { Message, User } from '@/types/lobby'
+import { Send, Loader2, MessageCircle } from 'lucide-react'
+import { Message, User, LobbyParticipant } from '@/types/lobby'
 
 interface LobbyChatProps {
   lobbyId: string;
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   currentUser: User | null;
+  participants: LobbyParticipant[];
 }
 
-export default function LobbyChat({ lobbyId, messages, setMessages, currentUser }: LobbyChatProps) {
+export default function LobbyChat({ lobbyId, messages, setMessages, currentUser, participants }: LobbyChatProps) {
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -134,90 +135,128 @@ export default function LobbyChat({ lobbyId, messages, setMessages, currentUser 
 
   if (!currentUser) {
     return (
-      <div className="flex flex-col h-full bg-white items-center justify-center">
-        <p className="text-gray-500">Please log in to chat</p>
+      <div className="flex flex-col h-full bg-white dark:bg-gray-800 items-center justify-center transition-colors duration-300">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MessageCircle className="w-8 h-8 text-primary-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-neutral-850 dark:text-gray-100 mb-2">Please log in to chat</h3>
+          <p className="text-neutral-750 dark:text-gray-400 text-sm">You need to be logged in to participate in the group chat.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-500">
-        <h2 className="text-xl font-bold text-white">Lobby Chat</h2>
-      </div>
-
+    <div className="flex flex-col h-full bg-white dark:bg-gray-800 transition-colors duration-300">
+      {/* Messages Area */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-4"
+        className="flex-1 overflow-y-auto p-4 space-y-4"
       >
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.user_id === currentUser?.id ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            <div className={`max-w-[70%] flex ${
-              message.user_id === currentUser?.id ? 'flex-row-reverse' : 'flex-row'
-            } items-end gap-2`}>
-              {message.user.profile_picture ? (
-                <img 
-                  src={message.user.profile_picture}
-                  alt={message.user.username}
-                  className="w-8 h-8 rounded-full"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                  {message.user.username[0].toUpperCase()}
-                </div>
-              )}
-              
-              <div className={`rounded-lg p-3 ${
-                message.user_id === currentUser?.id 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-100 text-gray-900'
-              }`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-sm ${
-                    message.user_id === currentUser?.id 
-                      ? 'text-blue-100' 
-                      : 'text-gray-500'
-                  }`}>
-                    {message.user.username}
-                  </span>
-                  <span className={`text-xs ${
-                    message.user_id === currentUser?.id 
-                      ? 'text-blue-200' 
-                      : 'text-gray-400'
-                  }`}>
-                    {new Date(message.created_at).toLocaleTimeString()}
-                  </span>
-                </div>
-                <p className="break-words">{message.content}</p>
-              </div>
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-start pt-8 h-full text-center py-12">
+            <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mb-4">
+              <MessageCircle className="w-8 h-8 text-primary-500" />
             </div>
+            <h3 className="text-lg font-semibold text-neutral-850 dark:text-gray-100 mb-2">Start the conversation!</h3>
+            <p className="text-neutral-750 dark:text-gray-400 text-sm max-w-sm px-4">
+              Break the ice and get to know each other. The more you chat, the better your matches will be!
+            </p>
           </div>
-        ))}
+        ) : (
+          messages.map((message) => {
+            const isOwnMessage = message.user_id === currentUser?.id
+            const messageParticipant = participants.find(p => p.user_id === message.user_id)
+            const shouldBlur = messageParticipant?.blur_profile || false
+            return (
+              <div
+                key={message.id}
+                className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}
+              >
+                {/* Avatar */}
+                <div className="flex-shrink-0">
+                  {message.user.profile_picture ? (
+                    <img 
+                      src={message.user.profile_picture}
+                      alt={message.user.username}
+                      className={`w-8 h-8 rounded-full object-cover ring-2 ring-primary-200 transition-all duration-300 ${
+                        shouldBlur 
+                          ? 'blur-[1px] opacity-85' 
+                          : ''
+                      }`}
+                    />
+                  ) : (
+                    <div className={`w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-sm shadow-soft transition-all duration-300 ${
+                      shouldBlur 
+                        ? 'blur-[1px] opacity-85' 
+                        : ''
+                    }`}>
+                      {message.user.username[0]?.toUpperCase() || 'U'}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Message Content */}
+                <div className={`max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'} flex flex-col`}>
+                  {/* Username and Time */}
+                  <div className={`flex items-center gap-2 mb-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <span className="text-xs font-medium text-neutral-750 dark:text-gray-300">
+                      {isOwnMessage ? 'You' : message.user.username}
+                    </span>
+                    <span className="text-xs text-neutral-600 dark:text-gray-400">
+                      {new Date(message.created_at).toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </span>
+                  </div>
+                  
+                  {/* Message Bubble */}
+                  <div className={`rounded-2xl px-4 py-3 shadow-soft ${
+                    isOwnMessage 
+                      ? 'bg-primary-500 text-white rounded-br-md' 
+                      : 'bg-gray-100 dark:bg-gray-700 text-neutral-850 dark:text-gray-100 rounded-bl-md border border-gray-200 dark:border-gray-600'
+                  }`}>
+                    <p className="break-words leading-relaxed text-sm">{message.content}</p>
+                  </div>
+                </div>
+              </div>
+            )
+          })
+        )}
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="p-4 border-t bg-gray-50">
+      {/* Message Input */}
+      <div className="p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 transition-colors duration-300">
         {error && (
-          <div className="mb-2 text-sm text-red-600">{error}</div>
+          <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          </div>
         )}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={sending}
-          />
+        
+        <form onSubmit={sendMessage} className="flex gap-3">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type your message..."
+              className="w-full rounded-full border border-gray-300 dark:border-gray-600 px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 transition-all duration-200 text-base text-neutral-850 dark:text-gray-100 placeholder-neutral-600 dark:placeholder-gray-400"
+              disabled={sending}
+              maxLength={500}
+              style={{ fontSize: '16px' }}
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-neutral-500 dark:text-gray-400">
+              {newMessage.length}/500
+            </div>
+          </div>
+          
           <button
             type="submit"
             disabled={sending || !newMessage.trim()}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="w-12 h-12 bg-primary-500 text-white rounded-full hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-soft"
           >
             {sending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -225,8 +264,12 @@ export default function LobbyChat({ lobbyId, messages, setMessages, currentUser 
               <Send className="w-5 h-5" />
             )}
           </button>
-        </div>
-      </form>
+        </form>
+        
+        <p className="text-xs text-neutral-600 dark:text-gray-400 mt-2 text-center">
+          Be respectful and have fun! 💕
+        </p>
+      </div>
     </div>
   );
 }

@@ -1,642 +1,3 @@
-// // src/app/(protected)/lobby/[id]/page.tsx
-// 'use client'
-
-// import { use, useEffect, useState } from 'react'
-// import { useSession } from 'next-auth/react'
-// import { useRouter } from 'next/navigation'
-// import { supabase } from '@/lib/supabase'
-// import LobbyChat from '@/components/lobby/LobbyChat'
-// import { Loader2, Users } from 'lucide-react'
-// import { Message, LobbyParticipant, User } from '@/types/lobby'
-// import { MatchingService } from '@/lib/services/MatchingService'
-// import ErrorBoundary from '@/components/ErrorBoundary'
-// import { MatchSuccessModal } from '@/components/lobby/MatchSuccessModal'
-
-
-// interface PageProps {
-//   params: Promise<{ id: string }>;
-//     }
-
-// export default function LobbyPage({ params }: PageProps) {
-
-//   const resolvedParams = use(params); // Unwrap the promise
-//   const lobbyId = resolvedParams.id;
-//   const { data: session, status } = useSession()
-//   const router = useRouter()
-//   const [participants, setParticipants] = useState<LobbyParticipant[]>([])
-//   const [messages, setMessages] = useState<Message[]>([])
-//   const [nextMatchTime, setNextMatchTime] = useState<string>('')
-//   const [error, setError] = useState<string | null>(null)
-//   const [loading, setLoading] = useState(true)
-//   const [matchSuccess, setMatchSuccess] = useState<{ show: boolean; otherUser: string }>({
-//     show: false,
-//     otherUser: ''
-//   });
-
-//   const fetchParticipants = async () => {
-//     try {
-//       const { data, error } = await supabase
-//         .from('lobby_participants')
-//         .select(`
-//           id,
-//           lobby_id,
-//           user_id,
-//           status,
-//           joined_at,
-//           user:user_id (
-//             id,
-//             username,
-//             gender,
-//             profile_picture,
-//             bio,
-//             interests
-//           )
-//         `)
-//         .eq('lobby_id', lobbyId)
-//         .eq('status', 'waiting'); // Only get waiting participants
-
-//       if (error) throw error;
-
-//       const transformedParticipants = (data || []).map(p => {
-//         // Handle if p.user is an array (Supabase join can return array)
-//         const userObj = Array.isArray(p.user) ? p.user[0] : p.user;
-//         return {
-//           id: p.id,
-//           lobby_id: p.lobby_id,
-//           user_id: p.user_id,
-//           status: p.status,
-//           joined_at: p.joined_at,
-//           user: {
-//             id: userObj?.id,
-//             username: userObj?.username,
-//             gender: userObj?.gender,
-//             profile_picture: userObj?.profile_picture,
-//             bio: userObj?.bio,
-//             interests: userObj?.interests
-//           }
-//         }
-//       });
-//       setParticipants(transformedParticipants);
-//     } catch (err) {
-//       console.error('Error fetching participants:', err);
-//       setError('Failed to load participants');
-//     }
-//   };
-
-//   const fetchMessages = async () => {
-//     try {
-//       const { data, error } = await supabase
-//         .from('lobby_messages')
-//         .select(`
-//           id,
-//           content,
-//           user_id,
-//           lobby_id,
-//           created_at,
-//           user:user_id (
-//             id,
-//             username,
-//             gender,
-//             profile_picture
-//           )
-//         `)
-//         .eq('lobby_id', lobbyId)
-//         .order('created_at', { ascending: true });
-
-//       if (error) throw error;
-
-//       const transformedMessages: Message[] = (data || []).map((msg: any) => ({
-//         id: msg.id,
-//         content: msg.content,
-//         user_id: msg.user_id,
-//         lobby_id: msg.lobby_id,
-//         created_at: msg.created_at,
-//         user: {
-//           id: msg.user?.id || '',
-//           username: msg.user?.username || 'Unknown User',
-//           gender: msg.user?.gender || 'other',
-//           profile_picture: msg.user?.profile_picture || null,
-//         }
-//       }));
-
-//       setMessages(transformedMessages);
-//     } catch (err) {
-//       console.error('Error fetching messages:', err);
-//       setError('Failed to load messages');
-//     }
-//   };
-
-//   // Verify user is in lobby
-//   useEffect(() => {
-//     const checkLobbyAccess = async () => {
-//       if (!session?.user?.id) return;
-
-//       try {
-//         // Check if user is already matched
-//         const { data: participantData } = await supabase
-//           .from('lobby_participants')
-//           .select('status')
-//           .eq('lobby_id', lobbyId)
-//           .eq('user_id', session.user.id)
-//           .single();
-
-//         if (participantData?.status === 'matched') {
-//           // Find their match and redirect
-//           const { data: matchData } = await supabase
-//             .from('matches')
-//             .select('id')
-//             .eq('lobby_id', lobbyId)
-//             .or(`user1_id.eq.${session.user.id},user2_id.eq.${session.user.id}`)
-//             .maybeSingle();
-
-//           if (matchData) {
-//             router.push(`/matches/${matchData.id}`);
-//             return;
-//           }
-//         }
-
-//         // If not matched but trying to join
-//         if (!participantData || participantData.status !== 'waiting') {
-//           router.push('/lobbies');
-//         }
-//       } catch (err) {
-//         console.error('Error checking lobby access:', err);
-//         router.push('/lobbies');
-//       }
-//     };
-
-//     checkLobbyAccess();
-//   }, [session, lobbyId, router])
-
-//   useEffect(() => {
-//     if (!session?.user?.id || !lobbyId) return
-
-//     // Set up subscriptions with unique channel names
-//     const participantsSubscription = supabase
-//       .channel(`lobby_participants_${lobbyId}_${Date.now()}`)
-//       .on(
-//         'postgres_changes',
-//         {
-//           event: '*',
-//           schema: 'public',
-//           table: 'lobby_participants',
-//           filter: `lobby_id=eq.${lobbyId}`
-//         },
-//         () => fetchParticipants()
-//       )
-//       .subscribe()
-
-//     const messagesSubscription = supabase
-//       .channel(`lobby_messages_${lobbyId}_${Date.now()}`)
-//       .on(
-//         'postgres_changes',
-//         {
-//           event: 'INSERT',
-//           schema: 'public',
-//           table: 'lobby_messages',
-//           filter: `lobby_id=eq.${lobbyId}`
-//         },
-//         () => fetchMessages()
-//       )
-//       .subscribe()
-
-//     // Initial fetch
-//     Promise.all([
-//       fetchParticipants(),
-//       fetchMessages()
-//     ]).finally(() => setLoading(false))
-
-//     // Update match time
-//     const updateMatchTime = () => {
-//       const now = new Date()
-//       const hours = [11, 12, 15, 18, 21, 22
-//       ]
-//       const nextHour = hours.find(h => h > now.getHours()) || hours[0]
-//       const nextMatch = new Date(now)
-//       nextMatch.setHours(nextHour, 0, 0, 0)
-//       if (nextHour <= now.getHours()) {
-//         nextMatch.setDate(nextMatch.getDate() + 1)
-//       }
-//       setNextMatchTime(nextMatch.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
-//     }
-//     updateMatchTime()
-
-//     return () => {
-//       participantsSubscription.unsubscribe()
-//       messagesSubscription.unsubscribe()
-//     }
-//   }, [session?.user?.id, lobbyId])
-
-//   // Matching check useEffect
-//   useEffect(() => {
-//     if (!session?.user?.id || !lobbyId) return;
-
-//     const hours = [11, 12, 15, 18, 21, 22]; // Match with your matching hours
-
-//     const checkMatching = async () => {
-//       const now = new Date();
-//       const currentHour = now.getHours();
-//       const currentMinute = now.getMinutes();
-
-//       console.log('Checking matching:', {
-//         currentHour,
-//         currentMinute,
-//         isMatchingTime: hours.includes(currentHour) && currentMinute === 0,
-//         participants: participants.length
-//       });
-
-//       // For production, use the time check below.
-//       // For testing, use "if (true)" to always run matching.
-//       if (hours.includes(currentHour) && currentMinute === 0) {
-//         console.log('Starting matching process...');
-
-//         const result = await MatchingService.matchParticipants(lobbyId);
-//         console.log('Matching result:', result);
-
-//         if (result.success && result.matches && result.matches.length > 0) {
-//           const userMatch = result.matches.find(
-//             m => m.user1_id === session?.user?.id || m.user2_id === session?.user?.id
-//           );
-
-//           if (userMatch) {
-//             console.log('Match found:', userMatch);
-//             router.push(`/matches/${userMatch.id}`);
-//           }
-//         }
-//       }
-//     };
-
-//     // Check every minute (60000 ms) in production
-//     const timer = setInterval(checkMatching, 60000);
-
-//     // Run initial check
-//     checkMatching();
-
-//     return () => clearInterval(timer);
-//   }, [session?.user?.id, lobbyId, participants]);
-
-//   // Add the test message function
-//   const sendTestMessage = async () => {
-//     try {
-//       const { data, error } = await supabase
-//         .from('lobby_messages')
-//         .insert({
-//           lobby_id: lobbyId,
-//           user_id: session?.user?.id,
-//           content: 'Test message'
-//         })
-//         .select(`
-//           id,
-//           content,
-//           user_id,
-//           lobby_id,
-//           created_at,
-//           user:user_id (
-//             id,
-//             username,
-//             profile_picture,
-//             gender
-//           )
-//         `);
-
-//       if (error) throw error;
-//       console.log('Test message sent:', data);
-//       fetchMessages();
-//     } catch (err) {
-//       console.error('Error sending test message:', err);
-//     }
-//   };
-
-//   useEffect(() => {
-//     if (session?.user?.id && lobbyId) {
-//       // Uncomment to auto-send a test message on mount
-//       // sendTestMessage();
-//     }
-//   }, [session?.user?.id, lobbyId]);
-
-//   const currentUser: User | null = session?.user ? {
-//     id: session.user.id,
-//     username: session.user.name || session.user.email || 'Unknown',
-//     profile_picture: (session.user as any).image || null,
-//     gender: (session.user as any).gender || 'other'
-//   } : null;
-
-//   // Desired match hours (24-hour format)
-// const matchHours = [0, 3, 6, 9, 12, 15, 18, 21]; // 0 for midnight, 12 for noon, etc.
-
-// useEffect(() => {
-//   if (!session?.user?.id || !lobbyId) return;
-
-//   const checkAndMatch = async () => {
-//     const now = new Date();
-//     const hour = now.getHours();
-//     const minute = now.getMinutes();
-
-//     if (matchHours.includes(hour) && minute === 0) {
-//       // Call your matchmaking function here
-//       try {
-//         const result = await MatchingService.matchParticipants(lobbyId);
-//         if (result.success && result.matches && result.matches.length > 0) {
-//           const userMatch = result.matches.find(
-//             m => m.user1_id === session.user.id || m.user2_id === session.user.id
-//           );
-//           if (userMatch) {
-//             router.push(`/matches/${userMatch.id}`);
-//           }
-//         }
-//       } catch (err) {
-//         console.error('Error during automatic matching:', err);
-//       }
-//     }
-//   };
-
-//   // Check every minute
-//   const interval = setInterval(checkAndMatch, 60000);
-//   // Run once on mount
-//   checkAndMatch();
-
-//   return () => clearInterval(interval);
-// }, [session?.user?.id, lobbyId]);
-
-//   // Update your match trigger function
-//   const handleMatch = async () => {
-//     try {
-//       console.log('Starting manual match...');
-//       const result = await MatchingService.matchParticipants(lobbyId);
-
-//       if (result.success && result.matches && result.matches.length > 0) {
-//         const userMatch = result.matches.find(
-//           m => m.user1_id === session?.user?.id || m.user2_id === session?.user?.id
-//         );
-
-//         if (userMatch) {
-//           // Get the other user's name
-//           const getUsername = (user: any) =>
-//             Array.isArray(user) ? user[0]?.username : user?.username;
-
-//           const otherUser = userMatch.user1_id === session?.user?.id
-//             ? getUsername(userMatch.user2)
-//             : getUsername(userMatch.user1);
-
-//           // Show success modal
-//           setMatchSuccess({
-//             show: true,
-//             otherUser
-//           });
-
-//           // Redirect after modal is closed
-//           setTimeout(() => {
-//             router.push(`/matches/${userMatch.id}`);
-//           }, 3000);
-//         }
-//       } else {
-//         alert('No matches were created. Try again later.');
-//       }
-//     } catch (err) {
-//       console.error('Error in matching:', err);
-//       alert('Error during matching process. Please try again.');
-//     }
-//   };
-
-//   // In your LobbyPage useEffect, after fetching participants:
-//   useEffect(() => {
-//     if (!session?.user?.id || !lobbyId) return;
-
-//     const checkIfMatched = async () => {
-//       const { data: matchData } = await supabase
-//         .from('matches')
-//         .select('id, user1_id, user2_id, user1:user1_id(username), user2:user2_id(username)')
-//         .eq('lobby_id', lobbyId)
-//         .or(`user1_id.eq.${session.user.id},user2_id.eq.${session.user.id}`)
-//         .maybeSingle();
-
-//       if (matchData) {
-//         const getUsername = (user: any) =>
-//           Array.isArray(user) ? user[0]?.username : user?.username;
-//         const otherUser =
-//           matchData.user1_id === session.user.id
-//             ? getUsername(matchData.user2)
-//             : getUsername(matchData.user1);
-
-//         setMatchSuccess({ show: true, otherUser });
-//         setTimeout(() => {
-//           router.push(`/matches/${matchData.id}`);
-//         }, 3000);
-//       }
-//     };
-
-//     // Subscribe to lobby_participants or matches changes and call checkIfMatched
-//     // Or call checkIfMatched after every participant update
-//   }, [participants, session?.user?.id, lobbyId]);
-
-//   // New useEffect for participant status changes
-// useEffect(() => {
-//   if (!session?.user?.id || !lobbyId) return;
-
-//   // Subscribe to participant status changes
-//   const participantChannel = supabase
-//     .channel(`participant_status_${lobbyId}_${session.user.id}`)
-//     .on(
-//       'postgres_changes',
-//       {
-//         event: 'UPDATE',
-//         schema: 'public',
-//         table: 'lobby_participants',
-//         filter: `user_id=eq.${session.user.id}`,
-//       },
-//       async (payload) => {
-//         if (payload.new.status === 'matched') {
-//           // Fetch match details
-//           const { data: matchData, error } = await supabase
-//             .from('matches')
-//             .select(`
-//               id,
-//               user1_id,
-//               user2_id,
-//               user1:user1_id(username),
-//               user2:user2_id(username)
-//             `)
-//             .eq('lobby_id', lobbyId)
-//             .or(`user1_id.eq.${session.user.id},user2_id.eq.${session.user.id}`)
-//             .order('created_at', { ascending: false })
-//             .limit(1)
-//             .single();
-
-//           if (error) {
-//             console.error('Error fetching match after status update:', error);
-//             return;
-//           }
-
-//           if (matchData) {
-//             const getUsername = (user: any) =>
-//               Array.isArray(user) ? user[0]?.username : user?.username;
-
-//             const otherUser = matchData.user1_id === session.user.id
-//               ? getUsername(matchData.user2)
-//               : getUsername(matchData.user1);
-
-//             setMatchSuccess({
-//               show: true,
-//               otherUser
-//             });
-
-//             // Delay redirect to allow modal to be seen
-//             setTimeout(() => {
-//               router.push(`/matches/${matchData.id}`);
-//             }, 3000);
-//           }
-//         }
-//       }
-//     )
-//     .subscribe();
-
-//   return () => {
-//     participantChannel.unsubscribe();
-//   };
-// }, [session?.user?.id, lobbyId]);
-
-//   if (status === 'loading' || loading) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center">
-//         <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
-//       </div>
-//     )
-//   }
-
-//   if (!session) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center">
-//         <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-//           Please log in to access the lobby.
-//         </div>
-//       </div>
-//     )
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center">
-//         <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-//           {error}
-//         </div>
-//       </div>
-//     )
-//   }
-
-//   return (
-//     <ErrorBoundary>
-//       <div className="flex h-screen bg-gray-100">
-//         <div className="w-1/4 bg-white shadow-lg overflow-hidden">
-//           <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-500">
-//             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-//               <Users className="w-5 h-5" />
-//               Participants ({participants.length})
-//             </h2>
-//           </div>
-
-//           <div className="p-4 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
-//             {participants.map(participant => (
-//               <div
-//                 key={participant.id}
-//                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-//               >
-//                 {participant.user.profile_picture ? (
-//                   <img
-//                     src={participant.user.profile_picture}
-//                     alt={participant.user.username}
-//                     className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-//                   />
-//                 ) : (
-//                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white font-bold">
-//                     {participant.user.username[0].toUpperCase()}
-//                   </div>
-//                 )}
-//                 <div>
-//                   <span className="font-medium text-gray-900">{participant.user.username}</span>
-//                   <span className="text-sm text-gray-500 block">{participant.user.gender}</span>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-
-//           {/* Add test button */}
-//           <div className="p-4 border-t">
-//             <button
-//               onClick={sendTestMessage}
-//               className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-//             >
-//               Send Test Message
-//             </button>
-//           </div>
-
-//           <div className="p-4 border-t">
-//             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
-//               <h3 className="text-lg font-semibold text-gray-900">Next Match</h3>
-//               <p className="text-gray-700 mt-1">{nextMatchTime}</p>
-//             </div>
-//           </div>
-
-//           {/* Manual match trigger button (for debugging) */}
-//           <div className="p-4 border-t">
-//             <button
-//   onClick={handleMatch}
-//   className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-// >
-//   Trigger Match (Debug)
-// </button>
-//           </div>
-//         </div>
-
-//         <div className="flex-1">
-//           <LobbyChat
-//             lobbyId={lobbyId}
-//             messages={messages}
-//             setMessages={setMessages}
-//             currentUser={currentUser}
-//           />
-//         </div>
-
-//         {/* Debug info */}
-//         {/* <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg">
-//           <p>Lobby ID: {lobbyId}</p>
-//           <p>User ID: {session?.user?.id}</p>
-//           <p>Messages Count: {messages.length}</p>
-//           <p>Participants Count: {participants.length}</p>
-//           <button
-//             onClick={() => {
-//               console.log('Current State:', {
-//                 messages,
-//                 participants,
-//                 session,
-//                 lobbyId
-//               });
-//             }}
-//             className="mt-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-//           >
-//             Log Debug Info
-//           </button>
-//         </div> */}
-
-//         {/* Add the modal */}
-//         {matchSuccess.show && (
-//           <MatchSuccessModal
-//             otherUser={matchSuccess.otherUser}
-//             onClose={() => {
-//               setMatchSuccess({ show: false, otherUser: '' });
-//             }}
-//           />
-//         )}
-//       </div>
-//     </ErrorBoundary>
-//   );
-// }
-
-
-
-
-
-
-
 // src/app/(protected)/lobby/[id]/page.tsx
 'use client'
 
@@ -645,33 +6,291 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import LobbyChat from '@/components/lobby/LobbyChat'
-import { Loader2, Users } from 'lucide-react'
+import { Loader2, Users, Clock, Heart, MessageCircle, Info, ArrowLeft } from 'lucide-react'
 import { Message, LobbyParticipant, User } from '@/types/lobby'
 import { MatchingService } from '@/lib/services/MatchingService'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { MatchSuccessModal } from '@/components/lobby/MatchSuccessModal'
-
+import Navbar from '@/components/shared/Navbar'
+import { motion, AnimatePresence } from 'framer-motion'
+import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
+import LobbySelection from '@/components/lobby/LobbySelection'
+import LobbyCard from '@/components/lobby/LobbyCard'
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+interface Lobby {
+  id: string
+  theme: string
+  name: string
+  participant_count: number
+  status: string
+  created_at: string
+  ends_at: string
+  description?: string
+  lobby_participants?: any[]
+}
+// Extend window interface for match trigger tracking
+declare global {
+  interface Window {
+    matchTriggered?: string | null;
   }
+}
 
 export default function LobbyPage({ params }: PageProps) {
-
   const resolvedParams = use(params); // Unwrap the promise
   const lobbyId = resolvedParams.id;
   const { data: session, status } = useSession()
   const router = useRouter()
+  const [lobby, setLobby] = useState<Lobby | null>(null)
   const [participants, setParticipants] = useState<LobbyParticipant[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [nextMatchTime, setNextMatchTime] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showInfo, setShowInfo] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const [matchSuccess, setMatchSuccess] = useState<{ show: boolean; otherUser: string }>({
     show: false,
     otherUser: ''
   });
+  const [isMatching, setIsMatching] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [currentTime, setCurrentTime] = useState('');
+  const [blurMyProfile, setBlurMyProfile] = useState(false);
+
+  // Load blur preference from localStorage and database on component mount
+  useEffect(() => {
+    const loadBlurPreference = async () => {
+      // First load from localStorage for immediate UI update
+      const savedBlurPreference = localStorage.getItem('blurMyProfile');
+      if (savedBlurPreference !== null) {
+        setBlurMyProfile(JSON.parse(savedBlurPreference));
+      }
+
+      // Then sync with database if user is logged in
+      if (session?.user?.id && lobbyId) {
+        try {
+          const { data, error } = await supabase
+            .from('lobby_participants')
+            .select('blur_profile')
+            .eq('lobby_id', lobbyId)
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (!error && data) {
+            const dbBlurPreference = data.blur_profile || false;
+            setBlurMyProfile(dbBlurPreference);
+            localStorage.setItem('blurMyProfile', JSON.stringify(dbBlurPreference));
+          }
+        } catch (err) {
+          console.error('Error loading blur preference from database:', err);
+        }
+      }
+    };
+
+    loadBlurPreference();
+  }, [session?.user?.id, lobbyId]);
+
+  // Save blur preference to localStorage and database whenever it changes
+  const toggleBlurProfile = async (newValue: boolean) => {
+    console.log('🔄 Toggling blur profile to:', newValue);
+    setBlurMyProfile(newValue);
+    localStorage.setItem('blurMyProfile', JSON.stringify(newValue));
+    
+    // Add haptic feedback on mobile
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+
+    // Update the database
+    if (session?.user?.id) {
+      try {
+        console.log('📝 Updating database for user:', session.user.id, 'lobby:', lobbyId);
+        
+        // Simple direct update with better error handling
+        const { error, data, count } = await supabase
+          .from('lobby_participants')
+          .update({ blur_profile: newValue })
+          .eq('lobby_id', lobbyId)
+          .eq('user_id', session.user.id)
+          .select('*');
+
+        console.log('📊 Update result:', { error, data, count });
+
+        if (error) {
+          console.error('❌ Database update failed:', error);
+          // Revert the local state if database update fails
+          setBlurMyProfile(!newValue);
+          localStorage.setItem('blurMyProfile', JSON.stringify(!newValue));
+        } else if (data && data.length > 0) {
+          console.log('✅ Successfully updated blur preference:', data[0]);
+          // Force refresh participants to show the change immediately
+          setTimeout(() => {
+            fetchParticipants();
+          }, 100);
+        } else {
+          console.warn('⚠️ Update succeeded but no data returned');
+          // Still refresh participants
+          setTimeout(() => {
+            fetchParticipants();
+          }, 100);
+        }
+      } catch (err) {
+        console.error('💥 Error saving blur preference to database:', err);
+        // Revert the local state if there's an error
+        setBlurMyProfile(!newValue);
+        localStorage.setItem('blurMyProfile', JSON.stringify(!newValue));
+      }
+    }
+  };
+
+  // Handle match notification from broadcast
+  const handleMatchNotification = (payload: any) => {
+    const matchData = payload.payload;
+    
+    const isUser1 = matchData.user1Id === session?.user?.id;
+    const otherUsername = isUser1
+      ? matchData.user2Username
+      : matchData.user1Username;
+    
+    console.log('🔔 Received match notification:', matchData);
+    
+    setMatchSuccess({
+      show: true,
+      otherUser: otherUsername
+    });
+    
+    setIsRedirecting(true);
+    
+    // Remove from participants list locally
+    setParticipants(prev => 
+      prev.filter(p => 
+        p.user_id !== matchData.user1Id && 
+        p.user_id !== matchData.user2Id
+      )
+    );
+    
+    // Delay redirect
+    setTimeout(() => {
+      router.push(`/matches/${matchData.matchId}`);
+    }, 3000);
+  };
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Matchmaking function
+  const triggerMatching = async () => {
+    if (isMatching) return;
+    
+    setIsMatching(true);
+    try {
+      console.log('🎯 Triggering matching for lobby:', lobbyId);
+      const result = await MatchingService.matchParticipants(lobbyId);
+      
+      if (result.success && result.matches && result.matches.length > 0) {
+        console.log('✅ Matches created:', result.matches);
+        
+        // Check if current user got matched
+        const currentUserMatch = result.matches.find(
+          (match: any) => match.user1_id === session?.user?.id || match.user2_id === session?.user?.id
+        );
+        
+        if (currentUserMatch) {
+          // Get the other user's name
+          const otherUserId = currentUserMatch.user1_id === session?.user?.id 
+            ? currentUserMatch.user2_id 
+            : currentUserMatch.user1_id;
+          
+          const otherParticipant = participants.find(p => p.user_id === otherUserId);
+          const otherUserName = otherParticipant?.user?.username || 'Someone';
+          
+          // Show success modal
+          setMatchSuccess({
+            show: true,
+            otherUser: otherUserName
+          });
+          
+          // Redirect to match after a delay
+          setTimeout(() => {
+            router.push(`/matches/${currentUserMatch.id}`);
+          }, 3000);
+        }
+      } else {
+        console.log('No matches created');
+      }
+    } catch (error) {
+      console.error('Error during matching:', error);
+      setError('Failed to process matches');
+    } finally {
+      setIsMatching(false);
+    }
+  };
+
+  // Check for automatic matching at scheduled times
+  const checkMatchingTime = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentSecond = now.getSeconds();
+    
+    // Match times: 11:00, 12:00, 15:00, 18:00, 21:00, 22:00
+    const matchHours = [11, 12, 15, 18, 21, 22];
+    
+    // Trigger matching at the exact minute (within first 5 seconds for reliability)
+    if (matchHours.includes(currentHour) && currentMinute === 0 && currentSecond <= 5) {
+      const timeKey = `${currentHour}:${currentMinute}`;
+      
+      // Prevent multiple triggers in the same minute
+      if (!window.matchTriggered || window.matchTriggered !== timeKey) {
+        window.matchTriggered = timeKey;
+        console.log('🕐 Automatic matching triggered at:', `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}:${currentSecond.toString().padStart(2, '0')}`);
+        console.log('📊 Current participants:', participants.length);
+        console.log('🎯 Lobby ID:', lobbyId);
+        
+        if (participants.length >= 2) {
+          triggerMatching();
+        } else {
+          console.log('⚠️ Not enough participants for matching (need at least 2)');
+        }
+        
+        // Clear the trigger flag after 10 seconds
+        setTimeout(() => {
+          if (window.matchTriggered === timeKey) {
+            window.matchTriggered = null;
+          }
+        }, 10000);
+      }
+    }
+  };
+
+  const fetchLobby = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('lobbies')
+        .select('id, theme, name, participant_count, status, created_at, ends_at, description')
+        .eq('id', lobbyId)
+        .single();
+
+      if (error) throw error;
+      setLobby(data);
+    } catch (err) {
+      console.error('Error fetching lobby:', err);
+      setError('Failed to load lobby information');
+    }
+  };
 
   const fetchParticipants = async () => {
     try {
@@ -683,6 +302,7 @@ export default function LobbyPage({ params }: PageProps) {
           user_id,
           status,
           joined_at,
+          blur_profile,
           user:user_id (
             id,
             username,
@@ -706,6 +326,7 @@ export default function LobbyPage({ params }: PageProps) {
           user_id: p.user_id,
           status: p.status,
           joined_at: p.joined_at,
+          blur_profile: p.blur_profile || false,
           user: {
             id: userObj?.id,
             username: userObj?.username,
@@ -797,11 +418,11 @@ export default function LobbyPage({ params }: PageProps) {
 
         // If not matched but trying to join
         if (!participantData || participantData.status !== 'waiting') {
-          router.push('/lobbies');
+          router.push('/lobby');
         }
       } catch (err) {
         console.error('Error checking lobby access:', err);
-        router.push('/lobbies');
+        router.push('/lobby');
       }
     };
 
@@ -840,122 +461,115 @@ export default function LobbyPage({ params }: PageProps) {
       )
       .subscribe()
 
+    // Listen for match notifications - we'll check both user1_id and user2_id
+    const matchSubscription = supabase
+      .channel(`matches_${session.user.id}_${Date.now()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'matches'
+        },
+        async (payload) => {
+          console.log('🎉 Match notification received:', payload);
+          const match = payload.new;
+          
+          // Check if this match involves the current user
+          if (match.user1_id === session.user.id || match.user2_id === session.user.id) {
+            // Get the other user's info
+            const otherUserId = match.user1_id === session.user.id ? match.user2_id : match.user1_id;
+            const otherParticipant = participants.find(p => p.user_id === otherUserId);
+            const otherUserName = otherParticipant?.user?.username || 'Someone';
+            
+            // Show success modal
+            setMatchSuccess({
+              show: true,
+              otherUser: otherUserName
+            });
+            
+            // Redirect after delay
+            setTimeout(() => {
+              router.push(`/matches/${match.id}`);
+            }, 3000);
+          }
+        }
+      )
+      .subscribe()
+
     // Initial fetch
     Promise.all([
+      fetchLobby(),
       fetchParticipants(),
       fetchMessages()
     ]).finally(() => setLoading(false))
 
-    // Update match time
+    // Update match time and current time
     const updateMatchTime = () => {
-      const now = new Date();
-      const hours = [11, 12, 15, 18, 21, 22];
-      const nextHour = hours.find(h => h > now.getHours()) || hours[0];
-      const nextMatch = new Date(now);
-      nextMatch.setHours(nextHour, 0, 0, 0);
+      const now = new Date()
+      const hours = [11, 12, 15, 18, 21, 22]
+      const nextHour = hours.find(h => h > now.getHours()) || hours[0]
+      const nextMatch = new Date(now)
+      nextMatch.setHours(nextHour, 0, 0, 0)
       if (nextHour <= now.getHours()) {
-        nextMatch.setDate(nextMatch.getDate() + 1);
+        nextMatch.setDate(nextMatch.getDate() + 1)
       }
-      const formattedTime = nextMatch.toLocaleTimeString('en-GB', {
-        hour: '2-digit',
+      // Use consistent 24-hour format
+      const timeString = `${nextHour.toString().padStart(2, '0')}:00`
+      setNextMatchTime(timeString)
+      
+      // Update current time
+      const currentTimeString = now.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
         minute: '2-digit',
-        hour12: false
-      });
-      setNextMatchTime(formattedTime);
+        second: '2-digit'
+      })
+      setCurrentTime(currentTimeString)
     }
     updateMatchTime()
+
+    // Set up automatic matching timer (check every second)
+    const matchingTimer = setInterval(checkMatchingTime, 1000);
+
+    // Update match time every second for real-time display
+    const timeUpdateTimer = setInterval(updateMatchTime, 1000);
 
     return () => {
       participantsSubscription.unsubscribe()
       messagesSubscription.unsubscribe()
+      matchSubscription.unsubscribe()
+      clearInterval(matchingTimer)
+      clearInterval(timeUpdateTimer)
     }
   }, [session?.user?.id, lobbyId])
 
-  // Matching check useEffect
+  // Broadcast subscription for match notifications
   useEffect(() => {
     if (!session?.user?.id || !lobbyId) return;
-
-    const hours = [11, 12, 15, 18, 21, 22]; // Match with your matching hours
-
-    const checkMatching = async () => {
-      const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-
-      console.log('Checking matching:', {
-        currentHour,
-        currentMinute,
-        isMatchingTime: hours.includes(currentHour) && currentMinute === 0,
-        participants: participants.length
+    
+    const channelName = `match_notifications_${session.user.id}`;
+    console.log('🔗 Subscribing to broadcast channel:', channelName);
+    
+    const matchChannel = supabase
+      .channel(channelName)
+      .on(
+        'broadcast',
+        { event: 'match_success' },
+        handleMatchNotification
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`✅ Subscribed to ${channelName}`);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error(`❌ Error subscribing to ${channelName}`);
+        }
       });
 
-      // For production, use the time check below.
-      // For testing, use "if (true)" to always run matching.
-      if (hours.includes(currentHour) && currentMinute === 0) {
-        console.log('Starting matching process...');
-
-        const result = await MatchingService.matchParticipants(lobbyId);
-        console.log('Matching result:', result);
-
-        if (result.success && result.matches && result.matches.length > 0) {
-          const userMatch = result.matches.find(
-            m => m.user1_id === session?.user?.id || m.user2_id === session?.user?.id
-          );
-
-          if (userMatch) {
-            console.log('Match found:', userMatch);
-            router.push(`/matches/${userMatch.id}`);
-          }
-        }
-      }
+    return () => {
+      console.log('🔌 Unsubscribing from broadcast channel:', channelName);
+      matchChannel.unsubscribe();
     };
-
-    // Check every minute (60000 ms) in production
-    const timer = setInterval(checkMatching, 60000);
-
-    // Run initial check
-    checkMatching();
-
-    return () => clearInterval(timer);
-  }, [session?.user?.id, lobbyId, participants]);
-
-  // Add the test message function
-  const sendTestMessage = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('lobby_messages')
-        .insert({
-          lobby_id: lobbyId,
-          user_id: session?.user?.id,
-          content: 'Test message'
-        })
-        .select(`
-          id,
-          content,
-          user_id,
-          lobby_id,
-          created_at,
-          user:user_id (
-            id,
-            username,
-            profile_picture,
-            gender
-          )
-        `);
-
-      if (error) throw error;
-      console.log('Test message sent:', data);
-      fetchMessages();
-    } catch (err) {
-      console.error('Error sending test message:', err);
-    }
-  };
-
-  useEffect(() => {
-    if (session?.user?.id && lobbyId) {
-      // Uncomment to auto-send a test message on mount
-      // sendTestMessage();
-    }
   }, [session?.user?.id, lobbyId]);
 
   const currentUser: User | null = session?.user ? {
@@ -965,721 +579,498 @@ export default function LobbyPage({ params }: PageProps) {
     gender: (session.user as any).gender || 'other'
   } : null;
 
-  // Desired match hours (24-hour format)
-const matchHours = [0, 3, 6,7,8, 9, 12, 15, 18, 21, 24]; // 0 for midnight, 12 for noon, etc.
-
-useEffect(() => {
-  if (!session?.user?.id || !lobbyId) return;
-
-  const checkAndMatch = async () => {
-    const now = new Date();
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-
-    if (matchHours.includes(hour) && minute === 0) {
-      // Call your matchmaking function here
-      try {
-        const result = await MatchingService.matchParticipants(lobbyId);
-        if (result.success && result.matches && result.matches.length > 0) {
-          const userMatch = result.matches.find(
-            m => m.user1_id === session.user.id || m.user2_id === session.user.id
-          );
-          if (userMatch) {
-            router.push(`/matches/${userMatch.id}`);
-          }
-        }
-      } catch (err) {
-        console.error('Error during automatic matching:', err);
-      }
-    }
-  };
-
-  // Check every minute
-  const interval = setInterval(checkAndMatch, 60000);
-  // Run once on mount
-  checkAndMatch();
-
-  return () => clearInterval(interval);
-}, [session?.user?.id, lobbyId]);
-
-  // Update your match trigger function
-  // const handleMatch = async () => {
-  //   try {
-  //     console.log('Starting manual match...');
-  //     const result = await MatchingService.matchParticipants(lobbyId);
-
-  //     if (result.success && result.matches && result.matches.length > 0) {
-  //       const userMatch = result.matches.find(
-  //         m => m.user1_id === session?.user?.id && m.user2_id === session?.user?.id
-  //       );
-
-  //       if (userMatch) {
-  //         const otherUserId = userMatch.user1_id === session?.user?.id 
-  //           ? userMatch.user2_id 
-  //           : userMatch.user1_id;
-
-  //         // Remove both matched users from lobby_participants table
-  //         await supabase
-  //           .from('lobby_participants')
-  //           .delete()
-  //           .eq('lobby_id', lobbyId)
-  //           .in('user_id', [userMatch.user1_id, userMatch.user2_id]);
-
-  //         await handleMatchSuccess(userMatch.id, otherUserId);
-  //       }
-  //     } else {
-  //       alert('No matches were created. Try again later.');
-  //     }
-  //   } catch (err) {
-  //     console.error('Error in matching:', err);
-  //     alert('Error during matching process. Please try again.');
-  //   }
-  // };
-  // Update handleMatch function with time restrictions
-  const handleMatch = async () => {
-    try {
-      // Check if it's a valid matching time (DISABLED FOR DEBUGGING)
-      // const now = new Date();
-      // const currentHour = now.getHours();
-      // const matchingHours = [11, 12, 15, 18, 21, 22]; // Valid matching hours
-      
-      // if (!matchingHours.includes(currentHour)) {
-      //   alert(`Matching is only available at: ${matchingHours.join(', ')}:00. Current time: ${currentHour}:${now.getMinutes().toString().padStart(2, '0')}`);
-      //   return;
-      // }
-      
-      console.log('Starting manual match...');
-      console.log('Current participants:', participants.length);
-      
-      const result = await MatchingService.matchParticipants(lobbyId);
-      console.log('Matching result:', result);
-      
-      if (result.success) {
-        if (result.matches && result.matches.length > 0) {
-          console.log('✅ Matches created successfully! Checking if notifications were created...');
-          
-          // Check if notifications were created by the trigger and process them
-          setTimeout(async () => {
-            if (!session?.user?.id) return;
-            
-            const { data: notifications, error } = await supabase
-              .from('match_notifications')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .order('created_at', { ascending: false })
-              .limit(1);
-            
-            console.log('📋 Most recent notification for current user:', notifications, 'Error:', error);
-            
-            if (notifications && notifications.length > 0) {
-              const notification = notifications[0];
-              console.log('🔔 Processing notification:', notification);
-              
-              // Check if this notification was created recently (within last 10 seconds)
-              const notificationTime = new Date(notification.created_at);
-              const now = new Date();
-              const timeDiff = (now.getTime() - notificationTime.getTime()) / 1000;
-              
-              console.log('⏰ Notification age in seconds:', timeDiff);
-              
-              if (timeDiff > 10) {
-                console.log('⚠️ Notification is too old, skipping processing');
-                return;
-              }
-              
-              // Fetch match details
-              const { data: matchData, error: matchError } = await supabase
-                .from('matches')
-                .select('id, user1_id, user2_id')
-                .eq('id', notification.match_id)
-                .single();
-
-              console.log('🎯 Match data fetched:', matchData, 'Error:', matchError);
-
-              if (matchData) {
-                const isUser1 = matchData.user1_id === session.user.id;
-                const otherUserId = isUser1 ? matchData.user2_id : matchData.user1_id;
-                
-                console.log('👤 Other user ID:', otherUserId);
-
-                // Fetch the other user's details
-                const { data: otherUserData, error: userError } = await supabase
-                  .from('users')
-                  .select('username')
-                  .eq('id', otherUserId)
-                  .single();
-
-                console.log('👤 Other user data fetched:', otherUserData, 'Error:', userError);
-
-                // Show match success modal
-                setMatchSuccess({
-                  show: true,
-                  otherUser: otherUserData?.username || 'Unknown User'
-                });
-
-                // Mark notification as read
-                await supabase
-                  .from('match_notifications')
-                  .update({ notified: true })
-                  .eq('id', notification.id);
-
-                // Delay redirect
-                setTimeout(() => {
-                  router.push(`/matches/${matchData.id}`);
-                }, 3000);
-              }
-            }
-          }, 1000);
-          
-        } else {
-          alert('No matches were created. Need at least 2 participants (1 male, 1 female).');
-        }
-      } else {
-        alert('Matching failed. Please try again.');
-      }
-    } catch (err) {
-      console.error('Error in matching:', err);
-      alert('Error during matching process. Please try again.');
-    }
-  };
-useEffect(() => {
-  if (!session?.user?.id || !lobbyId) return;
-
-  const participantChannel = supabase
-    .channel(`lobby_participants_${lobbyId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'DELETE',
-        schema: 'public',
-        table: 'lobby_participants',
-        filter: `lobby_id=eq.${lobbyId}`
-      },
-      () => {
-        // Refresh participants list when anyone is removed
-        fetchParticipants();
-      }
-    )
-    .subscribe();
-
-  return () => {
-    participantChannel.unsubscribe();
-  };
-}, [session?.user?.id, lobbyId]);
-
-// Add this subscription for match notifications
-// In your LobbyPage component
-// Update the match notification handler
-const handleMatchNotification = (payload: any) => {
-  const matchData = payload.payload;
-  
-  const isUser1 = matchData.user1Id === session?.user?.id;
-  const otherUsername = isUser1
-    ? matchData.user2Username
-    : matchData.user1Username;
-
-  setMatchSuccess({
-    show: true,
-    otherUser: otherUsername
-  });
-  
-  setIsRedirecting(true);
-
-  // Remove from participants list locally
-  setParticipants(prev => 
-    prev.filter(p => 
-      p.user_id !== matchData.user1Id && 
-      p.user_id !== matchData.user2Id
-    )
-  );
-
-  // Delay redirect
-  setTimeout(() => {
-    router.push(`/matches/${matchData.matchId}`);
-  }, 3000);
-};
-
-// Use this in your JSX
-{isRedirecting && (
-  <div className="fixed inset-0 bg-black bg-opacity-30 z-40" />
-)}
-
-{matchSuccess.show && (
-  <MatchSuccessModal
-    otherUser={matchSuccess.otherUser}
-    onClose={() => {
-      setMatchSuccess({ show: false, otherUser: '' });
-      setIsRedirecting(false);
-    }}
-  />
-)}
-
-
-// Add broadcast listener for match notifications
-// Add this useEffect to listen for notifications
-useEffect(() => {
-  if (!session?.user?.id || !lobbyId) return;
-
-  const notificationChannel = supabase
-    .channel('match_notifications')
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'match_notifications',
-        filter: `user_id=eq.${session?.user?.id}`
-      },
-      async (payload) => {
-        console.log('🔔 Match notification received:', payload);
-        const notification = payload.new;
-        console.log('📋 Notification data:', notification);
-        
-        // Fetch match details first
-        const { data: matchData, error: matchError } = await supabase
-          .from('matches')
-          .select('id, user1_id, user2_id')
-          .eq('id', notification.match_id)
-          .single();
-
-        console.log('🎯 Match data fetched:', matchData, 'Error:', matchError);
-
-        if (matchData && session?.user?.id) {
-          const isUser1 = matchData.user1_id === session.user.id;
-          const otherUserId = isUser1 ? matchData.user2_id : matchData.user1_id;
-          
-          console.log('👤 Other user ID:', otherUserId);
-
-          // Fetch the other user's details separately
-          const { data: otherUserData, error: userError } = await supabase
-            .from('users')
-            .select('username')
-            .eq('id', otherUserId)
-            .single();
-
-          console.log('👤 Other user data fetched:', otherUserData, 'Error:', userError);
-
-          const otherUserObj = otherUserData;
-
-          // Show match success modal
-          setMatchSuccess({
-            show: true,
-            otherUser: otherUserObj?.username || 'Unknown User'
-          });
-
-          // Mark notification as read
-          await supabase
-            .from('match_notifications')
-            .update({ notified: true })
-            .eq('id', notification.id);
-
-          // Delay redirect
-          setTimeout(() => {
-            router.push(`/matches/${matchData.id}`);
-          }, 3000);
-        }
-      }
-    )
-    .subscribe((status) => {
-      console.log('🔗 Match notification subscription status:', status);
-      if (status === 'SUBSCRIBED') {
-        console.log('✅ Successfully subscribed to match notifications for user:', session?.user?.id);
-      }
-    });
-
-  return () => {
-    console.log('🔌 Unsubscribing from match notifications');
-    notificationChannel.unsubscribe();
-  };
-}, [session?.user?.id, lobbyId]);
-
-// Fallback: Periodic check for new notifications (in case real-time doesn't work)
-useEffect(() => {
-  if (!session?.user?.id || !lobbyId) return;
-
-  const checkForNewNotifications = async () => {
-    try {
-      const { data: notifications, error } = await supabase
-        .from('match_notifications')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .eq('notified', false)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        console.error('Error checking for notifications:', error);
-        return;
-      }
-
-      if (notifications && notifications.length > 0) {
-        const notification = notifications[0];
-        console.log('🔔 Found unprocessed notification via periodic check:', notification);
-        
-        // Check if this notification is recent (within last 10 seconds)
-        const notificationTime = new Date(notification.created_at);
-        const now = new Date();
-        const timeDiff = (now.getTime() - notificationTime.getTime()) / 1000;
-        
-        if (timeDiff <= 10) {
-          console.log('⏰ Processing recent notification via fallback mechanism');
-          
-          // Fetch match details
-          const { data: matchData, error: matchError } = await supabase
-            .from('matches')
-            .select('id, user1_id, user2_id')
-            .eq('id', notification.match_id)
-            .single();
-
-          if (matchData) {
-            const isUser1 = matchData.user1_id === session.user.id;
-            const otherUserId = isUser1 ? matchData.user2_id : matchData.user1_id;
-            
-            // Fetch the other user's details
-            const { data: otherUserData, error: userError } = await supabase
-              .from('users')
-              .select('username')
-              .eq('id', otherUserId)
-              .single();
-
-            // Show match success modal
-            setMatchSuccess({
-              show: true,
-              otherUser: otherUserData?.username || 'Unknown User'
-            });
-
-            // Mark notification as read
-            await supabase
-              .from('match_notifications')
-              .update({ notified: true })
-              .eq('id', notification.id);
-
-            // Delay redirect
-            setTimeout(() => {
-              router.push(`/matches/${matchData.id}`);
-            }, 3000);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error in periodic notification check:', error);
-    }
-  };
-
-  // Check immediately and then every 5 seconds
-  checkForNewNotifications();
-  const interval = setInterval(checkForNewNotifications, 5000);
-
-  return () => clearInterval(interval);
-}, [session?.user?.id, lobbyId, router]);
-
-// Automatic matching at specific times
-useEffect(() => {
-  if (!session?.user?.id || !lobbyId) return;
-
-  // const matchingHours = [11, 12, 15, 18, 21, 22]; // Match with your matching hours
-  const matchingHours = [0, 3, 6,7,8, 9, 12, 15, 18, 21, 24]; // Match with your matching hours
-  
-
-  const checkAndMatch = async () => {
-    const now = new Date();
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-
-    console.log('Checking automatic matching:', {
-      currentHour: hour,
-      currentMinute: minute,
-      isMatchingTime: matchingHours.includes(hour) && minute === 0,
-      participants: participants.length
-    });
-
-    // Only match at the exact hour (minute 0) of matching hours
-    if (matchingHours.includes(hour) && minute === 0) {
-      console.log('Starting automatic matching process...');
-      
-      try {
-        const result = await MatchingService.matchParticipants(lobbyId);
-        console.log('Automatic matching result:', result);
-      } catch (error) {
-        console.error('Error in automatic matching:', error);
-      }
-    }
-  };
-
-  // Check every minute (60000 ms)
-  const timer = setInterval(checkAndMatch, 60000);
-
-  // Run initial check
-  checkAndMatch();
-
-  return () => clearInterval(timer);
-}, [session?.user?.id, lobbyId, participants.length]);
-
-
-
-//   useEffect(() => {
-//     if (!session?.user?.id || !lobbyId) return;
-
-//     const cleanupChannel = supabase
-//       .channel(`lobby_cleanup_${lobbyId}`)
-//       .on(
-//         'postgres_changes',
-//         {
-//           event: 'DELETE',
-//           schema: 'public',
-//           table: 'lobby_participants'
-//         },
-//         () => {
-//           fetchParticipants(); // Refresh participants list
-//         }
-//       )
-//       .subscribe();
-
-//     return () => {
-//       cleanupChannel.unsubscribe();
-//     };
-//   }, [session?.user?.id, lobbyId]);
-
-//   const handleMatchSuccess = async (matchId: string, otherUserId: string) => {
-//     try {
-//       // Fetch other user's details
-//       const { data: userData, error } = await supabase
-//         .from('users')
-//         .select('username')
-//         .eq('id', otherUserId)
-//         .single();
-
-//       if (error) {
-//         console.error('Error fetching other user:', error);
-//         return;
-//       }
-
-//       if (userData) {
-//         setMatchSuccess({
-//           show: true,
-//           otherUser: userData.username
-//         });
-
-//         // Remove from participants list locally
-//         setParticipants(prev => 
-//           prev.filter(p => p.user_id !== session?.user?.id)
-//         );
-
-//         // Delay redirect
-//         setTimeout(() => {
-//           router.push(`/matches/${matchId}`);
-//         }, 3000);
-//       }
-//     } catch (error) {
-//       console.error('Error handling match success:', error);
-//     }
-//   };
-
-  // New useEffect for match notifications
-// useEffect(() => {
-//   if (!session?.user?.id || !lobbyId) return;
-
-//   const matchChannel = supabase
-//     .channel(`match_notifications_${session.user.id}`)
-//     .on(
-//       'broadcast',
-//       { event: 'match_success' },
-//       async (payload) => {
-//         const matchData = payload.payload;
-        
-//         // Determine if current user is user1 or user2
-//         const isUser1 = matchData.user1Id === session.user.id;
-//         const otherUsername = isUser1 ? matchData.user2Username : matchData.user1Username;
-
-//         // Show match success modal
-//         setMatchSuccess({
-//           show: true,
-//           otherUser: otherUsername
-//         });
-
-//         // Remove both users from participants locally
-//         setParticipants(prev => 
-//           prev.filter(p => 
-//             p.user_id !== matchData.user1Id && 
-//             p.user_id !== matchData.user2Id
-//           )
-//         );
-
-//         // Delay redirect
-//         setTimeout(() => {
-//           router.push(`/matches/${matchData.matchId}`);
-//         }, 3000);
-//       }
-//     )
-//     .subscribe();
-
-//   return () => {
-//     matchChannel.unsubscribe();
-//   };
-// }, [session?.user?.id, lobbyId]);
-
-// Change the match notification channel to use a persistent, per-user global channel name
-useEffect(() => {
-  if (!session?.user?.id || !lobbyId) return;
-
-  const channelName = `match_notifications_${session.user.id}`;
-  const matchChannel = supabase
-    .channel(channelName)
-    .on(
-      'broadcast',
-      { event: 'match_success' },
-      handleMatchNotification
-    )
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        console.log(`Subscribed to ${channelName}`);
-      }
-    });
-
-  return () => {
-    matchChannel.unsubscribe();
-  };
-}, [session?.user?.id, lobbyId]);
-
-
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
-      </div>
-    )
-  }
-
-  if (!session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-          Please log in to access the lobby.
-        </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16  rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft animate-pulse">
+            <img className="h-10 w-auto" src="/logo2.png" alt="Logo" />
+            {/* <Loader2 className="w-8 h-8 animate-spin text-white" /> */}
+          </div>
+          <h2 className="text-xl font-semibold text-neutral-850">Loading lobby...</h2>
+          <p className="text-neutral-750">Preparing your chat experience</p>
+        </motion.div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-          {error}
-        </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft">
+            <Heart className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-xl font-semibold text-neutral-850">Oops!</h2>
+          <p className="text-neutral-750 mb-4">{error}</p>
+          <button
+            onClick={() => router.push('/lobby')}
+            className="bg-primary-500 text-white px-6 py-2 rounded-full hover:bg-primary-600 transition-colors"
+          >
+            Back to Lobby
+          </button>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <ErrorBoundary>
-      <div className="flex h-screen bg-gray-100">
-        <div className="w-1/4 bg-white shadow-lg overflow-hidden">
-          <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-500">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Participants ({participants.length})
-            </h2>
-          </div>
-
-          <div className="p-4 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
-            {participants.map(participant => (
-              <div
-                key={participant.id}
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                {participant.user.profile_picture ? (
-                  <img
-                    src={participant.user.profile_picture}
-                    alt={participant.user.username}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white font-bold">
-                    {participant.user.username[0].toUpperCase()}
-                  </div>
-                )}
+        <ErrorBoundary>
+    <>
+      <div className="min-h-screen bg-ambient-50 dark:bg-gray-900 transition-colors duration-300">
+        {/* Lobby Chat Header - Always visible */}
+        <div className="fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-800 backdrop-blur-md border-b border-gray-200 shadow-sm rounded-b-2xl">
+          {/* Mobile Header */}
+          {isMobile ? (
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => router.push('/lobby')}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-white" />
+                </button>
                 <div>
-                  <span className="font-medium text-gray-900">{participant.user.username}</span>
-                  <span className="text-sm text-gray-500 block">{participant.user.gender}</span>
+                  <h1 className="text-lg font-semibold text-neutral-850 dark:text-white">Lobby Chat</h1>
+                  <p className="text-xs text-neutral-750 dark:text-white/90">{participants.length} participants</p>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Add test button */}
-          <div className="p-4 border-t">
-            <button
-              onClick={sendTestMessage}
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Send Test Message
-            </button>
-          </div>
-
-          <div className="p-4 border-t">
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900">Next Match</h3>
-              <p className="text-gray-700 mt-1">{nextMatchTime}</p>
+              
+              <button
+                onClick={() => setShowInfo(!showInfo)}
+                className={`p-2 rounded-full transition-colors ${
+                  showInfo ? 'bg-primary-100 text-primary-600' : 'hover:bg-gray-100 text-gray-600'
+                }`}
+              >
+                <Info className="w-5 h-5 dark:text-white" />
+              </button>
             </div>
-          </div>
-
-          {/* Manual match trigger button (for debugging) */}
-          <div className="p-4 border-t">
-            <button
-  onClick={handleMatch}
-  className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
->
-  Trigger Match (Debug)
-</button>
-          </div>
+          ) : (
+            /* Desktop Header */
+            <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => router.push('/lobby')}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center shadow-soft">
+                    <Heart className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-semibold text-neutral-850">
+                      {lobby?.name ? `${lobby.name} Chat` : 'Lobby Chat'}
+                    </h1>
+                    <p className="text-sm text-neutral-750">Get to know each other before matching!</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-6 text-neutral-750">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span className="text-sm font-medium">{participants.length} online</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span className="text-sm font-medium">Next: {nextMatchTime}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-neutral-600">
+                  <span>Now: {currentTime}</span>
+                </div>
+                {/* Manual trigger for testing - only show if admin or in development */}
+                {(process.env.NODE_ENV === 'development' || session?.user?.email?.includes('admin')) && (
+                  <button
+                    onClick={triggerMatching}
+                    disabled={isMatching || participants.length < 2}
+                    className="px-3 py-1 text-xs bg-primary-500 text-white rounded-full hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isMatching ? 'Matching...' : 'Test Match'}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex-1">
-          <LobbyChat
-            lobbyId={lobbyId}
-            messages={messages}
-            setMessages={setMessages}
-            currentUser={currentUser}
-          />
-        </div>
+        {/* Main Content */}
+        <div className={`${isMobile ? 'pt-20 pb-20' : 'pt-20 pb-8'}`}>
+          {isMobile ? (
+            // Mobile Layout
+            <div className="h-[calc(100vh-160px)] px-0">
+              <AnimatePresence mode="wait">
+                {!showInfo ? (
+                  // Chat View
+                  <motion.div
+                    key="chat"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="h-full mx-4"
+                  >
+                    <div className="bg-white rounded-3xl shadow-soft border border-gray-100 h-full overflow-hidden flex flex-col">
+                      <LobbyChat 
+                        lobbyId={lobbyId}
+                        messages={messages}
+                        setMessages={setMessages}
+                        currentUser={currentUser}
+                        participants={participants}
+                      />
+                    </div>
+                  </motion.div>
+                ) : (
+                  // Info View
+                  <motion.div
+                    key="info"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="h-full mx-4"
+                  >
+                    <div className="bg-white rounded-3xl shadow-soft border border-gray-100 p-6 h-full overflow-hidden flex flex-col">
+                      <div className="flex items-center gap-3 mb-6">
+                        <Users className="w-6 h-6 text-primary-500" />
+                        <h2 className="text-xl font-semibold text-neutral-850">Participants ({participants.length})</h2>
+                      </div>
 
-        {/* Debug info */}
-        {/* <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg">
-          <p>Lobby ID: {lobbyId}</p>
-          <p>User ID: {session?.user?.id}</p>
-          <p>Messages Count: {messages.length}</p>
-          <p>Participants Count: {participants.length}</p>
-          <button
-            onClick={() => {
-              console.log('Current State:', {
-                messages,
-                participants,
-                session,
-                lobbyId
-              });
-            }}
-            className="mt-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-          >
-            Log Debug Info
-          </button>
-        </div> */}
+                      <div className="flex-1 overflow-y-auto min-h-0">
+                        <div className="space-y-3">
+                        {participants.map((participant) => (
+                          <motion.div
+                            key={participant.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100"
+                          >
+                            {participant.user?.profile_picture ? (
+                              <img 
+                                src={participant.user.profile_picture}
+                                alt={participant.user.username || 'User'}
+                                className={`w-12 h-12 rounded-full object-cover ring-2 ring-primary-200 transition-all duration-300 ${
+                                  participant.blur_profile 
+                                    ? 'blur-[1px] opacity-85' 
+                                    : ''
+                                }`}
+
+                              />
+                            ) : (
+                              <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold shadow-soft transition-all duration-300 ${
+                                participant.blur_profile 
+                                  ? 'blur-[1px] opacity-85' 
+                                  : ''
+                              }`}>
+                                {participant.user?.username?.[0]?.toUpperCase() || 'U'}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-neutral-850 truncate">
+                                  {participant.user?.username || 'Anonymous'}
+                                </p>
+                                {participant.blur_profile && (
+                                  <div className="flex items-center gap-1 bg-primary-100 text-primary-600 px-2 py-1 rounded-full text-xs">
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                    </svg>
+                                    <span>Private</span>
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-sm text-neutral-750">
+                                {participant.user?.gender === 'male' ? '♂️ Male' : participant.user?.gender === 'female' ? '♀️ Female' : '⚧️ Other'} 
+                                {' • '}Waiting for match...
+                              </p>
+                            </div>
+                          </motion.div>
+                        ))}
+
+                        {participants.length === 0 && (
+                          <div className="text-center py-12">
+                            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                            <p className="text-neutral-750 font-medium">No participants yet</p>
+                            <p className="text-neutral-650 text-sm">Be the first to join!</p>
+                          </div>
+                        )}
+                        </div>
+                      </div>
+
+                      {/* Privacy Settings */}
+                      <div className="flex-shrink-0 mt-6 pt-6 border-t border-gray-200">
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                blurMyProfile ? 'bg-primary-500' : 'bg-gray-500'
+                              }`}>
+                                {blurMyProfile ? (
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-neutral-850">Blur My Profile</p>
+                                <p className="text-xs text-neutral-650">Hide your profile picture for privacy</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => toggleBlurProfile(!blurMyProfile)}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 hover:scale-105 ${
+                                blurMyProfile ? 'bg-primary-500 shadow-lg' : 'bg-gray-300'
+                              }`}
+                            >
+                              <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-all duration-300 shadow-sm ${
+                                  blurMyProfile ? 'translate-x-6 scale-110' : 'translate-x-1'
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Next Match Info */}
+                      <div className="flex-shrink-0 mt-6 pt-6 border-t border-gray-200">
+                        <div className="text-center bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl p-4">
+                          <div className="flex items-center justify-center gap-2 mb-2">
+                            <Clock className="w-5 h-5 text-primary-500" />
+                            <span className="text-sm font-medium text-neutral-850">Next Match</span>
+                          </div>
+                          <p className="text-2xl font-bold text-primary-600">{nextMatchTime}</p>
+                          <p className="text-xs text-neutral-750 mt-1">
+                            Matches happen every few hours
+                          </p>
+                          
+                          {/* Test Match Button - Only show in development */}
+                          {process.env.NODE_ENV === 'development' && (
+                            <button
+                              onClick={triggerMatching}
+                              disabled={isMatching || participants.length < 2}
+                              className="mt-3 w-full bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                            >
+                              {isMatching ? (
+                                <div className="flex items-center justify-center gap-2">
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <span>Matching...</span>
+                                </div>
+                              ) : (
+                                'Test Match Now'
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            // Desktop Layout
+            <div className="max-w-7xl mx-auto px-6 ">
+              <div className="flex gap-8 h-[calc(100vh-90px)] ">
+                {/* Information Section - Left side */}
+                <div className="w-80 flex-shrink-0 ">
+                  <div className="bg-white rounded-3xl shadow-soft border border-gray-100 h-full flex flex-col overflow-hidden">
+                    {/* Header - Fixed at top */}
+                    <div className="p-6 flex-shrink-0 border-b border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <Users className="w-6 h-6 text-primary-500" />
+                        <h2 className="text-xl font-semibold text-neutral-850">Participants ({participants.length})</h2>
+                      </div>
+                    </div>
+
+                    {/* Scrollable participants list */}
+                    <div className="flex-1 overflow-y-auto min-h-0 ">
+                      <div className="p-6 space-y-3">
+                        {participants.map((participant) => (
+                          <motion.div
+                            key={participant.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-colors"
+                          >
+                            {participant.user?.profile_picture ? (
+                              <img 
+                                src={participant.user.profile_picture}
+                                alt={participant.user.username || 'User'}
+                                className={`w-12 h-12 rounded-full object-cover ring-2 ring-primary-200 transition-all duration-300 ${
+                                  participant.blur_profile 
+                                    ? 'blur-[1px] opacity-85' 
+                                    : ''
+                                }`}
+                              />
+                            ) : (
+                              <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold shadow-soft transition-all duration-300 ${
+                                participant.blur_profile 
+                                  ? 'blur-[1px] opacity-85' 
+                                  : ''
+                              }`}>
+                                {participant.user?.username?.[0]?.toUpperCase() || 'U'}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-neutral-850 truncate">
+                                  {participant.user?.username || 'Anonymous'}
+                                </p>
+                                {participant.blur_profile && (
+                                  <div className="flex items-center gap-1 bg-primary-100 text-primary-600 px-2 py-1 rounded-full text-xs">
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                    </svg>
+                                    <span>Private</span>
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-sm text-neutral-750">
+                                {participant.user?.gender === 'male' ? '♂️ Male' : participant.user?.gender === 'female' ? '♀️ Female' : '⚧️ Other'} 
+                                {' • '}Waiting for match...
+                              </p>
+                            </div>
+                          </motion.div>
+                        ))}
+
+                        {participants.length === 0 && (
+                          <div className="text-center py-12">
+                            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                            <p className="text-neutral-750 font-medium">No participants yet</p>
+                            <p className="text-neutral-650 text-sm">Be the first to join!</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Fixed bottom section with settings and match info */}
+                    <div className="flex-shrink-0 border-t border-gray-100">
+                      {/* Privacy Settings */}
+                      <div className="p-6">
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                blurMyProfile ? 'bg-primary-500' : 'bg-gray-500'
+                              }`}>
+                                {blurMyProfile ? (
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-neutral-850">Blur My Profile</p>
+                                <p className="text-xs text-neutral-650">Hide your profile picture for privacy</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => toggleBlurProfile(!blurMyProfile)}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 hover:scale-105 ${
+                                blurMyProfile ? 'bg-primary-500 shadow-lg' : 'bg-gray-300'
+                              }`}
+                            >
+                              <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-all duration-300 shadow-sm ${
+                                  blurMyProfile ? 'translate-x-6 scale-110' : 'translate-x-1'
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Next Match Info */}
+                      <div className="px-6 pb-6">
+                        <div className="text-center bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl p-4">
+                          <div className="flex items-center justify-center gap-2 mb-2">
+                            <Clock className="w-5 h-5 text-primary-500" />
+                            <span className="text-sm font-medium text-neutral-850">Next Match</span>
+                          </div>
+                          <p className="text-2xl font-bold text-primary-600">{nextMatchTime}</p>
+                          <p className="text-xs text-neutral-750 mt-1">
+                            Matches happen every few hours
+                          </p>
+                          
+                          {/* Test Match Button - Only show in development */}
+                          {process.env.NODE_ENV === 'development' && (
+                            <button
+                              onClick={triggerMatching}
+                              disabled={isMatching || participants.length < 2}
+                              className="mt-3 w-full bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                            >
+                              {isMatching ? (
+                                <div className="flex items-center justify-center gap-2">
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <span>Matching...</span>
+                                </div>
+                              ) : (
+                                'Test Match Now'
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chat Section - Right side */}
+                <div className="flex-1 min-w-0">
+                  <div className="bg-white rounded-3xl shadow-soft border border-gray-100 h-full overflow-hidden flex flex-col">
+                    <LobbyChat 
+                      lobbyId={lobbyId}
+                      messages={messages}
+                      setMessages={setMessages}
+                      currentUser={currentUser}
+                      participants={participants}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Redirecting overlay */}
         {isRedirecting && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 z-40" />
-        )}
-
-        {/* Add the modal */}
-        {matchSuccess.show && (
-          <MatchSuccessModal
-            otherUser={matchSuccess.otherUser}
-            onClose={() => {
-              setMatchSuccess({ show: false, otherUser: '' });
-              setIsRedirecting(false);
-            }}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-gradient-to-br from-primary-900/20 via-black/40 to-secondary-900/20 backdrop-blur-sm z-40"
           />
         )}
+
+        {/* Match Success Modal */}
+        <MatchSuccessModal 
+          isOpen={matchSuccess.show}
+          onClose={() => {
+            setMatchSuccess({ show: false, otherUser: '' });
+            setIsRedirecting(false);
+          }}
+          otherUserName={matchSuccess.otherUser}
+        />
       </div>
+      <SimpleBottomNav />
+    </>
     </ErrorBoundary>
-  );
+  )
 }

@@ -48,7 +48,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSend, onTyping }) 
           value={message}
           onChange={handleChange}
           placeholder="Type a message..."
-          className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 text-base"
+          style={{ fontSize: '16px' }}
         />
         <button
           type="submit"

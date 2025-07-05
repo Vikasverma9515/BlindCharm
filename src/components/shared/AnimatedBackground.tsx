@@ -14,7 +14,7 @@ export default function AnimatedBackground() {
         transition={{ duration: 1 }}
       >
         {/* Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-red-50/30 to-red-100/20" />
+        <div className="absolute inset-0 bg-red-50/30" />
         
         {/* Animated Circles */}
         <motion.div

@@ -124,7 +124,7 @@ export default function MatchChat({ matchId, currentUserId, otherUserId }: Match
   return (
     <div className="flex flex-col h-full">
       {/* Chat header */}
-      <div className="p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+      <div className="p-4 bg-purple-600 text-white">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">
             {revealed ? otherUser?.username : 'Anonymous Match'}
@@ -171,11 +171,12 @@ export default function MatchChat({ matchId, currentUserId, otherUserId }: Match
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 rounded-lg border p-2"
+            className="flex-1 rounded-lg border p-2 text-base"
+            style={{ fontSize: '16px' }}
           />
           <button
             type="submit"
-            className="bg-purple-500 text-white px-4 py-2 rounded-lg"
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
           >
             <Send className="w-5 h-5" />
           </button>

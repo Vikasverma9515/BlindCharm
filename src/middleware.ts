@@ -18,8 +18,12 @@ export default withAuth(
     const isAuthenticated = !!req.nextauth.token
     const isAuthPage = req.nextUrl.pathname.startsWith('/login') || 
                       req.nextUrl.pathname.startsWith('/register')
+    const isProfileSetup = req.nextUrl.pathname.startsWith('/profile/setup')
     const isProtectedPage = req.nextUrl.pathname.startsWith('/lobby') || 
-                          req.nextUrl.pathname.startsWith('/profile')
+                          req.nextUrl.pathname.startsWith('/profile') ||
+                          req.nextUrl.pathname.startsWith('/matches') ||
+                          req.nextUrl.pathname.startsWith('/whispers') ||
+                          req.nextUrl.pathname.startsWith('/chat')
 
     // If user is authenticated and tries to access auth pages (login/register)
     if (isAuthenticated && isAuthPage) {
@@ -54,5 +58,8 @@ export const config = {
     '/register',
     '/lobby/:path*',
     '/profile/:path*',
+    '/matches/:path*',
+    '/whispers/:path*',
+    '/chat/:path*'
   ]
 }

@@ -4,21 +4,21 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
+import Silk from '../ui/Silk'
 
 export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center">
-      {/* Background Elements */}
+      {/* Silk Background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-red-50/30 to-white/80" />
-        <Image
-          src="/images/hero-bg.jpg" // Add a romantic/elegant background image
-          alt="Background"
-          fill
-          className="object-cover opacity-20"
-          priority
+        <Silk
+          speed={5}
+          scale={1}
+          color="#7B7481"
+          noiseIntensity={1.5}
+          rotation={0}
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0)_0%,white_100%)]" />
+        <div className="absolute inset-0 bg-white/60" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -53,7 +53,7 @@ export default function HeroSection() {
               transition={{ delay: 0.4, duration: 0.8 }}
             >
               Find Your Perfect Match Through{' '}
-              <span className="text-red-600 bg-clip-text bg-gradient-to-r from-red-600 to-red-500">
+              <span className="text-red-600">
                 Meaningful Conversations
               </span>
             </motion.h1>

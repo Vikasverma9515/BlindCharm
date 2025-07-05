@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Host
+Host: https://blindcharm.com
+
+# Sitemaps
+Sitemap: https://blindcharm.com/sitemap.xml

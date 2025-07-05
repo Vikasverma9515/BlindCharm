@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Clock, Users } from 'lucide-react'
+import { Clock, Users, Heart, Coffee, Music, Book, Gamepad2, Camera, Palette, Dumbbell, Plus, ArrowRight, LogOut } from 'lucide-react'
 import { LobbyService } from '@/lib/services/LobbyService'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, CardAction } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface Lobby {
   id: string
@@ -26,6 +28,60 @@ interface LobbyParticipant {
   user_id: string
   status: string
 }
+
+// Theme configuration for lobby cards - Ultra minimal design
+const getThemeConfig = (theme: string) => {
+  const themeMap: Record<string, { icon: any; background: string; accent: string }> = {
+    'Dating': { 
+      icon: Heart, 
+      background: 'bg-gray-100 dark:bg-gray-700',
+      accent: 'gray'
+    },
+    'Coffee Chat': { 
+      icon: Coffee, 
+      background: 'bg-gray-100 dark:bg-gray-700',
+      accent: 'gray'
+    },
+    'Music Lovers': { 
+      icon: Music, 
+      background: 'bg-gray-100 dark:bg-gray-700',
+      accent: 'gray'
+    },
+    'Book Club': { 
+      icon: Book, 
+      background: 'bg-gray-100 dark:bg-gray-700',
+      accent: 'gray'
+    },
+    'Gaming': { 
+      icon: Gamepad2, 
+      background: 'bg-gray-100 dark:bg-gray-700',
+      accent: 'gray'
+    },
+    'Photography': { 
+      icon: Camera, 
+      background: 'bg-gray-100 dark:bg-gray-700',
+      accent: 'gray'
+    },
+    'Art & Design': { 
+      icon: Palette, 
+      background: 'bg-gray-100 dark:bg-gray-700',
+      accent: 'gray'
+    },
+    'Fitness': { 
+      icon: Dumbbell, 
+      background: 'bg-gray-100 dark:bg-gray-700',
+      accent: 'gray'
+    }
+  }
+  
+  return themeMap[theme] || { 
+    icon: Users, 
+    background: 'bg-gray-100 dark:bg-gray-700',
+    accent: 'gray'
+  }
+}
+
+
 
 export default function LobbySelection() {
   const { data: session } = useSession()
@@ -190,82 +246,140 @@ export default function LobbySelection() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6"
+        >
           {error}
-        </div>
+        </motion.div>
       )}
 
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-bold text-gray-900">Available Lobbies</h2>
-        <div className="flex items-center space-x-8">
-          <div className="flex items-center space-x-2">
-            <Clock className="h-5 w-5 text-gray-600" />
-            <span className="font-mono text-lg">{formatTime(timeLeft)}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Users className="h-5 w-5 text-gray-600" />
-            <span className="text-lg">{activeLobbies.length} active</span>
-          </div>
-        </div>
+
+
+      {/* Lobbies Grid - Modern Dating App Style */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {activeLobbies.map((lobby, index) => {
+          const themeConfig = getThemeConfig(lobby.theme)
+          const IconComponent = themeConfig.icon
+          
+          return (
+            <motion.div
+              key={lobby.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ y: -2, scale: 1.02 }}
+              className="w-full max-w-sm mx-auto"
+            >
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
+                
+                {/* Header with solid background */}
+                <div className={`${themeConfig.background} p-6 relative`}>
+                  {/* Status indicator */}
+                  {userJoinedLobbyId === lobby.id && (
+                    <div className="absolute top-4 right-4">
+                      <div className="w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
+                    </div>
+                  )}
+                  
+                  {/* Icon */}
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 rounded-2xl bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                      <IconComponent 
+                        size={28} 
+                        className="text-gray-600"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Theme name */}
+                  <div className="text-center">
+                    <h3 className="text-sm font-medium text-gray-700 mb-1">
+                      {lobby.theme}
+                    </h3>
+                    <div className="flex items-center justify-center space-x-1 text-gray-500">
+                      <Users size={14} />
+                      <span className="text-sm">{lobby.participant_count}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  <h4 className="font-semibold text-gray-900 text-lg mb-2 leading-tight">
+                    {lobby.name}
+                  </h4>
+                  
+                  <p className="text-gray-600 text-sm leading-relaxed mb-6 line-clamp-2">
+                    {lobby.description || 'Connect with Crazy People!'}
+                  </p>
+
+                  {/* Action button */}
+                  {userJoinedLobbyId === lobby.id ? (
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => router.push(`/lobby/${lobby.id}`)}
+                        disabled={loading === lobby.id}
+                        className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-2xl transition-colors duration-200 disabled:opacity-50 text-sm"
+                      >
+                        {loading === lobby.id ? (
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                          </div>
+                        ) : (
+                          'Enter'
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleLeaveLobby(lobby.id)}
+                        disabled={loading === lobby.id}
+                        className="w-12 h-12 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
+                      >
+                        <LogOut size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleJoinLobby(lobby.id)}
+                      disabled={loading === lobby.id || userJoinedLobbyId !== null}
+                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-2xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    >
+                      {loading === lobby.id ? (
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                          Joining...
+                        </div>
+                      ) : (
+                        'Join Lobby'
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )
+        })}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activeLobbies.map((lobby) => (
-          <motion.div
-            key={lobby.id}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="bg-white rounded-xl p-6 shadow-sm relative overflow-hidden"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">{lobby.name}</h3>
-              <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-gray-600" />
-                <span className="text-gray-600">{lobby.participant_count}</span>
-              </div>
-            </div>
-
-            <p className="text-gray-600 mb-4">{lobby.description}</p>
-
-            <div className="flex justify-end">
-              {userJoinedLobbyId === lobby.id ? (
-                <>
-                  <button
-                    onClick={() => router.push(`/lobby/${lobby.id}`)}
-                    className="mr-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                    disabled={loading === lobby.id}
-                  >
-                    Enter Lobby
-                  </button>
-                  <button
-                    onClick={() => handleLeaveLobby(lobby.id)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                    disabled={loading === lobby.id}
-                  >
-                    Leave
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => handleJoinLobby(lobby.id)}
-                  className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-                  disabled={loading === lobby.id || userJoinedLobbyId !== null}
-                >
-                  Join
-                </button>
-              )}
-            </div>
-
-            {loading === lobby.id && (
-              <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
-                <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full" />
-              </div>
-            )}
-          </motion.div>
-        ))}
-      </div>
+      {/* Empty State - Modern Minimal */}
+      {activeLobbies.length === 0 && !error && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-20"
+        >
+          <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <Users className="h-10 w-10 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">No lobbies yet</h3>
+          <p className="text-gray-500 max-w-sm mx-auto leading-relaxed">
+            Be the first to start a conversation. New lobbies are created regularly.
+          </p>
+        </motion.div>
+      )}
     </div>
   )
 }
