@@ -735,7 +735,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => router.push('/lobby')}
+            onClick={() => router.push('/matches')}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -852,6 +852,8 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
             <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
             <p className="text-gray-500 text-sm max-w-xs">
               Say hello to start the conversation!
+              <br />
+              Talk safely and respectfully.
             </p>
           </div>
         ) : (

@@ -4,20 +4,20 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import Silk from '../ui/Silk'
+// import Silk from '../ui/Silk'
 
 export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center">
       {/* Silk Background */}
       <div className="absolute inset-0 -z-10">
-        <Silk
+        {/* <Silk
           speed={5}
           scale={1}
           color="#7B7481"
           noiseIntensity={1.5}
           rotation={0}
-        />
+        /> */}
         <div className="absolute inset-0 bg-white/60" />
       </div>
 
@@ -43,17 +43,17 @@ export default function HeroSection() {
                 height={60}
                 className="mr-4"
               />
-              <span className="text-3xl font-bold text-red-600">BlindCharm</span>
+              <span className="text-3xl font-bold blindcharm-logo">BlindCharm</span>
             </motion.div>
 
             <motion.h1
-              className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
+              className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight blindcharm-heading"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
             >
               Find Your Perfect Match Through{' '}
-              <span className="text-red-600">
+              <span className="romantic-text">
                 Meaningful Conversations
               </span>
             </motion.h1>

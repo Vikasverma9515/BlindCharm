@@ -1,14 +1,45 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+
 /* @import url('https://fonts.googleapis.com/css2?family=Boldones:wght@400;700&display=swap'); */
+/* @import url('https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Boldonse&display=swap'); */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
+  
+  /* Custom Font Variables */
+  /* --font-heading: var(--font-playfair);
+  --font-brand: var(--font-dancing); */
+  /* Primary BlindCharm Branding Fonts */
+  --font-blindcharm-brand: var(--font-boldonse);
+  --font-blindcharm-logo: var(--font-righteous);
+  --font-blindcharm-accent: var(--font-special-gothic);
+  --font-blindcharm-tech: var(--font-bitcount);
+  --font-ui: var(--font-poppins);
+  --font-body: var(--font-nunito);
+  --font-friendly: var(--font-quicksand);
+  --font-comfort: var(--font-comfortaa);
+  --font-elegant: var(--font-raleway);
+  --font-bold: var(--font-montserrat);
+
+   /* Semantic Font Assignments */
+  --font-heading: var(--font-outfit);
+  --font-brand: var(--font-boldonse);
+   --font-ui: var(--font-poppins);
+   --font-body: var(--font-nunito);
+  --font-friendly: var(--font-fredoka);
+   --font-comfort: var(--font-comfortaa);
+   --font-elegant: var(--font-raleway);
+   --font-bold: var(--font-montserrat);
+  --font-script: var(--font-caveat);
+  --font-playful: var(--font-pacifico);
+  --font-handwritten: var(--font-kalam);
+  --font-futuristic: var(--font-orbitron);
+  --font-modern: var(--font-space-grotesk);
   
   /* Modern Rose/Pink Color Scheme - Light Mode */
   --color-primary-50: #FFF1F2;
@@ -111,32 +142,20 @@
     background: #FEF2F2;
   }
 
-  /* Dark theme backgrounds */
-  .dark .bg-app-gradient {
-    background: #1F2937;
-  }
-  
-  .dark .bg-rose-gradient {
-    background: #374151;
-  }
+
 
   /* Custom utilities for dating app background */
   .bg-radial {
     background: #FEF2F2;
   }
   
-  .dark .bg-radial {
-    background: #374151;
-  }
+
 
   .bg-dating-gradient {
     background: #FDF2F8;
   }
 
-  /* Dark theme dating background */
-  .dark .bg-dating-gradient {
-    background: #374151;
-  }
+
 
   /* Modern glassmorphism effect */
   .glass {
@@ -145,11 +164,64 @@
     border: 1px solid rgba(255, 255, 255, 0.18);
   }
 
-  /* Dark theme glassmorphism */
-  .dark .glass {
-    background: rgba(31, 41, 55, 0.25);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(75, 85, 99, 0.18);
+
+
+  /* Custom Font Classes */
+  .font-brand {
+    font-family: var(--font-dancing);
+  }
+  
+  .font-heading {
+    font-family: var(--font-playfair);
+  }
+  
+  .font-ui {
+    font-family: var(--font-poppins);
+  }
+  
+  .font-body {
+    font-family: var(--font-nunito);
+  }
+  
+  .font-friendly {
+    font-family: var(--font-quicksand);
+  }
+  
+  .font-comfort {
+    font-family: var(--font-comfortaa);
+  }
+  
+  .font-elegant {
+    font-family: var(--font-raleway);
+  }
+  
+  .font-bold {
+    font-family: var(--font-montserrat);
+  }
+
+  /* BlindCharm Brand Styling */
+  .blindcharm-logo {
+    font-family: var(--font-dancing);
+    background: linear-gradient(135deg, #F43F5E, #E11D48, #BE123C);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(244, 63, 94, 0.3);
+  }
+  
+  .blindcharm-heading {
+    font-family: var(--font-playfair);
+    letter-spacing: -0.02em;
+  }
+  
+  .romantic-text {
+    font-family: var(--font-dancing);
+    color: #F43F5E;
+  }
+  
+  .elegant-text {
+    font-family: var(--font-raleway);
+    letter-spacing: 0.025em;
   }
 
   /* Floating animation for orbs */
@@ -245,19 +317,7 @@
   background: linear-gradient(135deg, #db2777, #dc2626);
 }
 
-/* Dark theme scrollbar */
-.dark ::-webkit-scrollbar-track {
-  background: #374151;
-}
 
-.dark ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #F43F5E, #E11D48);
-  border-radius: 4px;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #FB7185, #F43F5E);
-}
 
 
 

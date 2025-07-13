@@ -9,7 +9,7 @@ export default function AboutMePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
       <SimpleTopNav />
-      
+      <div className="pb-18 md:pb-0">
       <main className="pt-20 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -165,6 +165,7 @@ export default function AboutMePage() {
       </main>
 
       <Footer />
+      </div>
       <SimpleBottomNav />
     </div>
   )

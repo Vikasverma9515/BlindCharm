@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
 import LobbySelection from '@/components/lobby/LobbySelection'
 import LobbyCard from '@/components/lobby/LobbyCard'
+import { boldonse } from '@/app/fonts'
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -639,7 +640,7 @@ export default function LobbyPage({ params }: PageProps) {
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-white" />
                 </button>
                 <div>
-                  <h1 className="text-lg font-semibold text-neutral-850 dark:text-white">Lobby Chat</h1>
+                  <h1 className={` ${boldonse.className} text-sm font-semibold text-neutral-850 dark:text-white`}>{lobby?.name ? `${lobby.name} Chat` : 'Lobby Chat'}</h1>
                   <p className="text-xs text-neutral-750 dark:text-white/90">{participants.length} participants</p>
                 </div>
               </div>
@@ -704,10 +705,10 @@ export default function LobbyPage({ params }: PageProps) {
         </div>
 
         {/* Main Content */}
-        <div className={`${isMobile ? 'pt-20 pb-20' : 'pt-20 pb-8'}`}>
+        <div className={`${isMobile ? 'pt-[80px] pb-[5px] h-[100dvh]'  : 'pt-20 pb-8'} ` }>
           {isMobile ? (
             // Mobile Layout
-            <div className="h-[calc(100vh-160px)] px-0">
+            <div className="h-full relative ">
               <AnimatePresence mode="wait">
                 {!showInfo ? (
                   // Chat View
@@ -1069,7 +1070,7 @@ export default function LobbyPage({ params }: PageProps) {
           otherUserName={matchSuccess.otherUser}
         />
       </div>
-      <SimpleBottomNav />
+      {/* <SimpleBottomNav /> */}
     </>
     </ErrorBoundary>
   )

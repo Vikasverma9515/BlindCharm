@@ -148,17 +148,17 @@ export default function MatchesPage() {
               </button>
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-800 md:rounded-lg md:shadow-sm md:mx-4 md:mt-4 transition-colors duration-300">
-            {/* // <div className="hover:shadow-float bg-indigo-300 border-l-15 hover:shadow-lg transition-shadow duration-200"> */}
+            <div className="bg-grey-50 dark:bg-gray-800 md:rounded-lg md:shadow-sm md:mx-4 md:mt-4 transition-colors duration-300 ">
+             <div className=" p-4 shadow-md hover:shadow-lg transition-shadow duration-200 ">
               {matches.map((match, index) => (
                 <div
                   key={match.id}
                   onClick={() => router.push(`/matches/${match.id}`)}
-                  className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors bg-white dark:bg-gray-800 rounded-2xl border-b-8  ${
                     index !== matches.length - 1 ? 'border-b border-gray-100' : ''
                   }`}
                 >
-                  <div className="relative flex-shrink-0 mr-3">
+                  <div className="relative flex-shrink-0 mr-3 ">
                     {match.bothRevealed && match.otherUser.profile_picture ? (
                       <Image
                         src={match.otherUser.profile_picture}
@@ -205,7 +205,9 @@ export default function MatchesPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )
+              )}
+              </div>  
             </div>
           )}
         </div>

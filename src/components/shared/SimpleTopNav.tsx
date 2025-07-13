@@ -17,7 +17,16 @@ import {
   UserPlus,
   LogOut 
 } from 'lucide-react'
+import { Roboto } from 'next/font/google'
+// import { Boldonse } from 'next/font/google'
+import { Anton } from 'next/font/google'
+import { boldonse, righteous, specialGothic } from '@/app/fonts'
 
+const anton= Anton({
+  weight: ['400'],
+  subsets: ['latin'],
+  // variable: '--font-roboto'
+})
 interface SimpleTopNavProps {
   pageName?: string
   actionButton?: ReactNode
@@ -58,7 +67,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                 alt="BlindCharm Logo" 
                 className="h-10 w-auto"
               />
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
+              <span className={`${boldonse.className} text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent`}>
                 BlindCharm
               </span>
             </Link>
@@ -163,14 +172,16 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                 alt="BlindCharm Logo" 
                 className="h-8 w-auto"
               />
-              <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
+              <div className={`${boldonse.className} text-md font-bold`}>
+              <span className=" bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
                 BlindCharm
               </span>
+              </div>
             </Link>
             {pageName && (
               <>
                 <span className="mx-2 text-primary-300 dark:text-primary-400">•</span>
-                <span className="text-lg font-semibold text-neutral-850 dark:text-gray-100">{pageName}</span>
+                <span className={`${boldonse.className} text-sm font-semibold text-neutral-850 dark:text-gray-100`}>{pageName}</span>
               </>
             )}
           </div>

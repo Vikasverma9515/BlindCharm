@@ -143,6 +143,8 @@ import {
   VenetianMask,
   MessageCircleHeart
 } from 'lucide-react'
+// import { useNotifications } from '@/hooks/useNotifications'
+// import NotificationBadge from './NotificationBadge'
 
 interface UserProfile {
   id: string;
@@ -155,6 +157,7 @@ export default function SimpleBottomNav() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  // const { counts } = useNotifications()
 
   const isActive = (path: string) => {
     if (path === '/lobby' && pathname.startsWith('/lobby')) return true
@@ -208,6 +211,7 @@ export default function SimpleBottomNav() {
                 href="/matches"
                 icon={<MessageCircleHeart size={30} />}
                 isActive={isActive('/matches')}
+                // notificationCount={counts.total}
               />
               <NavItem
                 href="/whispers"
@@ -252,9 +256,10 @@ interface NavItemProps {
   href: string
   icon: React.ReactNode
   isActive: boolean
+  notificationCount?: number
 }
 
-const NavItem = ({ href, icon, isActive }: NavItemProps) => {
+const NavItem = ({ href, icon, isActive, notificationCount }: NavItemProps) => {
   return (
     <Link href={href} className="relative">
       <motion.div
@@ -278,6 +283,10 @@ const NavItem = ({ href, icon, isActive }: NavItemProps) => {
         >
           {icon}
         </div>
+        {/* {notificationCount && notificationCount > 0 && (
+          // <NotificationBadge count={NotificationStatus} size="sm" />
+        )} */}
+      
       </motion.div>
     </Link>
   )

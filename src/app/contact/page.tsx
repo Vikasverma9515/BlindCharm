@@ -43,7 +43,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
       <SimpleTopNav />
-      
+      <div className="pb-18 md:pb-0">
       <main className="pt-16">
         {/* Hero Section */}
         <section className="py-20 px-4 md:px-8">
@@ -317,6 +317,7 @@ export default function ContactPage() {
       </main>
 
       <Footer />
+      </div>
       <SimpleBottomNav />
     </div>
   )

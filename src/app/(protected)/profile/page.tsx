@@ -37,6 +37,7 @@ import ImageUpload from '@/components/profile/ImageUpload'
 import SimpleTopNav from '@/components/shared/SimpleTopNav'
 import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import AdminBadge from '@/components/ui/AdminBadge'
 import { signOut } from 'next-auth/react'
 
 interface UserProfile {
@@ -49,6 +50,7 @@ interface UserProfile {
   bio: string;
   interests: string[];
   profile_picture: string | null;
+  is_admin?: boolean;
   height: number;
   occupation: string;
   education: string;
@@ -397,14 +399,19 @@ export default function ProfilePage() {
               <div className="pt-16">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      {profile.full_name || 'Complete your profile'}
-                      {profile.dob && (
-                        <span className="text-xl font-normal text-gray-600 dark:text-gray-400 ml-2">
-                          {getAge(profile.dob)}
-                        </span>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                        {profile.full_name || 'Complete your profile'}
+                        {profile.dob && (
+                          <span className="text-xl font-normal text-gray-600 dark:text-gray-400 ml-2">
+                            {getAge(profile.dob)}
+                          </span>
+                        )}
+                      </h1>
+                      {profile.is_admin && (
+                        <AdminBadge size="sm" />
                       )}
-                    </h1>
+                    </div>
                     {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
                       <div className="flex items-center gap-1 mt-1">
                         <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500" />

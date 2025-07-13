@@ -93,8 +93,15 @@ import Navbar from '@/components/shared/Navbar'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import FloatingLogo from '@/components/FloatingLogo'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
-import { inter, poppins, montserrat } from './fonts'
-
+// import { inter, poppins, montserrat, playfair, dancing, quicksand, nunito, comfortaa, raleway } from './fonts'
+import { 
+  // Local fonts
+  boldonse, bitcountGrid, specialGothic,
+  // Google fonts
+  inter, poppins, montserrat, playfair, dancing, quicksand, nunito, comfortaa, raleway,
+  // Unique fonts for BlindCharm
+  caveat, righteous, fredoka, outfit, spaceGrotesk, orbitron, kalam, pacifico
+} from './fonts'
 export default function RootLayout({
   children,
 }: {
@@ -150,10 +157,11 @@ export default function RootLayout({
         <meta property="twitter:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
         <meta property="twitter:image" content="/icon-512x512.png" />
       </head>
-      <body className={`${inter.className} ${poppins.variable} ${montserrat.variable}`}>
+      
+      <body className={`${inter.className} ${boldonse.variable} ${bitcountGrid.variable} ${specialGothic.variable} ${poppins.variable} ${montserrat.variable} ${playfair.variable} ${dancing.variable} ${quicksand.variable} ${nunito.variable} ${comfortaa.variable} ${raleway.variable} ${caveat.variable} ${righteous.variable} ${fredoka.variable} ${outfit.variable} ${spaceGrotesk.variable} ${orbitron.variable} ${kalam.variable} ${pacifico.variable}`}>
         <ThemeProvider>
           <AuthProvider>
-            <div className="flex flex-col min-h-screen relative bg-white dark:bg-gray-900 transition-colors duration-300" >
+            <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" >
               {/* <Navbar /> */}
               <ErrorBoundary>
                 {/* Main content area */}

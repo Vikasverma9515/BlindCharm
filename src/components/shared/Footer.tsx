@@ -33,7 +33,7 @@ export default function Footer() {
         }}></div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
         {/* Main Footer Content */}
         <div className="py-16">
           {/* Top Section - Brand and Info */}
@@ -123,7 +123,7 @@ export default function Footer() {
                   href="/about-me" 
                   className="font-semibold text-gray-400 hover:text-white transition-colors"
                 >
-                  Vikas Verma
+                  This Guy
                 </Link>
               </p>
             </div>

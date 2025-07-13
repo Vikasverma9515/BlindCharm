@@ -11,6 +11,7 @@ export interface User {
   profile_picture: string | null;
   current_lobby_id?: string | null;
   is_in_lobby?: boolean;
+  is_admin?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -39,6 +40,7 @@ export interface Lobby {
   name: string;
   theme: string;
   description: string;
+  image_url?: string | null;
   participant_count: number;
   male_count: number;
   female_count: number;
