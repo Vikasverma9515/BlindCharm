@@ -102,6 +102,7 @@ import {
   // Unique fonts for BlindCharm
   caveat, righteous, fredoka, outfit, spaceGrotesk, orbitron, kalam, pacifico
 } from './fonts'
+import { Toaster } from 'sonner';
 export default function RootLayout({
   children,
 }: {
@@ -159,14 +160,16 @@ export default function RootLayout({
       </head>
       
       <body className={`${inter.className} ${boldonse.variable} ${bitcountGrid.variable} ${specialGothic.variable} ${poppins.variable} ${montserrat.variable} ${playfair.variable} ${dancing.variable} ${quicksand.variable} ${nunito.variable} ${comfortaa.variable} ${raleway.variable} ${caveat.variable} ${righteous.variable} ${fredoka.variable} ${outfit.variable} ${spaceGrotesk.variable} ${orbitron.variable} ${kalam.variable} ${pacifico.variable}`}>
-        <ThemeProvider>
+        <ThemeProvider >
           <AuthProvider>
-            <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" >
+            {/* <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" > */}
+            <div  className="light">
               {/* <Navbar /> */}
               <ErrorBoundary>
                 {/* Main content area */}
                 <div className="flex-1 relative">
                   {children}
+                  <Toaster />
                 </div>
               </ErrorBoundary>
               <PWAInstallPrompt />

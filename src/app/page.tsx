@@ -287,7 +287,7 @@ export default function Home() {
           noiseIntensity={2}
           rotation={0}
         /> */}
-          <section className="min-h-screen flex items-center justify-center px-4 md:px-8 bg-gradient-to-b from-white via-amber-400 to-white transition-colors duration-300">
+          <section className="min-h-screen flex items-center justify-center px-4 md:px-8 bg-gradient-to-b from-white to-amber-400 dark:from-gray-900/50 dark:to-gray-800/50 transition-colors duration-300">
             
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-16 md:pt-8 lg:pt-0">
               <div className="text-center lg:text-left">
@@ -296,17 +296,17 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8 }}
                 >
-                  <div className="inline-flex items-center gap-2 bg-red-100 text-red-600 rounded-full px-6 py-2 mb-8">
+                  <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full px-6 py-2 mb-8">
                     <Sparkles className="w-4 h-4" />
                     <span className="text-sm font-bold">NEW WAY TO CONNECT</span>
                   </div>
                   
-                  <h1 className="text-5xl md:text-7xl font-black mb-6 text-gray-900">
+                  <h1 className="text-5xl md:text-7xl font-black mb-6 text-gray-900 dark:text-gray-100">
                     Find Love
-                    <span className="block text-red-600">Beyond Looks</span>
+                    <span className="block text-red-600 dark:text-red-400">Beyond Looks</span>
                   </h1>
                   
-                  <p className="text-xl text-gray-600 mb-8">
+                  <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
                     Join our innovative lobby system where personalities match first. Experience dating that starts with genuine connections.
                   </p>
                   
@@ -320,7 +320,7 @@ export default function Home() {
                     </Link>
                     <Link
                       href="/how-it-works"
-                      className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-8 py-4 rounded-full font-semibold text-lg border border-gray-300 hover:shadow-lg transition-all duration-300"
+                      className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-full font-semibold text-lg border border-gray-300 dark:border-gray-600 hover:shadow-lg transition-all duration-300"
                     >
                       How it Works
                     </Link>
@@ -335,7 +335,7 @@ export default function Home() {
           </section>
 
           {/* Why Choose BlindCharm Section */}
-          <section className="py-20 px-4 md:px-8 bg-gray-50 transition-colors duration-300">
+          <section className="py-20 px-4 md:px-8 bg-gradient-to-b from-amber-400  dark:bg-gray-800 transition-colors duration-300">
             <div className="max-w-7xl mx-auto">
               <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                 {/* Left Content */}
@@ -346,14 +346,14 @@ export default function Home() {
                     transition={{ duration: 0.8 }}
                     viewport={{ once: true }}
                   >
-                    <div className="inline-flex items-center gap-2 bg-red-100 text-red-600 rounded-full px-6 py-2 mb-6">
+                    <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full px-6 py-2 mb-6">
                       <Sparkles className="w-4 h-4" />
                       <span className="text-sm font-bold">WHY BLINDCHARM?</span>
                     </div>
                     
-                    <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
+                    <h2 className="text-4xl md:text-5xl font-bold text-black dark:text-gray-100 mb-6">
                       Love Beyond
-                      <span className="block text-red-600">First Impressions</span>
+                      <span className="block text-red-600 dark:text-red-400">First Impressions</span>
                     </h2>
                     
                     <p className="text-xl text-gray-700 dark:text-gray-300 mb-8 leading-relaxed">

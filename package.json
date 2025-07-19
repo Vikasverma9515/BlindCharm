@@ -19,6 +19,7 @@
     "@react-spring/web": "^9.7.5",
     "@react-three/drei": "^9.88.13",
     "@react-three/fiber": "^9.2.0",
+    "@react-three/postprocessing": "^3.0.4",
     "@react-three/rapier": "^1.4.0",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.49.4",
@@ -29,6 +30,7 @@
     "critters": "^0.0.23",
     "date-fns": "^4.1.0",
     "emoji-picker-react": "^4.12.2",
+    "face-api.js": "^0.20.0",
     "framer-motion": "^12.23.0",
     "gsap": "^3.13.0",
     "lucide-react": "^0.487.0",
@@ -36,15 +38,18 @@
     "next": "^15.3.0",
     "next-auth": "^4.24.7",
     "next-pwa": "^5.6.0",
+    "postprocessing": "^6.37.6",
     "react": "^18.3.1",
     "react-avatar-editor": "^13.0.2",
     "react-dom": "^18.3.1",
     "react-easy-crop": "^5.4.2",
     "react-hook-form": "^7.55.0",
+    "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
     "react-image-crop": "^11.0.10",
     "react-intersection-observer": "^9.16.0",
     "socket.io-client": "^4.8.1",
+    "sonner": "^2.0.6",
     "styled-components": "^6.1.19",
     "tailwind-merge": "^3.3.1",
     "three": "^0.167.1",
@@ -89,5 +94,17 @@
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vikasverma9515/BlindCharm.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Vikasverma9515/BlindCharm/issues"
+  },
+  "homepage": "https://github.com/Vikasverma9515/BlindCharm#readme"
 }

@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Edit2, 
-  Loader2, 
-  Camera, 
-  Save, 
-  X, 
+import {
+  Edit2,
+  Loader2,
+  Camera,
+  Save,
+  X,
   Plus,
   MapPin,
   Heart,
@@ -39,6 +39,7 @@ import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 import AdminBadge from '@/components/ui/AdminBadge'
 import { signOut } from 'next-auth/react'
+import FaceVerification from '@/components/profile/FaceVerification'
 
 interface UserProfile {
   id: string;
@@ -112,6 +113,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Partial<UserProfile>>({})
   const [completionPercentage, setCompletionPercentage] = useState(0)
+  const [showVerifier, setShowVerifier] = useState(false);
 
   useEffect(() => {
     fetchProfile()
@@ -129,7 +131,7 @@ export default function ProfilePage() {
 
       if (error) throw error
       setProfile(data)
-      
+
       // Ensure array fields are always arrays, not null
       const safeData = {
         ...data,
@@ -142,7 +144,7 @@ export default function ProfilePage() {
         hobbies: Array.isArray(data.hobbies) ? data.hobbies : [],
         photos: Array.isArray(data.photos) ? data.photos : []
       }
-      
+
       setEditForm(safeData)
       calculateCompletion(data)
     } catch (err) {
@@ -198,7 +200,7 @@ export default function ProfilePage() {
       const { error: uploadError } = await supabase
         .storage
         .from('profile-pictures')
-        .upload(fileName, file, { 
+        .upload(fileName, file, {
           upsert: true,
           contentType: file.type
         });
@@ -243,7 +245,7 @@ export default function ProfilePage() {
     try {
       const updateData = { [field]: value }
       console.log('🔄 Updating field:', field, 'with value:', value)
-      
+
       const { error, data } = await supabase
         .from('users')
         .update(updateData)
@@ -273,7 +275,7 @@ export default function ProfilePage() {
 
     try {
       console.log('🔄 Multiple updates:', updates)
-      
+
       const { error, data } = await supabase
         .from('users')
         .update(updates)
@@ -300,9 +302,9 @@ export default function ProfilePage() {
     const newTags = currentTags.includes(tag)
       ? currentTags.filter(t => t !== tag)
       : [...currentTags, tag]
-    
+
     console.log(`🏷️ Toggling ${field}: ${tag} -> [${newTags.join(', ')}]`)
-    
+
     setEditForm(prev => ({ ...prev, [field]: newTags }))
   }
 
@@ -327,10 +329,10 @@ export default function ProfilePage() {
   return (
     <>
       <SimpleTopNav pageName="My Profile" />
-      
+
       <main className="min-h-screen pt-0 pb-0 md:pt-0 md:pb-0 bg-gray-50 dark:bg-gray-900 transition-colors duration-300 ">
         <div className="max-w-md mx-auto px-4 py-6 md:max-w-2xl md:pt-8">
-          
+
           {/* Error Message */}
           {error && (
             <motion.div
@@ -383,7 +385,7 @@ export default function ProfilePage() {
             <div className="relative h-32 bg-black dark:bg-gray-900">
               <div className="absolute inset-0 bg-amber-400 dark:bg-amber-400"></div>
             </div>
-
+            
             {/* Profile Info */}
             <div className="relative px-6 pb-6">
               {/* Profile Picture */}
@@ -394,7 +396,6 @@ export default function ProfilePage() {
                   loading={loading}
                 />
               </div>
-
               {/* Name and Age */}
               <div className="pt-16">
                 <div className="flex items-center justify-between">
@@ -416,8 +417,8 @@ export default function ProfilePage() {
                       <div className="flex items-center gap-1 mt-1">
                         <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                         <span className="text-gray-600 dark:text-gray-400">
-                          {typeof profile.location === 'string' 
-                            ? profile.location 
+                          {typeof profile.location === 'string'
+                            ? profile.location
                             : profile.location && typeof profile.location === 'object'
                               ? `${profile.location.city}${profile.location.country ? `, ${profile.location.country}` : ''}`
                               : ''
@@ -437,10 +438,30 @@ export default function ProfilePage() {
               </div>
             </div>
           </motion.div>
+           <div>
+                <h1>Your Profile</h1>
+                <button onClick={() => setShowVerifier(true)}>
+                  {`🔒 Get Verified`}
+                </button>
 
+                {showVerifier && (
+                  <FaceVerification
+                    onVerificationComplete={(verified) => {
+                      setShowVerifier(false);
+                      if (verified) {
+                        // Save verified status (e.g., Supabase update)
+                        alert('✅ You are now verified!');
+                      } else {
+                        alert('❌ Verification failed.');
+                      }
+                    }}
+                    onClose={() => setShowVerifier(false)}
+                  />
+                )}
+              </div>
           {/* Profile Sections */}
           <div className="space-y-4">
-            
+
             {/* Basic Info Section */}
             <ProfileSection
               title="Basic Information"
@@ -597,7 +618,7 @@ export default function ProfilePage() {
               onSave={() => {
                 // Store location as a simple string instead of object
                 const locationObj = typeof editForm.location === 'object' && editForm.location ? editForm.location : { city: '', country: '' }
-                const locationString = locationObj.city && locationObj.country 
+                const locationString = locationObj.city && locationObj.country
                   ? `${locationObj.city}, ${locationObj.country}`
                   : locationObj.city || locationObj.country || ''
                 handleUpdate('location', locationString)
@@ -611,10 +632,10 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       value={typeof editForm.location === 'object' && editForm.location ? editForm.location.city || '' : ''}
-                      onChange={(e) => setEditForm(prev => ({ 
-                        ...prev, 
-                        location: { 
-                          city: e.target.value, 
+                      onChange={(e) => setEditForm(prev => ({
+                        ...prev,
+                        location: {
+                          city: e.target.value,
                           country: typeof prev.location === 'object' && prev.location ? prev.location.country || '' : ''
                         }
                       }))}
@@ -627,9 +648,9 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       value={typeof editForm.location === 'object' && editForm.location ? editForm.location.country || '' : ''}
-                      onChange={(e) => setEditForm(prev => ({ 
-                        ...prev, 
-                        location: { 
+                      onChange={(e) => setEditForm(prev => ({
+                        ...prev,
+                        location: {
                           city: typeof prev.location === 'object' && prev.location ? prev.location.city || '' : '',
                           country: e.target.value
                         }
@@ -640,16 +661,16 @@ export default function ProfilePage() {
                   </div>
                 </div>
               ) : (
-                <InfoItem 
-                  label="Location" 
-                  value={typeof profile.location === 'string' 
-                    ? profile.location 
+                <InfoItem
+                  label="Location"
+                  value={typeof profile.location === 'string'
+                    ? profile.location
                     : profile.location && typeof profile.location === 'object'
-                      ? (profile.location.city && profile.location.country 
-                          ? `${profile.location.city}, ${profile.location.country}` 
-                          : profile.location.city || profile.location.country || null)
+                      ? (profile.location.city && profile.location.country
+                        ? `${profile.location.city}, ${profile.location.country}`
+                        : profile.location.city || profile.location.country || null)
                       : null
-                  } 
+                  }
                 />
               )}
             </ProfileSection>
@@ -673,11 +694,10 @@ export default function ProfilePage() {
                         key={interest}
                         type="button"
                         onClick={() => handleTagToggle('interests', interest, editForm.interests || [])}
-                        className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${
-                          (editForm.interests || []).includes(interest)
+                        className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${(editForm.interests || []).includes(interest)
                             ? 'bg-red-500 text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                          }`}
                       >
                         {interest}
                       </button>
@@ -727,11 +747,10 @@ export default function ProfilePage() {
                           key={tag}
                           type="button"
                           onClick={() => handleTagToggle('personality_tags', tag, editForm.personality_tags || [])}
-                          className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${
-                            (editForm.personality_tags || []).includes(tag)
+                          className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${(editForm.personality_tags || []).includes(tag)
                               ? 'bg-red-500 text-white shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
+                            }`}
                         >
                           {tag}
                         </button>
@@ -746,11 +765,10 @@ export default function ProfilePage() {
                           key={tag}
                           type="button"
                           onClick={() => handleTagToggle('lifestyle_tags', tag, editForm.lifestyle_tags || [])}
-                          className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${
-                            (editForm.lifestyle_tags || []).includes(tag)
+                          className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${(editForm.lifestyle_tags || []).includes(tag)
                               ? 'bg-yellow-500 text-black shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
+                            }`}
                         >
                           {tag}
                         </button>
@@ -823,11 +841,10 @@ export default function ProfilePage() {
                           key={option}
                           type="button"
                           onClick={() => handleTagToggle('looking_for', option, editForm.looking_for || [])}
-                          className={`w-full px-4 py-3 rounded-xl text-left font-medium transition-all ${
-                            (editForm.looking_for || []).includes(option)
+                          className={`w-full px-4 py-3 rounded-xl text-left font-medium transition-all ${(editForm.looking_for || []).includes(option)
                               ? 'bg-red-500 text-white shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
+                            }`}
                         >
                           {option}
                         </button>
@@ -842,11 +859,10 @@ export default function ProfilePage() {
                           key={option}
                           type="button"
                           onClick={() => handleTagToggle('dealbreakers', option, editForm.dealbreakers || [])}
-                          className={`px-3 py-2 rounded-xl text-sm font-medium transition-all text-left ${
-                            (editForm.dealbreakers || []).includes(option)
+                          className={`px-3 py-2 rounded-xl text-sm font-medium transition-all text-left ${(editForm.dealbreakers || []).includes(option)
                               ? 'bg-black text-white shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
+                            }`}
                         >
                           {option}
                         </button>
@@ -919,19 +935,19 @@ export default function ProfilePage() {
                       icon={<Bell className="w-5 h-5" />}
                       title="Notifications"
                       subtitle="Manage your notification preferences"
-                      onClick={() => {/* TODO: Navigate to notifications */}}
+                      onClick={() => {/* TODO: Navigate to notifications */ }}
                     />
                     <SettingsItem
                       icon={<Eye className="w-5 h-5" />}
                       title="Privacy Settings"
                       subtitle="Control who can see your profile"
-                      onClick={() => {/* TODO: Navigate to privacy */}}
+                      onClick={() => {/* TODO: Navigate to privacy */ }}
                     />
                     <SettingsItem
                       icon={<Shield className="w-5 h-5" />}
                       title="Safety & Security"
                       subtitle="Block users, report issues"
-                      onClick={() => {/* TODO: Navigate to safety */}}
+                      onClick={() => {/* TODO: Navigate to safety */ }}
                     />
                   </div>
                 </div>
@@ -945,13 +961,13 @@ export default function ProfilePage() {
                       icon={<MessageCircle className="w-5 h-5" />}
                       title="Chat Settings"
                       subtitle="Message preferences and filters"
-                      onClick={() => {/* TODO: Navigate to chat settings */}}
+                      onClick={() => {/* TODO: Navigate to chat settings */ }}
                     />
                     <SettingsItem
                       icon={<Heart className="w-5 h-5" />}
                       title="Match Preferences"
                       subtitle="Age range, distance, and more"
-                      onClick={() => {/* TODO: Navigate to match preferences */}}
+                      onClick={() => {/* TODO: Navigate to match preferences */ }}
                     />
                   </div>
                 </div>
@@ -964,7 +980,7 @@ export default function ProfilePage() {
                       icon={<HelpCircle className="w-5 h-5" />}
                       title="Help & Support"
                       subtitle="FAQs, contact us"
-                      onClick={() => {/* TODO: Navigate to help */}}
+                      onClick={() => {/* TODO: Navigate to help */ }}
                     />
                   </div>
                 </div>
@@ -1002,7 +1018,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             </motion.div>
-
+           
           </div>
         </div>
       </main>
@@ -1047,10 +1063,10 @@ function ProfileSection({ title, icon, children, isEditing, onEdit, onCancel, on
           </button>
         )}
       </div>
-      
+
       <div className="p-6">
         {children}
-        
+
         {isEditing && (
           <div className="flex gap-3 mt-6">
             <button
@@ -1113,32 +1129,28 @@ function SettingsItem({ icon, title, subtitle, onClick, danger = false }: Settin
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-gray-50 dark:hover:bg-gray-700 ${
-        danger ? 'hover:bg-red-50 dark:hover:bg-red-900/20' : ''
-      }`}
+      className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-gray-50 dark:hover:bg-gray-700 ${danger ? 'hover:bg-red-50 dark:hover:bg-red-900/20' : ''
+        }`}
     >
-      <div className={`p-2 rounded-full ${
-        danger 
-          ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' 
+      <div className={`p-2 rounded-full ${danger
+          ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
           : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-      }`}>
+        }`}>
         {icon}
       </div>
       <div className="flex-1 text-left">
-        <h4 className={`font-medium ${
-          danger 
-            ? 'text-red-600 dark:text-red-400' 
+        <h4 className={`font-medium ${danger
+            ? 'text-red-600 dark:text-red-400'
             : 'text-gray-900 dark:text-gray-100'
-        }`}>
+          }`}>
           {title}
         </h4>
         <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
       </div>
-      <ChevronRight className={`w-5 h-5 ${
-        danger 
-          ? 'text-red-400 dark:text-red-500' 
+      <ChevronRight className={`w-5 h-5 ${danger
+          ? 'text-red-400 dark:text-red-500'
           : 'text-gray-400 dark:text-gray-500'
-      }`} />
+        }`} />
     </button>
   )
 }

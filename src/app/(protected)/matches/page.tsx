@@ -148,8 +148,8 @@ export default function MatchesPage() {
               </button>
             </div>
           ) : (
-            <div className="bg-grey-50 dark:bg-gray-800 md:rounded-lg md:shadow-sm md:mx-4 md:mt-4 transition-colors duration-300 ">
-             <div className=" p-4 shadow-md hover:shadow-lg transition-shadow duration-200 ">
+            <div className="">
+             <div className=" p-5">
               {matches.map((match, index) => (
                 <div
                   key={match.id}

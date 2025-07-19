@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
+@custom-variant dark (&:is(.dark *));
 /* @import url('https://fonts.googleapis.com/css2?family=Boldones:wght@400;700&display=swap'); */
 /* @import url('https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Boldonse&display=swap'); */
 
@@ -142,20 +142,32 @@
     background: #FEF2F2;
   }
 
-
+  /* Dark theme backgrounds */
+  .dark .bg-app-gradient {
+    background: #1F2937;
+  }
+  
+  .dark .bg-rose-gradient {
+    background: #374151;
+  }
 
   /* Custom utilities for dating app background */
   .bg-radial {
     background: #FEF2F2;
   }
   
-
+  .dark .bg-radial {
+    background: #374151;
+  }
 
   .bg-dating-gradient {
     background: #FDF2F8;
   }
 
-
+  /* Dark theme dating background */
+  .dark .bg-dating-gradient {
+    background: #374151;
+  }
 
   /* Modern glassmorphism effect */
   .glass {
@@ -164,7 +176,10 @@
     border: 1px solid rgba(255, 255, 255, 0.18);
   }
 
-
+  /* Dark theme glassmorphism */
+  .dark .glass {
+    background: rgba(31, 41, 55, 0.25);
+  }
 
   /* Custom Font Classes */
   .font-brand {
@@ -317,7 +332,19 @@
   background: linear-gradient(135deg, #db2777, #dc2626);
 }
 
+/* Dark theme scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #374151;
+}
 
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #F43F5E, #E11D48);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #FB7185, #F43F5E);
+}
 
 
 
@@ -778,4 +805,13 @@ select:focus {
 .dark .ReactCrop__drag-handle {
   background: #f43f5e;
   border-color: #1f2937;
+}
+
+
+/* * {
+  border-radius: 0 !important;
+} */
+
+input {
+  border-radius: 0;
 }

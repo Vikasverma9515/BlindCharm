@@ -17,12 +17,14 @@ import {
   Cloud,
   Smile,
   BookOpen,
-  Theater
+  Theater,
+  Star
 } from 'lucide-react';
 import { Whisper } from '@/types/whispers';
 import { WhisperService } from '@/lib/services/WhisperService';
 import { WhisperComments } from './WhisperComments';
 import { Card, CardContent } from '@/components/ui/card';
+
 
 interface WhisperCardProps {
   whisper: Whisper;
@@ -226,114 +228,98 @@ export function WhisperCard({ whisper, onLike, onComment }: WhisperCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
+      whileHover={{ scale: 1.025, boxShadow: '0 8px 32px 0 rgba(0,0,0,0.18)' }}
+      className="transition-transform duration-200"
     >
-      <Card className={`border-l-8 ${moodAccent} hover:shadow-md transition-shadow duration-200 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700`}>
-        <CardContent className="p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
+      <Card
+        className="relative rounded-2xl bg-[#181A20] border-2 border-[#ee0000] shadow-lg overflow-hidden px-6 py-7 flex flex-col min-h-[220px]"
+        style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+      >
+        {/* Subtle geometric background overlay */}
+        <div className="absolute inset-0 z-0 opacity-10 pointer-events-none" style={{background: 'repeating-linear-gradient(135deg, #23262F 0 8px, transparent 8px 16px)'}} />
+        {/* Small badge/logo in corner */}
+        <div className="absolute bottom-5 right-6 z-20">
+          
+          <div className="bg-white text-black font-bold rounded-md px-2 py-1 text-xs shadow">
+            
+              <img 
+                src="/logo2.png" 
+                alt="BlindCharm Logo" 
+                className="h-3 w-auto"
+                />
+          </div>
+        </div>
+        <CardContent className="relative z-20 flex flex-col h-full p-0">
+          {/* Main text */}
+          <div className="flex-1 flex flex-col justify-center">
+            <p className="text-white text-xl font-extrabold leading-tight mb-2 ">
+              {whisper.content}
+            </p>
+           
+          </div>
+          {/* Details row */}
+          <div className="flex items-center justify-between mt-4">
             <div className="flex items-center gap-3">
               {whisper.is_anonymous ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                    <Lock className="w-4 h-4 text-gray-600" />
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-[#23262F] rounded-full flex items-center justify-center border border-[#353945]">
+                    <Lock className="w-4 h-4 text-gray-400" />
                   </div>
-                  <div>
-                    <span className="text-sm font-semibold text-gray-900">Anonymous</span>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                      <span className="text-gray-600">{getMoodIcon(whisper.mood)}</span>
-                      <span className="capitalize">{whisper.mood}</span>
-                    </div>
-                  </div>
+                  <span className="text-sm font-medium text-gray-300">Anonymous</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <img
-                      src={whisper.user?.profile_picture || '/default-avatar.png'}
-                      alt={whisper.user?.username}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm border">
-                      <span className="text-gray-600">{getMoodIcon(whisper.mood)}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-sm font-semibold text-gray-900">
-                      {whisper.user?.username}
-                    </span>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <span className="capitalize">{whisper.mood}</span>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={whisper.user?.profile_picture || '/default-avatar.png'}
+                    alt={whisper.user?.username}
+                    className="w-8 h-8 rounded-full object-cover border border-[#353945]"
+                  />
+                  <span className="text-sm font-medium text-gray-300">{whisper.user?.username}</span>
                 </div>
               )}
+              <span className="text-xs text-gray-500">{formatTimeAgo(whisper.created_at)}</span>
             </div>
-            <span className="text-xs text-gray-400">
-              {formatTimeAgo(whisper.created_at)}
-            </span>
-          </div>
-
-          {/* Content - Highlighted */}
-          <div className="mb-6">
-            <div className={`${contentBg} rounded-lg p-5 border-l-3 relative`}>
-              <div className="absolute top-3 left-3 text-gray-400">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
-                </svg>
-              </div>
-              <p className="text-gray-900 leading-relaxed text-base font-medium pl-6">
-                {whisper.content}
-              </p>
-            </div>
-          </div>
-
-          {/* Category Tag */}
-          <div className="mb-4">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 ${categoryBg} text-xs font-medium rounded-full`}>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#23262F] text-yellow-400 text-xs font-semibold rounded-full">
               {getCategoryIcon(whisper.category)}
               {whisper.category.replace('-', ' ')}
             </span>
           </div>
-
           {/* Action buttons */}
-          <div className="flex items-center gap-6 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-6 pt-5 mt-4 border-t border-[#23262F]">
             <button
               onClick={handleLike}
               disabled={isLoading}
-              className={`flex items-center gap-1.5 text-sm transition-colors ${
+              className={`flex items-center gap-1.5 text-base font-semibold transition-colors ${
                 isLiked 
-                  ? 'text-red-500' 
-                  : 'text-gray-500 hover:text-red-500'
+                  ? 'text-yellow-400' 
+                  : 'text-gray-400 hover:text-yellow-400'
               } ${isLoading ? 'opacity-50' : ''}`}
             >
               <Heart 
-                className="w-4 h-4" 
+                className="w-5 h-5" 
                 fill={isLiked ? 'currentColor' : 'none'} 
               />
               <span>{whisper.likes_count}</span>
             </button>
-            
             <button
               onClick={() => setShowComments(!showComments)}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-500 transition-colors"
+              className="flex items-center gap-1.5 text-base text-gray-400 hover:text-yellow-400 transition-colors font-semibold"
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-5 h-5" />
               <span>{whisper.comments_count}</span>
             </button>
-            
             <button 
               onClick={handleShare}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-500 transition-colors"
+              className="flex items-center gap-1.5 text-base text-gray-400 hover:text-yellow-400 transition-colors font-semibold"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-5 h-5" />
               <span>Share</span>
             </button>
           </div>
         </CardContent>
-
         {/* Comments section */}
         {showComments && (
-          <div className="border-t border-gray-100 bg-gray-50">
+          <div className="border-t border-[#23262F] bg-[#1A1C23]">
             <WhisperComments
               whisperId={whisper.id}
               onComment={onComment}

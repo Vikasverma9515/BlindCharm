@@ -62,18 +62,18 @@ const LoginForm: FC = () => { // Use FC type instead of JSX.Element
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email */}
-        <div className="group">
-          <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+        <div className="group ">
+          <label htmlFor="email" className=" block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ">
             Email Address
           </label>
-          <div className="relative">
+          <div className="relative ">
             <input
               id="email"
               type="email"
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all duration-300 shadow-sm hover:shadow-md group-hover:border-gray-300 dark:group-hover:border-gray-500 text-base"
+              className="w-full px-4 py-3.5 bg-white  dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all duration-300 shadow-sm hover:shadow-md group-hover:border-gray-300 dark:group-hover:border-gray-500 text-base"
               placeholder="Enter your email"
               style={{ fontSize: '16px' }}
             />
