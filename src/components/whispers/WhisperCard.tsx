@@ -232,7 +232,7 @@ export function WhisperCard({ whisper, onLike, onComment }: WhisperCardProps) {
       className="transition-transform duration-200"
     >
       <Card
-        className="relative rounded-2xl bg-[#181A20] border-2 border-[#ee0000] shadow-lg overflow-hidden px-6 py-7 flex flex-col min-h-[220px]"
+        className="relative rounded-4xl bg-[#181A20] border-3 border-[#ee0000] shadow-indigo-400 overflow-hidden px-6 py-7 flex flex-col min-h-[220px]"
         style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
       >
         {/* Subtle geometric background overlay */}
@@ -252,9 +252,15 @@ export function WhisperCard({ whisper, onLike, onComment }: WhisperCardProps) {
         <CardContent className="relative z-20 flex flex-col h-full p-0">
           {/* Main text */}
           <div className="flex-1 flex flex-col justify-center">
-            <p className="text-white text-xl font-extrabold leading-tight mb-2 ">
+            <p className="text-white text-l font-extrabold leading-tight mb-2 font-blindcharm-brand bg-[#ee0000] px-2 py-4 rounded-2xl  ">
               {whisper.content}
             </p>
+          <div>
+            <div className={`flex items-center gap-2 ${categoryBg} px-3 py-0.5 rounded-full text-xs font-blindcharm-tech ${moodAccent}`}>
+              {getMoodIcon(whisper.mood)}
+              {whisper.mood.charAt(0).toUpperCase() + whisper.mood.slice(1)}
+            </div>
+          </div>
            
           </div>
           {/* Details row */}

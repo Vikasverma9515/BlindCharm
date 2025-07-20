@@ -70,8 +70,8 @@ export default function Footer() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
-                  <a href="mailto:hello@blindcharm.com" className="hover:text-white transition-colors">
-                    hello@blindcharm.com
+                  <a href="mailto:blindcharm@gmail.com" className="hover:text-white transition-colors">
+                    blindcharm@gmail.com
                   </a>
                 </div>
               </div>
@@ -131,7 +131,7 @@ export default function Footer() {
             {/* Social Links & Scroll to Top */}
             <div className="flex items-center gap-4">
               <motion.a
-                href="https://www.instagram.com/bbaking_brain"
+                href="https://www.instagram.com/blindcharmx"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-pink-400 transition-all duration-300 hover:scale-110"
@@ -140,6 +140,17 @@ export default function Footer() {
               >
                 <Instagram className="w-5 h-5" />
               </motion.a>
+
+              {/* <motion.a
+                href="https://www.instagram.com/bbaking_brain"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-pink-400 transition-all duration-300 hover:scale-110"
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Instagram className="w-5 h-5" />
+              </motion.a> */}
 
               <motion.button
                 onClick={scrollToTop}
@@ -150,6 +161,7 @@ export default function Footer() {
                 <ArrowUp className="w-5 h-5" />
               </motion.button>
             </div>
+            
           </div>
         </div>
       </div>

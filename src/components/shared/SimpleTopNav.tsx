@@ -2,7 +2,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
@@ -15,7 +15,10 @@ import {
   MessageCircle, 
   LogIn, 
   UserPlus,
-  LogOut 
+  LogOut,
+  ShieldUser,
+  MessageCircleHeart,
+  VenetianMask
 } from 'lucide-react'
 import { Roboto } from 'next/font/google'
 // import { Boldonse } from 'next/font/google'
@@ -32,9 +35,23 @@ interface SimpleTopNavProps {
   actionButton?: ReactNode
 }
 
+interface UserProfile {
+  id: string;
+  full_name: string;
+  username: string;
+  profile_picture: string | null;
+}
+interface ProfileAvatarProps {
+  userProfile: UserProfile | null;
+}
+
+
+
 export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavProps) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
+  const [userProfile, setUserProfile]= useState<UserProfile | null> (null)
+  
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' })
@@ -86,7 +103,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                       }
                     `}
                   >
-                    <Users size={18} />
+                    <ShieldUser size={24} />
                     <span>Lobby</span>
                   </Link>
                   <Link
@@ -99,7 +116,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                       }
                     `}
                   >
-                    <Heart size={18} />
+                    <MessageCircleHeart size={24} />
                     <span>Matches</span>
                   </Link>
                   <Link
@@ -112,10 +129,10 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                       }
                     `}
                   >
-                    <MessageCircle size={18} />
+                    <VenetianMask size={24} />
                     <span>Whispers</span>
                   </Link>
-                  <Link
+                  {/* <Link
                     href="/profile"
                     className={`
                       flex items-center space-x-2 px-4 py-2 rounded-full font-medium transition-all duration-200
@@ -127,12 +144,17 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                   >
                     <User size={18} />
                     <span>Profile</span>
-                  </Link>
+                  </Link> */}
+                  <NavItem
+                href="/profile"
+                icon={<ProfileAvatar userProfile={userProfile} />}
+                isActive={isActive('/profile')}
+              />
                   <button
                     onClick={handleLogout}
                     className="flex items-center space-x-2 px-4 py-2 rounded-full font-medium text-neutral-750 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 ml-2"
                   >
-                    <LogOut size={18} />
+                    <LogOut size={24} />
                     <span>Logout</span>
                   </button>
                 </>
@@ -197,5 +219,86 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
 
 
     </>
+  )
+}
+
+
+interface NavItemProps {
+  href: string
+  icon: React.ReactNode
+  isActive: boolean
+  notificationCount?: number
+}
+
+const NavItem = ({ href, icon, isActive, notificationCount }: NavItemProps) => {
+  return (
+    <Link href={href} className="relative">
+      <motion.div
+        className="relative w-10 h-10 flex items-center justify-center"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {isActive && (
+           <motion.div
+    layoutId="activeBackground"
+    className="absolute inset-0 bg-primary-500 rounded-full shadow-soft"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  />
+        )}
+        <div
+          className={`relative z-10 transition-colors duration-200 ${
+            isActive ? 'text-white' : 'text-neutral-750 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400'
+          }`}
+        >
+          {icon}
+        </div>
+        {/* {notificationCount && notificationCount > 0 && (
+          // <NotificationBadge count={NotificationStatus} size="sm" />
+        )} */}
+      
+      </motion.div>
+    </Link>
+  )
+}
+
+// Profile Avatar Component
+// interface ProfileAvatarProps {
+//   userProfile: UserProfile | null;
+// }
+
+const ProfileAvatar = ({ userProfile }: ProfileAvatarProps) => {
+  const getInitials = () => {
+    if (userProfile?.full_name) {
+      return userProfile.full_name
+        .split(' ')
+        .map(name => name[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    if (userProfile?.username) {
+      return userProfile.username[0].toUpperCase()
+    }
+    return <div><User size={24} /></div> 
+  }
+
+  return (
+    <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-transparent">
+      {userProfile?.profile_picture ? (
+        <img
+          src={userProfile.profile_picture}
+          alt={userProfile.full_name || userProfile.username || 'Profile'}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full bg-red-500 flex items-center justify-center">
+          <span className="text-white text-xs font-bold">
+            {getInitials()}
+          </span>
+        </div>
+      )}
+    </div>
   )
 }

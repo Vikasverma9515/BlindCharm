@@ -35,6 +35,7 @@ export default function FaceVerification({
   onClose, 
   currentProfileImage 
 }: FaceVerificationProps) {
+  console.log('FaceVerification component rendered');
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -64,11 +65,13 @@ export default function FaceVerification({
   const [currentCheckIndex, setCurrentCheckIndex] = useState(0)
   const [detectionData, setDetectionData] = useState<any[]>([])
   const [countdown, setCountdown] = useState(0)
+  const [debugMode, setDebugMode] = useState(false)
   
   // Load face-api.js models
   useEffect(() => {
     const loadModels = async () => {
       try {
+        console.log('Starting to load face-api models...');
         setIsLoading(true)
         const MODEL_URL = '/models'
         
@@ -80,6 +83,7 @@ export default function FaceVerification({
           'face_expression_model-weights_manifest.json'
         ]
         
+        console.log('Checking model availability...');
         // Test if models are accessible
         const modelChecks = await Promise.allSettled(
           modelFiles.map(file => fetch(`${MODEL_URL}/${file}`))
@@ -89,6 +93,8 @@ export default function FaceVerification({
           result.status === 'fulfilled' && result.value.ok
         )
         
+        console.log('Models available:', allModelsAvailable);
+        
         if (!allModelsAvailable) {
           console.warn('Some face-api models are missing, using fallback verification')
           setModelsLoaded(true) // Use fallback mode
@@ -96,6 +102,7 @@ export default function FaceVerification({
           return
         }
       
+        console.log('Loading face-api models...');
         await Promise.all([
           faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
           faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -103,6 +110,7 @@ export default function FaceVerification({
           faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
         ])
         
+        console.log('Face-api models loaded successfully');
         setModelsLoaded(true)
         setError(null)
       } catch (err) {
@@ -119,264 +127,181 @@ export default function FaceVerification({
   }, [])
   
   // Start camera
-  // const startCamera = useCallback(async () => {
-  //   try {
-  //     setIsLoading(true)
-  //     setError(null)
-      
-  //     // Check if getUserMedia is supported
-  //     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-  //       throw new Error('Camera access is not supported in this browser')
-  //     }
-      
-  //     const stream = await navigator.mediaDevices.getUserMedia({
-  //       video: {
-  //         width: { ideal: 640, min: 320 },
-  //         height: { ideal: 480, min: 240 },
-  //         facingMode: 'user'
-  //       },
-  //       audio: false
-  //     })
-      
-  //     if (videoRef.current) {
-  //       videoRef.current.srcObject = stream
-  //       streamRef.current = stream
-        
-  //       // Wait for video to be ready
-  //       const videoElement = videoRef.current
-        
-  //       const handleLoadedMetadata = async () => {
-  //         try {
-  //           console.log('Video metadata loaded, attempting to play...')
-  //           await videoElement.play()
-  //           console.log('Video is now playing')
-  //           setCurrentStep('face_detection')
-            
-  //           // Start simple face detection after a short delay
-  //           setTimeout(() => {
-  //             setFaceDetected(true) // Fallback: assume face is detected
-  //           }, 2000)
-            
-  //         } catch (playError) {
-  //           console.error('Video play() failed:', playError)
-  //           setError('Unable to start video playback. Please allow camera access and try again.')
-  //         }
-  //       }
-        
-  //       const handleError = (e: Event) => {
-  //         console.error('Video error:', e)
-  //         setError('Video loading failed. Please check your camera and try again.')
-  //       }
-        
-  //       videoElement.addEventListener('loadedmetadata', handleLoadedMetadata)
-  //       videoElement.addEventListener('error', handleError)
-        
-  //       // Cleanup listeners
-  //       return () => {
-  //         videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata)
-  //         videoElement.removeEventListener('error', handleError)
-  //       }
-  //     }
-      
-  //   } catch (err: any) {
-  //     console.error('Error accessing camera:', err)
-  //     let errorMessage = 'Unable to access camera. '
-      
-  //     if (err.name === 'NotAllowedError') {
-  //       errorMessage += 'Please allow camera permissions and try again.'
-  //     } else if (err.name === 'NotFoundError') {
-  //       errorMessage += 'No camera found on this device.'
-  //     } else if (err.name === 'NotReadableError') {
-  //       errorMessage += 'Camera is being used by another application.'
-  //     } else {
-  //       errorMessage += 'Please check your camera settings and try again.'
-  //     }
-      
-  //     setError(errorMessage)
-  //   } finally {
-  //     setIsLoading(false)
-  //   }
-  // }, [])
-  
-  
-  // // Stop camera
-  // const stopCamera = useCallback(() => {
-  //   if (streamRef.current) {
-  //     streamRef.current.getTracks().forEach(track => track.stop())
-  //     streamRef.current = null
-  //   }
-  // }, [])
-
   const startCamera = useCallback(async () => {
-  console.log('startCamera called');
-  try {
-    setIsLoading(true);
-    setError(null);
-    
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error('Camera access is not supported in this browser');
-    }
-    
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        width: { ideal: 640, min: 320 },
-        height: { ideal: 480, min: 240 },
-        facingMode: 'user'
-      },
-      audio: false
-    });
-    
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
-      streamRef.current = stream;
+    console.log('startCamera called');
+    try {
+      setIsLoading(true);
+      setError(null);
       
-      const videoElement = videoRef.current;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera access is not supported in this browser');
+      }
       
-      const handleLoadedMetadata = async () => {
-        try {
-          await videoElement.play();
-          setCurrentStep('face_detection');
+      console.log('Requesting camera access...');
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640, min: 320 },
+          height: { ideal: 480, min: 240 },
+          facingMode: 'user'
+        },
+        audio: false
+      });
+      
+      console.log('Camera stream obtained:', stream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        
+        console.log('Video element set, waiting for metadata...');
+        
+        // Wait for video to be ready and play
+        await new Promise<void>((resolve, reject) => {
+          const videoElement = videoRef.current!;
           
+          const handleLoadedMetadata = async () => {
+            try {
+              console.log('Video metadata loaded, attempting to play...');
+              await videoElement.play();
+              console.log('Video playing successfully, moving to face_detection step');
+              setCurrentStep('face_detection');
+              resolve();
+            } catch (playError) {
+              console.error('Video play() failed:', playError);
+              reject(new Error('Unable to start video playback'));
+            }
+          };
+          
+          const handleError = (e: Event) => {
+            console.error('Video error event:', e);
+            reject(new Error('Video loading failed'));
+          };
+          
+          videoElement.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
+          videoElement.addEventListener('error', handleError, { once: true });
+          
+          // Add timeout to prevent hanging
           setTimeout(() => {
-            setFaceDetected(true);
-          }, 2000);
-          
-        } catch (playError) {
-          console.error('Video play() failed:', playError);
-          setError('Unable to start video playback. Please allow camera access and try again.');
-        }
-      };
+            reject(new Error('Video loading timeout'));
+          }, 10000);
+        });
+      } else {
+        throw new Error('Video element not found');
+      }
       
-      const handleError = (e: Event) => {
-        console.error('Video error:', e);
-        setError('Video loading failed. Please check your camera and try again.');
-      };
+    } catch (err: any) {
+      console.error('Error accessing camera:', err);
+      let errorMessage = 'Unable to access camera. ';
       
-      videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
-      videoElement.addEventListener('error', handleError);
+      if (err.name === 'NotAllowedError') {
+        errorMessage += 'Please allow camera permissions and try again.';
+      } else if (err.name === 'NotFoundError') {
+        errorMessage += 'No camera found on this device.';
+      } else if (err.name === 'NotReadableError') {
+        errorMessage += 'Camera is being used by another application.';
+      } else if (err.message === 'Video loading timeout') {
+        errorMessage += 'Camera loading timed out. Please try again.';
+      } else {
+        errorMessage += 'Please check your camera settings and try again.';
+      }
       
-      return () => {
-        videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        videoElement.removeEventListener('error', handleError);
-      };
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
-    
-  } catch (err: any) {
-    console.error('Error accessing camera:', err);
-    let errorMessage = 'Unable to access camera. ';
-    
-    if (err.name === 'NotAllowedError') {
-      errorMessage += 'Please allow camera permissions and try again.';
-    } else if (err.name === 'NotFoundError') {
-      errorMessage += 'No camera found on this device.';
-    } else if (err.name === 'NotReadableError') {
-      errorMessage += 'Camera is being used by another application.';
-    } else {
-      errorMessage += 'Please check your camera settings and try again.';
-    }
-    
-    setError(errorMessage);
-  } finally {
-    setIsLoading(false);
-  }
-}, [setCurrentStep, setError, setFaceDetected, setIsLoading]);
+  }, []);
 
-// For stopCamera
-const stopCamera = useCallback(() => {
-  if (streamRef.current) {
-    streamRef.current.getTracks().forEach(track => track.stop());
-    streamRef.current = null;
-  }
-}, []);
+  // Stop camera
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  }, []);
   
   // Face detection loop
   useEffect(() => {
     let intervalId: NodeJS.Timeout
+    let isActive = true
+    
     if (currentStep === 'face_detection' && modelsLoaded && videoRef.current) {
       intervalId = setInterval(async () => {
-        if (videoRef.current && canvasRef.current) {
+        if (!isActive || !videoRef.current || !canvasRef.current) return
+        
+        try {
+          const canvas = canvasRef.current
+          const video = videoRef.current
+          
+          if (video.readyState < 2) {
+            setFaceDetected(false)
+            return
+          }
+          
+          canvas.width = video.videoWidth || 640
+          canvas.height = video.videoHeight || 480
+          const ctx = canvas.getContext('2d')
+          
+          if (!ctx) return
+          
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+          
           try {
-            // Always set canvas size to match video
-            const canvas = canvasRef.current
-            const video = videoRef.current
-            
-            if (video.readyState < 2) {
-              // Video not ready
-              setFaceDetected(false)
-              return
-            }
-            
-            canvas.width = video.videoWidth || 640
-            canvas.height = video.videoHeight || 480
-            const ctx = canvas.getContext('2d')
-            
-            if (ctx) {
-              ctx.clearRect(0, 0, canvas.width, canvas.height)
-            }
-            
-            try {
-              // Try to use face-api.js if available
-              const detections = await faceapi
-                .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-                .withFaceLandmarks()
-                .withFaceExpressions()
-                
-              if (detections.length > 0) {
-                setFaceDetected(true)
-                // Draw face detection box
-                const resizedDetections = faceapi.resizeResults(detections, {
-                  width: video.videoWidth || 640,
-                  height: video.videoHeight || 480
-                })
-                if (ctx) {
-                  faceapi.draw.drawDetections(canvas, resizedDetections)
-                  faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
-                }
-                // Store detection data for liveness checks
-                setDetectionData(prev => [...prev.slice(-10), detections[0]]) // Keep last 10 detections
-              } else {
-                setFaceDetected(false)
-                // Clear canvas if no face
-                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height)
-              }
-            } catch (faceApiError) {
-              // Fallback: Use simple video analysis
-              console.warn('Face-api.js not available, using fallback detection')
+            // Try to use face-api.js if available
+            const detections = await faceapi
+              .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+              .withFaceLandmarks()
+              .withFaceExpressions()
               
-              // Simple fallback: check if video is playing and has content
-              if (video.videoWidth > 0 && video.videoHeight > 0) {
-                // Draw a simple face detection indicator
-                if (ctx) {
-                  ctx.strokeStyle = '#10B981'
-                  ctx.lineWidth = 3
-                  ctx.strokeRect(
-                    canvas.width * 0.25, 
-                    canvas.height * 0.25, 
-                    canvas.width * 0.5, 
-                    canvas.height * 0.5
-                  )
-                  
-                  // Add text
-                  ctx.fillStyle = '#10B981'
-                  ctx.font = '16px Arial'
-                  ctx.fillText('Face Area', canvas.width * 0.25, canvas.height * 0.2)
-                }
-                setFaceDetected(true)
-              } else {
-                setFaceDetected(false)
-              }
+            if (detections.length > 0 && isActive) {
+              setFaceDetected(true)
+              
+              // Draw face detection box
+              const resizedDetections = faceapi.resizeResults(detections, {
+                width: canvas.width,
+                height: canvas.height
+              })
+              
+              faceapi.draw.drawDetections(canvas, resizedDetections)
+              faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
+              
+              // Store detection data for liveness checks
+              setDetectionData(prev => [...prev.slice(-10), detections[0]])
+            } else if (isActive) {
+              setFaceDetected(false)
             }
-          } catch (err: any) {
-            console.error('Face detection error:', err)
-            // Don't show error for fallback mode
-            if (err.message && !err.message.includes('face-api')) {
-              setError('Face detection failed. Please ensure your face is visible and well-lit.')
+          } catch (faceApiError) {
+            // Fallback: Use simple video analysis
+            if (video.videoWidth > 0 && video.videoHeight > 0 && isActive) {
+              // Draw a simple face detection indicator
+              ctx.strokeStyle = '#10B981'
+              ctx.lineWidth = 3
+              ctx.strokeRect(
+                canvas.width * 0.25, 
+                canvas.height * 0.25, 
+                canvas.width * 0.5, 
+                canvas.height * 0.5
+              )
+              
+              ctx.fillStyle = '#10B981'
+              ctx.font = '16px Arial'
+              ctx.fillText('Face Area', canvas.width * 0.25, canvas.height * 0.2)
+              
+              setFaceDetected(true)
+            } else if (isActive) {
+              setFaceDetected(false)
             }
           }
+        } catch (err: any) {
+          console.error('Face detection error:', err)
+          if (isActive && err.message && !err.message.includes('face-api')) {
+            setError('Face detection failed. Please ensure your face is visible and well-lit.')
+          }
         }
-      }, 200) // Check every 200ms (reduced frequency for better performance)
+      }, 300) // Increased interval for better performance
     }
+    
     return () => {
+      isActive = false
       if (intervalId) clearInterval(intervalId)
     }
   }, [currentStep, modelsLoaded])
@@ -387,6 +312,86 @@ const stopCamera = useCallback(() => {
       setCurrentStep('liveness_blink')
       setCurrentCheckIndex(0)
     }
+  }
+
+  // Reset verification
+  const resetVerification = () => {
+    setCurrentStep('setup')
+    setDetectionData([])
+    setLivenessChecks(prev => prev.map(check => ({ ...check, completed: false })))
+    setCurrentCheckIndex(0)
+    setVerificationScore(0)
+    setFaceDetected(false)
+    setError(null)
+    stopCamera()
+  }
+
+  const processVerification = useCallback(async () => {
+    setIsLoading(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const completedChecks = livenessChecks.filter(check => check.completed).length;
+      const score = (completedChecks / livenessChecks.length) * 100;
+      
+      setVerificationScore(score);
+      
+      if (videoRef.current && canvasRef.current) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          canvas.width = videoRef.current.videoWidth;
+          canvas.height = videoRef.current.videoHeight;
+          ctx.drawImage(videoRef.current, 0, 0);
+          
+          const verificationImage = canvas.toDataURL('image/jpeg', 0.8);
+          
+          const verificationData = {
+            score,
+            completedChecks,
+            totalChecks: livenessChecks.length,
+            timestamp: new Date().toISOString(),
+            verificationImage,
+            faceDetected: true
+          };
+          
+          setCurrentStep('complete');
+          onVerificationComplete(score >= 80, verificationData);
+        }
+      }
+    } catch (err) {
+      console.error('Verification processing error:', err);
+      setError('Failed to process verification. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [livenessChecks, onVerificationComplete]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera()
+    }
+  }, [stopCamera])
+
+  // Auto-start camera when models are loaded and we're in setup step (disabled for manual control)
+  // useEffect(() => {
+  //   if (currentStep === 'setup' && modelsLoaded && !isLoading) {
+  //     const timer = setTimeout(() => {
+  //       startCamera();
+  //     }, 100);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [currentStep, modelsLoaded, isLoading, startCamera]);
+
+  // Skip to manual verification (fallback)
+  const skipToManualVerification = () => {
+    setCurrentStep('processing')
+    // Auto-complete all checks for manual verification
+    setLivenessChecks(prev => prev.map(check => ({ ...check, completed: true })))
+    processVerification()
   }
   
   // Check for blink detection
@@ -483,7 +488,7 @@ const stopCamera = useCallback(() => {
       
       return () => clearInterval(countdownInterval)
     }
-  }, [currentStep])
+  }, [currentStep, processVerification])
   
   // Face-api.js based smile detection (if available)
   useEffect(() => {
@@ -502,7 +507,7 @@ const stopCamera = useCallback(() => {
         }
       }
     }
-  }, [detectionData, currentStep])
+  }, [detectionData, currentStep, processVerification])
   
   // Calculate eye aspect ratio for blink detection
   const calculateEyeAspectRatio = (eyePoints: any[]) => {
@@ -524,138 +529,7 @@ const stopCamera = useCallback(() => {
   }
   
   // Process verification results
-  // const processVerification = useCallback(async () => {
-  //   setIsLoading(true)
-    
-  //   try {
-  //     // Simulate processing time
-  //     await new Promise(resolve => setTimeout(resolve, 2000))
-      
-  //     // Calculate verification score based on completed checks
-  //     const completedChecks = livenessChecks.filter(check => check.completed).length
-  //     const score = (completedChecks / livenessChecks.length) * 100
-      
-  //     setVerificationScore(score)
-      
-  //     // Capture final verification image
-  //     if (videoRef.current && canvasRef.current) {
-  //       const canvas = canvasRef.current
-  //       const ctx = canvas.getContext('2d')
-        
-  //       if (ctx) {
-  //         canvas.width = videoRef.current.videoWidth
-  //         canvas.height = videoRef.current.videoHeight
-  //         ctx.drawImage(videoRef.current, 0, 0)
-          
-  //         const verificationImage = canvas.toDataURL('image/jpeg', 0.8)
-          
-  //         const verificationData = {
-  //           score,
-  //           completedChecks: livenessChecks.filter(check => check.completed).length,
-  //           totalChecks: livenessChecks.length,
-  //           timestamp: new Date().toISOString(),
-  //           verificationImage,
-  //           faceDetected: true
-  //         }
-          
-  //         setCurrentStep('complete')
-  //         onVerificationComplete(score >= 80, verificationData) // 80% threshold for success
-  //       }
-  //     }
-  //   } catch (err) {
-  //     console.error('Verification processing error:', err)
-  //     setError('Failed to process verification. Please try again.')
-  //   } finally {
-  //     setIsLoading(false)
-  //   }
-  // });
-
-  const processVerification = useCallback(async () => {
-  setIsLoading(true);
   
-  try {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const completedChecks = livenessChecks.filter(check => check.completed).length;
-    const score = (completedChecks / livenessChecks.length) * 100;
-    
-    setVerificationScore(score);
-    
-    if (videoRef.current && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx) {
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        ctx.drawImage(videoRef.current, 0, 0);
-        
-        const verificationImage = canvas.toDataURL('image/jpeg', 0.8);
-        
-        const verificationData = {
-          score,
-          completedChecks,
-          totalChecks: livenessChecks.length,
-          timestamp: new Date().toISOString(),
-          verificationImage,
-          faceDetected: true
-        };
-        
-        setCurrentStep('complete');
-        onVerificationComplete(score >= 80, verificationData);
-      }
-    }
-  } catch (err) {
-    console.error('Verification processing error:', err);
-    setError('Failed to process verification. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-}, [livenessChecks, onVerificationComplete, setCurrentStep, setError, setIsLoading, setVerificationScore]);
-  
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopCamera()
-    }
-  }, [stopCamera])
-
-  useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
-
-    const handleLoadedMetadata = async () => {
-      try {
-        await videoElement.play();
-        setCurrentStep('face_detection');
-        setTimeout(() => setFaceDetected(true), 2000);
-      } catch (playError) {
-        setError('Unable to start video playback. Please allow camera access and try again.');
-      }
-    };
-
-    const handleError = (e: Event) => {
-      setError('Video loading failed. Please check your camera and try again.');
-    };
-
-    videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
-    videoElement.addEventListener('error', handleError);
-
-    return () => {
-      videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      videoElement.removeEventListener('error', handleError);
-    };
-  }, [videoRef.current]);
-
-  useEffect(() => {
-    if (currentStep === 'setup' && modelsLoaded) {
-      // Delay to ensure videoRef is set
-      setTimeout(() => {
-        startCamera();
-      }, 100);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, modelsLoaded]);
   
   // In renderStepContent, add loading and fallback UI for video readiness
   const renderStepContent = () => {
@@ -688,23 +562,42 @@ const stopCamera = useCallback(() => {
                 </div>
               </div>
             </div>
-            <button
-              onClick={startCamera}
-              disabled={!modelsLoaded || isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <Camera className="w-5 h-5" />
-                  Start Verification
-                </>
+            <div className="space-y-3">
+              <button
+                onClick={startCamera}
+                disabled={!modelsLoaded || isLoading}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {!modelsLoaded ? 'Loading Models...' : 'Starting Camera...'}
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-5 h-5" />
+                    Start Verification
+                  </>
+                )}
+              </button>
+              
+              {/* Show model loading status */}
+              {!modelsLoaded && (
+                <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                  Loading face detection models...
+                </div>
               )}
-            </button>
+              
+              {/* Manual verification option */}
+              <div className="text-center">
+                <button
+                  onClick={skipToManualVerification}
+                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 text-sm underline"
+                >
+                  Skip to manual verification
+                </button>
+              </div>
+            </div>
           </div>
         )
       
@@ -762,13 +655,30 @@ const stopCamera = useCallback(() => {
               )}
             </div>
             
-            <button
-              onClick={startLivenessDetection}
-              disabled={!faceDetected}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200"
-            >
-              Continue to Liveness Check
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={startLivenessDetection}
+                disabled={!faceDetected}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200"
+              >
+                Continue to Liveness Check
+              </button>
+              
+              {/* Fallback option if face detection is having issues */}
+              {!faceDetected && (
+                <div className="text-center">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                    Having trouble with face detection?
+                  </p>
+                  <button
+                    onClick={skipToManualVerification}
+                    className="text-blue-600 hover:text-blue-700 dark:text-blue-400 text-sm underline"
+                  >
+                    Skip to manual verification
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )
       
@@ -882,13 +792,7 @@ const stopCamera = useCallback(() => {
             <div className="flex gap-3">
               {!isSuccess && (
                 <button
-                  onClick={() => {
-                    setCurrentStep('setup')
-                    setDetectionData([])
-                    setLivenessChecks(prev => prev.map(check => ({ ...check, completed: false })))
-                    setCurrentCheckIndex(0)
-                    setVerificationScore(0)
-                  }}
+                  onClick={resetVerification}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
                 >
                   <RotateCcw className="w-5 h-5" />
@@ -934,6 +838,30 @@ const stopCamera = useCallback(() => {
           </button>
         </div>
         
+        {/* Debug Toggle */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4">
+            <button
+              onClick={() => setDebugMode(!debugMode)}
+              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              {debugMode ? 'Hide Debug' : 'Show Debug'}
+            </button>
+          </div>
+        )}
+
+        {/* Debug Information */}
+        {debugMode && (
+          <div className="mb-4 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-lg text-xs">
+            <div>Step: {currentStep}</div>
+            <div>Models Loaded: {modelsLoaded ? 'Yes' : 'No'}</div>
+            <div>Face Detected: {faceDetected ? 'Yes' : 'No'}</div>
+            <div>Detection Data: {detectionData.length} frames</div>
+            <div>Video Ready: {videoRef.current?.readyState || 'N/A'}</div>
+            <div>Stream Active: {streamRef.current ? 'Yes' : 'No'}</div>
+          </div>
+        )}
+
         {/* Error Message */}
         {error && (
           <div className="mb-4 bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">

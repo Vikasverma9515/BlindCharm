@@ -11,75 +11,11 @@ import Footer from '@/components/shared/Footer'
 import CardSwap, { Card } from '@/components/ui/CardSwap'
 import InfiniteScroll from '@/components/ui/InfiniteScroll'
 import PixelCard from '@/blocks/Components/PixelCard/PixelCard'
-// import Silk from '@/components/ui/Silk'
-
-// const AnimatedBackground = () => {
-//   // Use state to store window dimensions
-//   const [dimensions, setDimensions] = useState({ width: 1000, height: 1000 });
-
-//   useEffect(() => {
-//     // Update dimensions after mount
-//     setDimensions({
-//       width: window.innerWidth,
-//       height: window.innerHeight
-//     });
-
-//     const handleResize = () => {
-//       setDimensions({
-//         width: window.innerWidth,
-//         height: window.innerHeight
-//       });
-//     };
-
-//     window.addEventListener('resize', handleResize);
-//     return () => window.removeEventListener('resize', handleResize);
-//   }, []);
-
-//   return (
-//     <div className="fixed inset-0 -z-10 overflow-hidden">
-//       <div className="absolute inset-0 opacity-5">
-//         <div 
-//           className="absolute inset-0" 
-//           style={{
-//             backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,0,0,0.2) 2px, transparent 0)',
-//             backgroundSize: '40px 40px',
-//           }}
-//         />
-//       </div>
-      
-//       {[...Array(5)].map((_, i) => {
-//         const width = 64 + Math.floor(Math.random() * 64);
-//         const height = 64 + Math.floor(Math.random() * 64);
-        
-//         return (
-//           <motion.div
-//             key={i}
-//             initial={{ x: width, y: height }}
-//             animate={{
-//               x: [width, dimensions.width - width],
-//               y: [height, dimensions.height - height],
-//             }}
-//             transition={{
-//               duration: 20,
-//               repeat: Infinity,
-//               repeatType: "reverse",
-//               ease: "linear"
-//             }}
-//             className="absolute rounded-full mix-blend-multiply filter blur-xl opacity-10"
-//             style={{
-//               width: `${width}px`,
-//               height: `${height}px`,
-//               background: i % 2 ? '#FF3366' : '#FFD700',
-//             }}
-//           />
-//         );
-//       })}
-//     </div>
-//   );
-// };
+import DynamicBackground from '@/components/shared/DynamicBackground'
 
 const LobbyCardSwap = () => {
   return (
+    
     // <div className="w-full h-[600px] sm:h-[500px] lg:h-[600px] flex items-center justify-center">
     <div className="w-full h-[600px] sm:h-[500px] lg:h-[600px] flex items-center justify-start -ml-20 sm:justify-center sm:ml-0">
       <CardSwap
@@ -98,12 +34,12 @@ const LobbyCardSwap = () => {
                 <Coffee className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-bold">Morning Brew</h3>
-                <p className="text-white/80 text-xs sm:text-sm">Coffee Chat</p>
+                <h3 className="text-lg sm:text-xl font-bold">Though Roulette</h3>
+                <p className="text-white/80 text-xs sm:text-sm">Brainwaves & Banter</p>
               </div>
             </div>
             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Start your day with meaningful conversations over virtual coffee
+              Quick prompts. Savage takes. Get matched by mindset 🌀🧠
             </p>
             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
               {["Casual", "Morning", "Coffee"].map(tag => (
@@ -115,7 +51,7 @@ const LobbyCardSwap = () => {
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm">48 members</span>
+                <span className="text-white/80 text-xs sm:text-sm">25 members</span>
               </div>
               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
             </div>
@@ -124,6 +60,7 @@ const LobbyCardSwap = () => {
               whileTap={{ scale: 0.95 }}
               className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
             >
+              
               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
               Join Lobby
             </motion.button>
@@ -137,12 +74,12 @@ const LobbyCardSwap = () => {
                 <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-bold">Melody Match</h3>
-                <p className="text-white/80 text-xs sm:text-sm">Music Lovers</p>
+                <h3 className="text-lg sm:text-xl font-bold">AfterGlow Talks</h3>
+                <p className="text-white/80 text-xs sm:text-sm">Midnight Cravings</p>
               </div>
             </div>
             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Share your favorite tunes and discover new artists together
+               1 AM vibes, no small talk. Get deep, get dark, get real 🌒💬
             </p>
             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
               {["Music", "Creative", "Sharing"].map(tag => (
@@ -154,7 +91,7 @@ const LobbyCardSwap = () => {
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm">56 members</span>
+                <span className="text-white/80 text-xs sm:text-sm">21 members</span>
               </div>
               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
             </div>
@@ -176,12 +113,12 @@ const LobbyCardSwap = () => {
                 <Book className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-bold">Page Turners</h3>
-                <p className="text-white/80 text-xs sm:text-sm">Book Club</p>
+                <h3 className="text-lg sm:text-xl font-bold">Persona Pop</h3>
+                <p className="text-white/80 text-xs sm:text-sm">Flirt. Fake. Fantasize.</p>
               </div>
             </div>
             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Dive deep into literature and share your reading journey
+              Step into a new skin. Slide into character. Who do you wanna be tonight? 🎭✨
             </p>
             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
               {["Books", "Literature", "Deep"].map(tag => (
@@ -215,12 +152,12 @@ const LobbyCardSwap = () => {
                 <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-bold">Lens & Light</h3>
-                <p className="text-white/80 text-xs sm:text-sm">Photography</p>
+                <h3 className="text-lg sm:text-xl font-bold">Chill & Spill</h3>
+                <p className="text-white/80 text-xs sm:text-sm">Low-Key Energy</p>
               </div>
             </div>
             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Capture moments and share your perspective through photos
+              Come as you are. Mood swings welcome. Let it out 💭🌫️
             </p>
             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
               {["Art", "Visual", "Creative"].map(tag => (
@@ -251,6 +188,8 @@ const LobbyCardSwap = () => {
   );
 };
 
+
+
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false)
 
@@ -273,7 +212,9 @@ export default function Home() {
         {/* Optionally, a very subtle overlay: */}
         {/* <div className="absolute inset-0 bg-white/5 dark:bg-gray-900/10" /> */}
       </div>
-      
+      <div>
+        
+      </div>
 <SimpleTopNav />
       
       
@@ -287,7 +228,7 @@ export default function Home() {
           noiseIntensity={2}
           rotation={0}
         /> */}
-          <section className="min-h-screen flex items-center justify-center px-4 md:px-8 bg-gradient-to-b from-white to-amber-400 dark:from-gray-900/50 dark:to-gray-800/50 transition-colors duration-300">
+          <section className="min-h-screen flex items-center justify-center px-4 md:px-8 bg-[#FFC629] dark:from-gray-900/50 dark:to-gray-800/50 transition-colors duration-300">
             
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-16 md:pt-8 lg:pt-0">
               <div className="text-center lg:text-left">
@@ -335,7 +276,7 @@ export default function Home() {
           </section>
 
           {/* Why Choose BlindCharm Section */}
-          <section className="py-20 px-4 md:px-8 bg-gradient-to-b from-amber-400  dark:bg-gray-800 transition-colors duration-300">
+          <section className="py-20 px-4 md:px-8 bg-[#ffffff]  dark:bg-gray-800 transition-colors duration-300">
             <div className="max-w-7xl mx-auto">
               <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                 {/* Left Content */}

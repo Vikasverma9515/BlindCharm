@@ -80,7 +80,7 @@ export default function ContactPage() {
                   Get help with your account
                 </p>
                 <a href="mailto:support@blindcharm.com" className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium">
-                  support@blindcharm.com
+                  blindcharm@gmail.com
                 </a>
               </div>
 

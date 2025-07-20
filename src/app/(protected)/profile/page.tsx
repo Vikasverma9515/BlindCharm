@@ -446,9 +446,10 @@ export default function ProfilePage() {
 
                 {showVerifier && (
                   <FaceVerification
-                    onVerificationComplete={(verified) => {
+                    onVerificationComplete={(success, data) => {
+                      console.log('Verification complete:', { success, data });
                       setShowVerifier(false);
-                      if (verified) {
+                      if (success) {
                         // Save verified status (e.g., Supabase update)
                         alert('✅ You are now verified!');
                       } else {

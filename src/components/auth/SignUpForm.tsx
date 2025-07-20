@@ -81,7 +81,7 @@ export default function SignUpForm() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 ">
       {/* Status Messages */}
       {error && (
         <div className="rounded-2xl bg-red-50 dark:bg-red-900/20 border  dark:border-red-700/50 p-4">
@@ -111,10 +111,10 @@ export default function SignUpForm() {
         </div>
       )}
 
-      <form onSubmit={handleSignUp} className="space-y-6">
+      <form onSubmit={handleSignUp} className="space-y-6 ">
         {/* Full Name */}
         <div className="group">
-          <label htmlFor="fullName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="fullName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ">
             Full Name
           </label>
           <div className="relative">
