@@ -31,7 +31,14 @@ const LoginForm: FC = () => { // Use FC type instead of JSX.Element
       console.log('Sign in result:', result)
 
       if (result?.error) {
-        setError('Invalid credentials')
+        if (
+          result.error.toLowerCase().includes('confirm') ||
+          result.error.toLowerCase().includes('verify')
+        ) {
+          setError('Please verify your email address before signing in. Check your inbox for a verification link.');
+        } else {
+          setError('Invalid credentials');
+        }
       } else {
         router.push('/lobby')
         router.refresh()

@@ -116,12 +116,12 @@ export default function AboutMePage() {
                   <Mail className="w-5 h-5 text-red-500" />
                   <div>
                     <p className="font-medium text-gray-900 dark:text-gray-100">Email</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">vikas@blindcharm.com</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">blindcharm@gmail.com</p>
                   </div>
                 </a>
                 
                 <a
-                  href="https://github.com/vikasverma"
+                  href="https://github.com/vikasverma9515"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-red-300 dark:hover:border-red-600 transition-colors"
@@ -129,12 +129,12 @@ export default function AboutMePage() {
                   <Github className="w-5 h-5 text-red-500" />
                   <div>
                     <p className="font-medium text-gray-900 dark:text-gray-100">GitHub</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">@vikasverma</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">@vikasverma9515</p>
                   </div>
                 </a>
                 
                 <a
-                  href="https://linkedin.com/in/vikasverma"
+                  href="https://www.linkedin.com/in/vikas-verma-264103275/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-red-300 dark:hover:border-red-600 transition-colors"

@@ -249,8 +249,8 @@ export default function PrivacyPage() {
                   </p>
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                     <p className="font-medium text-gray-900 dark:text-gray-100">BlindCharm Privacy Team</p>
-                    <p>Email: privacy@blindcharm.com</p>
-                    <p>Address: [Your Company Address]</p>
+                    <p>Email: blindcharm@gmail.com</p>
+                    {/* <p>Address: [Your Company Address]</p> */}
                   </div>
                 </div>
               </div>
