@@ -31,6 +31,7 @@ import { Brain } from 'lucide-react'
 import { CurrentQuestion } from '@/types/mindmatch'
 import type { MindMatchAnswer } from '@/types/mindmatch';
 import CompatibilityBoard from '@/components/lobby/CompatibilityBoard';
+import AdminBadge from '@/components/ui/AdminBadge'
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -82,6 +83,7 @@ export default function LobbyPage({ params }: PageProps) {
 const [roundId, setRoundId] = useState<string | null>(null);
 const [gameState, setGameState] = useState<'waiting' | 'playing' | 'results'>('waiting');
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // MindMatch state
   const [mindMatchRoundId, setMindMatchRoundId] = useState<string | null>(null);
@@ -138,6 +140,25 @@ const handleStartRound = async (lobbyId: string) => {
     setIsLoading(false);
   }
 };
+
+const checkAdminStatus = async () => {
+    if (!session?.user?.id) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('is_admin')
+        .eq('id', session.user.id)
+        .single()
+
+      if (error) throw error
+      setIsAdmin(data?.is_admin || false)
+    } catch (error) {
+      console.error('Error checking admin status:', error)
+      setIsAdmin(false)
+    }
+  }
+
 
 const handleAnswer = async (answer: string, optionIndex?: number) => {
   if (!currentQuestion || !roundId) return;
@@ -1283,7 +1304,7 @@ const getTimeLeft = (endsAt: string): number => {
 
                         {/* Next Match Info */}
                         <div className="px-6 pb-6">
-                          <div className="text-center bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl p-4">
+                          <div className="text-center bg-indigo-400 rounded-2xl p-4">
                             <div className="flex items-center justify-center gap-2 mb-2">
                               <Clock className="w-5 h-5 text-primary-500" />
                               <span className="text-sm font-medium text-neutral-850">Next Match</span>
@@ -1294,7 +1315,7 @@ const getTimeLeft = (endsAt: string): number => {
                             </p>
 
                             {/* Test Match Button - Only show in development */}
-                            {process.env.NODE_ENV === 'development' && (
+                            {process.env.NODE_ENV === 'development' || isAdmin && (
                               <button
                                 onClick={triggerMatching}
                                 disabled={isMatching || participants.length < 2}
@@ -1306,7 +1327,7 @@ const getTimeLeft = (endsAt: string): number => {
                                     <span>Matching...</span>
                                   </div>
                                 ) : (
-                                  'Test Match Now'
+                                  'Match Now'
                                 )}
                               </button>
                             )}

@@ -1,0 +1,11 @@
+{
+  "port": 8001,
+  "repositories": [
+    {
+      "url": "https://github.com/Vikasverma9515/BlindCharm",
+      "branch": "main",
+      "path": "/home/Vikasverma9515/BlindCharm",
+      "deploy": "cd /home/Vikasverma9515/BlindCharm && git pull origin main && npm install && npm run build && pm2 restart blindcharm"
+    }
+  ]
+}
