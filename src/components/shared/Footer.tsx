@@ -24,7 +24,8 @@ export default function Footer() {
   }
 
   return (
-    <footer className="relative bg-black overflow-hidden">
+    // <footer className="relative rounded-2xl bg-black overflow-hidden">
+    <footer className="relative bg-black overflow-hidden md:mt-0 mt-[-100px]"> 
       {/* Subtle Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{

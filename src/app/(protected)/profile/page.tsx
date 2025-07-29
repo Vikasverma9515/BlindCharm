@@ -72,6 +72,18 @@ interface UserProfile {
     height_range: [number, number];
   };
 }
+interface ProfileSectionProps {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  isEditing: boolean;
+  onEdit: () => void;
+  onCancel: () => void;
+  onSave: () => void;
+  loading: boolean;
+  theme: keyof typeof sectionThemes; // Add theme prop
+}
+
 
 // Predefined options for easy selection
 const INTERESTS_OPTIONS = [
@@ -104,6 +116,67 @@ const DEALBREAKERS_OPTIONS = [
   'Drama', 'Negativity', 'Unreliability', 'Disrespectful', 'No communication'
 ];
 
+// Define color themes for different sections
+const sectionThemes = {
+  basic: {
+    icon: "bg-blue-500",
+    border: "border-blue-200",
+    hover: "hover:bg-blue-50",
+    gradient: "from-blue-50 to-white",
+    dark: {
+      border: "dark:border-blue-800",
+      hover: "dark:hover:bg-blue-900/20",
+      gradient: "dark:from-blue-900/20 dark:to-transparent"
+    }
+  },
+  about: {
+    icon: "bg-purple-500",
+    border: "border-purple-200",
+    hover: "hover:bg-purple-50",
+    gradient: "from-purple-50 to-white",
+    dark: {
+      border: "dark:border-purple-800",
+      hover: "dark:hover:bg-purple-900/20",
+      gradient: "dark:from-purple-900/20 dark:to-transparent"
+    }
+  },
+  work: {
+    icon: "bg-amber-500",
+    border: "border-amber-200",
+    hover: "hover:bg-amber-50",
+    gradient: "from-amber-50 to-white",
+    dark: {
+      border: "dark:border-amber-800",
+      hover: "dark:hover:bg-amber-900/20",
+      gradient: "dark:from-amber-900/20 dark:to-transparent"
+    }
+  },
+  interests: {
+    icon: "bg-green-500",
+    border: "border-green-200",
+    hover: "hover:bg-green-50",
+    gradient: "from-green-50 to-white",
+    dark: {
+      border: "dark:border-green-800",
+      hover: "dark:hover:bg-green-900/20",
+      gradient: "dark:from-green-900/20 dark:to-transparent"
+    }
+  },
+  personality: {
+    icon: "bg-red-500",
+    border: "border-red-200",
+    hover: "hover:bg-red-50",
+    gradient: "from-red-50 to-white",
+    dark: {
+      border: "dark:border-red-800",
+      hover: "dark:hover:bg-red-900/20",
+      gradient: "dark:from-red-900/20 dark:to-transparent"
+    }
+  }
+};
+
+
+
 export default function ProfilePage() {
   const { data: session } = useSession()
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -114,6 +187,7 @@ export default function ProfilePage() {
   const [editForm, setEditForm] = useState<Partial<UserProfile>>({})
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [showVerifier, setShowVerifier] = useState(false);
+ 
 
   useEffect(() => {
     fetchProfile()
@@ -401,10 +475,10 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-3 flex-wrap">
-                      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      <h1 className="text-xl font-blindcharm-brand text-gray-900 dark:text-gray-100">
                         {profile.full_name || 'Complete your profile'}
                         {profile.dob && (
-                          <span className="text-xl font-normal text-gray-600 dark:text-gray-400 ml-2">
+                          <span className="text-xl font-normal text-red-500 dark:text-gray-400 ml-2">
                             {getAge(profile.dob)}
                           </span>
                         )}
@@ -431,7 +505,7 @@ export default function ProfilePage() {
 
                 {/* Bio */}
                 {profile.bio && (
-                  <p className="mt-4 text-gray-700 dark:text-gray-300 leading-relaxed">
+                  <p className="mt-4 text-gray-700 dark:text-gray-300 leading-relaxed font-blindcharm-accent text-xl">
                     {profile.bio}
                   </p>
                 )}
@@ -439,12 +513,12 @@ export default function ProfilePage() {
             </div>
           </motion.div>
            <div>
-                <h1>Your Profile</h1>
+                {/* <h1>Your Profile</h1>
                 <button onClick={() => setShowVerifier(true)}>
                   {`🔒 Get Verified`}
-                </button>
+                </button> */}
 
-                {showVerifier && (
+                {/* {showVerifier && (
                   <FaceVerification
                     onVerificationComplete={(success, data) => {
                       console.log('Verification complete:', { success, data });
@@ -458,15 +532,16 @@ export default function ProfilePage() {
                     }}
                     onClose={() => setShowVerifier(false)}
                   />
-                )}
+                )} */}
               </div>
           {/* Profile Sections */}
-          <div className="space-y-4">
+          <div className="space-y-4 ">
 
             {/* Basic Info Section */}
             <ProfileSection
               title="Basic Information"
-              icon={<User className="w-5 h-5" />}
+              icon={<User className="w-5 h-5 " />}
+              theme='basic'
               isEditing={editingSection === 'basic'}
               onEdit={() => setEditingSection('basic')}
               onCancel={() => setEditingSection(null)}
@@ -480,7 +555,7 @@ export default function ProfilePage() {
               loading={loading}
             >
               {editingSection === 'basic' ? (
-                <div className="space-y-4">
+                <div className="space-y-4 ">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                     <input
@@ -527,6 +602,7 @@ export default function ProfilePage() {
             <ProfileSection
               title="About Me"
               icon={<Heart className="w-5 h-5" />}
+              theme="about"
               isEditing={editingSection === 'about'}
               onEdit={() => setEditingSection('about')}
               onCancel={() => setEditingSection(null)}
@@ -555,6 +631,7 @@ export default function ProfilePage() {
             <ProfileSection
               title="Work & Education"
               icon={<Briefcase className="w-5 h-5" />}
+              theme="work"
               isEditing={editingSection === 'work'}
               onEdit={() => setEditingSection('work')}
               onCancel={() => setEditingSection(null)}
@@ -613,6 +690,7 @@ export default function ProfilePage() {
             <ProfileSection
               title="Location"
               icon={<MapPin className="w-5 h-5" />}
+              theme="basic"
               isEditing={editingSection === 'location'}
               onEdit={() => setEditingSection('location')}
               onCancel={() => setEditingSection(null)}
@@ -680,6 +758,7 @@ export default function ProfilePage() {
             <ProfileSection
               title="Interests"
               icon={<Heart className="w-5 h-5" />}
+              theme="interests"
               isEditing={editingSection === 'interests'}
               onEdit={() => setEditingSection('interests')}
               onCancel={() => setEditingSection(null)}
@@ -727,6 +806,7 @@ export default function ProfilePage() {
             <ProfileSection
               title="Personality"
               icon={<Smile className="w-5 h-5" />}
+              theme="personality"
               isEditing={editingSection === 'personality'}
               onEdit={() => setEditingSection('personality')}
               onCancel={() => setEditingSection(null)}
@@ -821,6 +901,7 @@ export default function ProfilePage() {
             <ProfileSection
               title="What I'm Looking For"
               icon={<Settings className="w-5 h-5" />}
+              theme="basic"
               isEditing={editingSection === 'looking_for'}
               onEdit={() => setEditingSection('looking_for')}
               onCancel={() => setEditingSection(null)}
@@ -1039,18 +1120,21 @@ interface ProfileSectionProps {
   onCancel: () => void
   onSave: () => void
   loading: boolean
+  theme: keyof typeof sectionThemes
 }
 
-function ProfileSection({ title, icon, children, isEditing, onEdit, onCancel, onSave, loading }: ProfileSectionProps) {
+function ProfileSection({ title, icon, children, isEditing, onEdit, onCancel, onSave, loading, theme }: ProfileSectionProps) {
+  const themeConfig = sectionThemes[theme]
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-300"
+      className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg border ${themeConfig.border} ${themeConfig.dark.border} overflow-hidden transition-colors duration-300 hover:${themeConfig.hover} ${themeConfig.dark.hover}`}
     >
-      <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+      <div className={`flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r ${themeConfig.gradient} ${themeConfig.dark.gradient}`}>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-red-500 rounded-full text-white">
+          <div className={`p-2 ${themeConfig.icon} rounded-full text-white`}>
             {icon}
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>

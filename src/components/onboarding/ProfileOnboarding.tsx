@@ -19,7 +19,8 @@ import {
   Camera,
   Sparkles,
   Check,
-  AlertCircle
+  AlertCircle,
+  User2Icon
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 // import ImageUpload from '@/components/profile/ImageUpload'
@@ -210,8 +211,8 @@ export default function ProfileOnboarding() {
     switch (step.id) {
       case 'welcome':
         return (
-          <div className="text-center space-y-6 ">
-            <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
+          <div className="text-center space-y-6  ">
+            <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto border-4 border-red-400  shadow-2xl">
               {/* <Sparkles className="w-12 h-12 text-white" /> */}
              <img 
                 src="/logo2.png" 
@@ -220,8 +221,8 @@ export default function ProfileOnboarding() {
               />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome to BlindCharm!</h2>
-              <p className="text-gray-600 text-lg">Let's set up your profile to find your perfect match</p>
+              <h2 className="text-3xl text-gray-900 mb-2 font-blindcharm-logo">Welcome to BlindCharm!</h2>
+              <p className="text-gray-600 text-lg font-moderna">Let's set up your profile to find your perfect match</p>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <p className="text-amber-800 text-sm">
@@ -236,24 +237,28 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tell us about yourself</h2>
-              <p className="text-gray-600">Basic information to get started</p>
+              <h2 className="text-2xl text-gray-900 mb-2 font-blindcharm-logo">Tell us about yourself</h2>
+              <p className="text-gray-600 font-moderna">Basic information to get started</p>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <label className="block text-sm  text-gray-700 mb-2 font-semibold">Full Name (ᵕ—ᴗ—)</label>
                 <input
                   type="text"
                   value={data.full_name}
                   onChange={(e) => updateData('full_name', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent "
-                  placeholder="Enter your full name"
+                  placeholder="Your beautiful name here "
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth ⸜(｡˃ ᵕ ˂)⸝♡ </label>
+                {/* <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth </label>
+                <label className="inline-flex items-center ml-2">⸜(｡˃ ᵕ ˂)⸝♡</label>
+                </div> */}
                 <input
                   type="date"
                   value={data.dob}
@@ -263,7 +268,7 @@ export default function ProfileOnboarding() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Gender (˶ˆ꒳ˆ˵) </label>
                 <div className="grid grid-cols-3 gap-3">
                   {['male', 'female', 'other'].map((gender) => (
                     <button
@@ -303,8 +308,8 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Add your best photo</h2>
-              <p className="text-gray-600">This will be revealed when you both choose to connect</p>
+              <h2 className="text-2xl  text-gray-900 mb-2 font-blindcharm-logo">Add your best photo </h2>
+              <p className="text-gray-600 font-moderna">This will be revealed when you both choose to connect</p>
             </div>
             
             <div className="flex justify-center">
@@ -327,7 +332,7 @@ export default function ProfileOnboarding() {
                   <div className="w-48 h-48 rounded-full border-4 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
                     <div className="text-center">
                       <Camera className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500 text-sm">Add Photo</p>
+                      <p className="text-gray-500 text-sm">Add Photo (˶ˆ꒳ˆ˵) </p>
                     </div>
                   </div>
                 )}
@@ -354,13 +359,13 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tell your story</h2>
+              <h2 className="text-2xl font-blindcharm-logo text-gray-900 mb-2">Tell your story</h2>
               <p className="text-gray-600">Share what makes you unique</p>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bio ( ˘ ³˘)♥</label>
                 <textarea
                   value={data.bio}
                   onChange={(e) => updateData('bio', e.target.value)}
@@ -372,7 +377,7 @@ export default function ProfileOnboarding() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Occupation</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Occupation (｡♥‿♥｡)</label>
                 <input
                   type="text"
                   value={data.occupation}
@@ -383,7 +388,7 @@ export default function ProfileOnboarding() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Education</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Education (っ´▽`)っ</label>
                 <input
                   type="text"
                   value={data.education}
@@ -394,7 +399,7 @@ export default function ProfileOnboarding() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Location (づ｡◕‿‿◕｡)づ</label>
                 <div className="grid grid-cols-2 gap-3">
                   <input
                     type="text"
@@ -421,6 +426,7 @@ export default function ProfileOnboarding() {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">What are you into?</h2>
+              <p className="text-gray-600">(｡•ᴗ•｡)♡</p>
               <p className="text-gray-600">Select your interests (choose at least 3)</p>
             </div>
             
@@ -456,7 +462,7 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Describe your personality</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Describe your personality (✿◕‿◕)</h2>
               <p className="text-gray-600">Pick traits that describe you best</p>
             </div>
             
@@ -488,7 +494,7 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your lifestyle</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your lifestyle (≧∀≦)</h2>
               <p className="text-gray-600">How do you like to spend your time?</p>
             </div>
             
@@ -520,7 +526,7 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">What are you looking for?</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">What are you looking for?  (๑•́ ₃ •̀๑)</h2>
               <p className="text-gray-600">Help us find your perfect match</p>
             </div>
             
@@ -552,7 +558,8 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">What are your deal breakers?</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">What are your deal breakers? </h2>
+              <p className="text-gray-600">(๑´•.̫ • `๑)</p>
               <p className="text-gray-600">Select things that would be absolute no-gos for you</p>
             </div>
             
@@ -598,12 +605,13 @@ export default function ProfileOnboarding() {
               <Check className="w-12 h-12 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">You're all set!</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">You're all set! </h2>
+              <p className="text-gray-600 font-moderna">(☞ﾟヮﾟ)☞</p>
               <p className="text-gray-600 text-lg">Your profile is complete and ready to find matches</p>
             </div>
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-green-800 text-sm">
-                🎉 Welcome to BlindCharm! Start exploring and find your perfect match.
+                (｡•̀ᴗ-)✧ Welcome to BlindCharm! Start exploring and find your perfect match.
               </p>
             </div>
           </div>

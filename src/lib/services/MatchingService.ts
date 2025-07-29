@@ -1,7 +1,280 @@
+// // src/lib/services/MatchingService.ts
+
+// import { supabase } from '@/lib/supabase'
+
+
+// interface User {
+//   id: string;
+//   username: string;
+//   gender: 'male' | 'female' | 'other';
+// }
+
+// interface LobbyParticipant {
+//   id: string;
+//   user_id: string;
+//   users: {
+//     id: string;
+//     username: string;
+//     gender: string;
+//   };
+// }
+
+
+
+
+// // src/lib/services/MatchingService.ts
+
+// export class MatchingService {
+//   // Test function to check if basic match insertion works
+//   static async testMatchInsertion(lobbyId: string) {
+//     try {
+//       console.log('🧪 Testing basic match insertion...');
+      
+//       const testMatch = {
+//         user1_id: 'test-user-1',
+//         user2_id: 'test-user-2', 
+//         lobby_id: lobbyId,
+//         status: 'matched',
+//         user1_revealed: false,
+//         user2_revealed: false
+//       };
+      
+//       const { data, error } = await supabase
+//         .from('matches')
+//         .insert([testMatch])
+//         .select();
+        
+//       if (error) {
+//         console.error('🧪 Test insertion failed:', error);
+//         return { success: false, error };
+//       }
+      
+//       console.log('🧪 Test insertion successful:', data);
+      
+//       // Clean up test data
+//       if (data && data[0]) {
+//         await supabase.from('matches').delete().eq('id', data[0].id);
+//         console.log('🧪 Test data cleaned up');
+//       }
+      
+//       return { success: true, data };
+//     } catch (error) {
+//       console.error('🧪 Test insertion error:', error);
+//       return { success: false, error };
+//     }
+//   }
+
+//   static async matchParticipants(lobbyId: string) {
+//     try {
+//       console.log('Starting matching process for lobby:', lobbyId);
+      
+//       // Check current session
+//       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+//       console.log('🔐 Current session:', session?.user?.id ? 'Authenticated' : 'Not authenticated');
+//       if (sessionError) console.error('Session error:', sessionError);
+
+//       // Get all waiting participants
+//       const { data: rawParticipants, error } = await supabase
+//         .from('lobby_participants')
+//         .select(`
+//           id,
+//           user_id,
+//           users:user_id (
+//             id,
+//             username,
+//             gender
+//           )
+//         `)
+//         .eq('lobby_id', lobbyId)
+//         .eq('status', 'waiting');
+
+//       if (error) throw error;
+
+//       if (!rawParticipants || rawParticipants.length < 2) {
+//         console.log('Not enough participants for matching');
+//         return { success: true, matches: [] };
+//       }
+
+//       // Process participants
+//       const typedParticipants = rawParticipants
+//         .filter(p => {
+//           if (!p.users) return false;
+//           if (Array.isArray(p.users)) {
+//             return p.users.length > 0 && typeof p.users[0].gender === 'string';
+//           }
+//           return typeof (p.users as { gender: string }).gender === 'string';
+//         })
+//         .map(p => {
+//           let userObj = Array.isArray(p.users) ? p.users[0] : p.users;
+//           return {
+//             id: p.id,
+//             user_id: p.user_id,
+//             user: {
+//               id: userObj.id,
+//               username: userObj.username,
+//               gender: userObj.gender.toLowerCase()
+//             }
+//           };
+//         });
+
+//       // Separate and shuffle participants
+//       const males = typedParticipants.filter(p => p.user.gender === 'male');
+//       const females = typedParticipants.filter(p => p.user.gender === 'female');
+      
+      
+//       const shuffle = (array: any[]) => {
+//         for (let i = array.length - 1; i > 0; i--) {
+//           const j = Math.floor(Math.random() * (i + 1));
+//           [array[i], array[j]] = [array[j], array[i]];
+//         }
+//       };
+
+//       shuffle(males);
+//       shuffle(females);
+      
+
+//       // Create matches
+//       const matches = [];
+//       const maxMatches = Math.min(males.length, females.length);
+
+//       for (let i = 0; i < maxMatches; i++) {
+//         matches.push({
+//           user1_id: males[i].user_id,
+//           user2_id: females[i].user_id,
+//           lobby_id: lobbyId,
+//           status: 'matched',
+//           user1_revealed: false,
+//           user2_revealed: false
+//         });
+//       }
+
+//       if (matches.length > 0) {
+//         console.log('🎯 Creating matches:', matches);
+        
+//         // Insert matches - triggers will handle notifications
+//         const { data: matchData, error: matchError } = await supabase
+//           .from('matches')
+//           .insert(matches)
+//           .select();
+
+//         if (matchError) {
+//           console.error('❌ Error inserting matches:', matchError);
+//           console.error('❌ Match data being inserted:', matches);
+//           console.error('❌ Error details:', {
+//             code: matchError.code,
+//             message: matchError.message,
+//             details: matchError.details,
+//             hint: matchError.hint
+//           });
+//           throw matchError;
+//         }
+
+//         console.log('✅ Matches inserted successfully:', matchData);
+//         console.log('🔔 Sending broadcast notifications to both users in each match...');
+        
+//         // Create a map of user_id to username from our participants data
+//         const userIdToUsername = new Map<string, string>();
+//         typedParticipants.forEach(p => {
+//           userIdToUsername.set(p.user_id, p.user.username);
+//         });
+
+//         // Send broadcast notifications for each match
+//         const notificationPromises = matchData?.map(async (match) => {
+//           try {
+//             // Get usernames from our participant data
+//             const user1Username = userIdToUsername.get(match.user1_id);
+//             const user2Username = userIdToUsername.get(match.user2_id);
+
+//             console.log(`📡 Sending notifications for match ${match.id}: ${user1Username} & ${user2Username}`);
+
+//             // Create notification channels for both users
+//             const channel1 = supabase.channel(`match_notifications_${match.user1_id}`);
+//            const channel2 = supabase.channel(`match_notifications_${match.user2_id}`);
+
+//             await Promise.all([
+//               channel1.subscribe(),
+//               channel2.subscribe()
+//              ]);
+
+//             // Send match notification to both users
+//             await Promise.all([
+//               channel1.send({
+//                 type: 'broadcast',
+//                 event: 'match_success',
+//                 payload: {
+//                   matchId: match.id,
+//                   user1Id: match.user1_id,
+//                   user2Id: match.user2_id,
+//                   user1Username: user1Username,
+//                   user2Username: user2Username
+//                 }
+//               }),
+//               channel2.send({
+//                 type: 'broadcast',
+//                 event: 'match_success',
+//                 payload: {
+//                   matchId: match.id,
+//                   user1Id: match.user1_id,
+//                   user2Id: match.user2_id,
+//                   user1Username: user1Username,
+//                   user2Username: user2Username
+//                 }
+//               })
+//             ]);
+
+//             console.log(`✅ Broadcast notifications sent for match ${match.id}`);
+
+//             // Clean up channels after a short delay
+//             setTimeout(() => {
+//               channel1.unsubscribe();
+//               channel2.unsubscribe();
+//             }, 2000);
+
+//           } catch (notificationError) {
+//             console.error('❌ Error sending broadcast notifications for match:', match.id, notificationError);
+//           }
+//         }) || [];
+
+//         await Promise.all(notificationPromises);
+
+//         // Remove participants
+//         const matchedUserIds = matches.flatMap(m => [m.user1_id, m.user2_id]);
+//         console.log('Removing participants:', matchedUserIds);
+        
+//         const { error: deleteError } = await supabase
+//           .from('lobby_participants')
+//           .delete()
+//           .eq('lobby_id', lobbyId)
+//           .in('user_id', matchedUserIds);
+
+//         if (deleteError) {
+//           console.error('Error removing participants:', deleteError);
+//           // Don't throw here, matches are already created
+//         } else {
+//           console.log('Participants removed successfully');
+//         }
+
+//         return {
+//           success: true,
+//           matches: matchData
+//         };
+//       }
+
+//       return { success: true, matches: [] };
+//     } catch (error) {
+//       console.error('Error in matching process:', error);
+//       return { success: false, error };
+//     }
+//   }
+// }
+
+
+
+
+
+
 // src/lib/services/MatchingService.ts
-
-import { supabase } from '@/lib/supabase'
-
+import { supabase } from '@/lib/supabase';
 
 interface User {
   id: string;
@@ -19,17 +292,12 @@ interface LobbyParticipant {
   };
 }
 
-
-
-
-// src/lib/services/MatchingService.ts
-
 export class MatchingService {
   static async matchParticipants(lobbyId: string) {
     try {
       console.log('Starting matching process for lobby:', lobbyId);
 
-      // Get all waiting participants
+      // Get all waiting participants with correct join
       const { data: rawParticipants, error } = await supabase
         .from('lobby_participants')
         .select(`
@@ -44,21 +312,37 @@ export class MatchingService {
         .eq('lobby_id', lobbyId)
         .eq('status', 'waiting');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching participants:', error);
+        throw error;
+      }
+
+      console.log('📊 Raw participants fetched:', rawParticipants.length);
+      console.log('📋 Raw participants data:', rawParticipants);
 
       if (!rawParticipants || rawParticipants.length < 2) {
-        console.log('Not enough participants for matching');
+        console.log('❌ Not enough participants for matching (total:', rawParticipants?.length || 0, ')');
         return { success: true, matches: [] };
       }
 
-      // Process participants
       const typedParticipants = rawParticipants
         .filter(p => {
-          if (!p.users) return false;
-          if (Array.isArray(p.users)) {
-            return p.users.length > 0 && typeof p.users[0].gender === 'string';
+          if (!p.users) {
+            console.log('⚠️ Participant missing user data:', p);
+            return false;
           }
-          return typeof (p.users as { gender: string }).gender === 'string';
+          if (Array.isArray(p.users)) {
+            const hasValidGender = p.users.length > 0 && typeof p.users[0].gender === 'string';
+            if (!hasValidGender) {
+              console.log('⚠️ Participant with invalid gender (array):', p);
+            }
+            return hasValidGender;
+          }
+          const hasValidGender = typeof (p.users as { gender: string }).gender === 'string';
+          if (!hasValidGender) {
+            console.log('⚠️ Participant with invalid gender (object):', p);
+          }
+          return hasValidGender;
         })
         .map(p => {
           let userObj = Array.isArray(p.users) ? p.users[0] : p.users;
@@ -73,11 +357,19 @@ export class MatchingService {
           };
         });
 
+      console.log('✅ Valid participants after filtering:', typedParticipants.length);
+      console.log('👥 Participant details:', typedParticipants.map(p => ({ 
+        username: p.user.username, 
+        gender: p.user.gender 
+      })));
+
       // Separate and shuffle participants
       const males = typedParticipants.filter(p => p.user.gender === 'male');
       const females = typedParticipants.filter(p => p.user.gender === 'female');
-      
-      
+
+      console.log('👨 Males found:', males.length, males.map(m => m.user.username));
+      console.log('👩 Females found:', females.length, females.map(f => f.user.username));
+
       const shuffle = (array: any[]) => {
         for (let i = array.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -87,38 +379,42 @@ export class MatchingService {
 
       shuffle(males);
       shuffle(females);
-      
 
-      // Create matches
+      // Check if we have at least one male and one female
+      if (males.length === 0 || females.length === 0) {
+        console.log('❌ Cannot create matches: need at least 1 male and 1 female');
+        console.log(`   Males: ${males.length}, Females: ${females.length}`);
+        return { success: true, matches: [] };
+      }
+
       const matches = [];
       const maxMatches = Math.min(males.length, females.length);
+      console.log('🎯 Creating', maxMatches, 'matches');
 
       for (let i = 0; i < maxMatches; i++) {
         matches.push({
           user1_id: males[i].user_id,
           user2_id: females[i].user_id,
           lobby_id: lobbyId,
-          status: 'matched'
+          status: 'matched',
         });
       }
 
       if (matches.length > 0) {
-        console.log('🎯 Creating matches:', matches);
-        
-        // Insert matches - triggers will handle notifications
+        console.log('Creating matches:', matches);
         const { data: matchData, error: matchError } = await supabase
           .from('matches')
           .insert(matches)
           .select();
 
         if (matchError) {
-          console.error('❌ Error inserting matches:', matchError);
+          console.error('Error creating matches:', matchError);
           throw matchError;
         }
 
-        console.log('✅ Matches inserted successfully:', matchData);
-        console.log('🔔 Sending broadcast notifications to both users in each match...');
-        
+        console.log('Matches created successfully:', matchData);
+        console.log('Sending broadcast notifications to both users in each match...');
+
         // Create a map of user_id to username from our participants data
         const userIdToUsername = new Map<string, string>();
         typedParticipants.forEach(p => {
@@ -132,18 +428,13 @@ export class MatchingService {
             const user1Username = userIdToUsername.get(match.user1_id);
             const user2Username = userIdToUsername.get(match.user2_id);
 
-            console.log(`📡 Sending notifications for match ${match.id}: ${user1Username} & ${user2Username}`);
+            console.log(`Sending notifications for match ${match.id}: ${user1Username} & ${user2Username}`);
 
             // Create notification channels for both users
             const channel1 = supabase.channel(`match_notifications_${match.user1_id}`);
-           const channel2 = supabase.channel(`match_notifications_${match.user2_id}`);
+            const channel2 = supabase.channel(`match_notifications_${match.user2_id}`);
 
-            await Promise.all([
-              channel1.subscribe(),
-              channel2.subscribe()
-             ]);
-
-            // Send match notification to both users
+            // Send notifications for both users
             await Promise.all([
               channel1.send({
                 type: 'broadcast',
@@ -169,25 +460,43 @@ export class MatchingService {
               })
             ]);
 
-            console.log(`✅ Broadcast notifications sent for match ${match.id}`);
-
-            // Clean up channels after a short delay
+            console.log(`Notifications sent for match ${match.id}`);
+            
+            // Cleanup channels
             setTimeout(() => {
               channel1.unsubscribe();
               channel2.unsubscribe();
             }, 2000);
-
           } catch (notificationError) {
-            console.error('❌ Error sending broadcast notifications for match:', match.id, notificationError);
+            console.error('Error sending notifications for match:', match.id, notificationError);
           }
-        }) || [];
+        });
 
-        await Promise.all(notificationPromises);
+        if (notificationPromises) {
+          await Promise.all(notificationPromises);
+        }
 
-        // Remove participants
+        // // Update matched participants status
+        // const matchedUserIds = matches.flatMap(m => [m.user1_id, m.user2_id]);
+        // console.log('Updating participants status:', matchedUserIds);
+
+        // const { error: updateError } = await supabase
+        //   .from('lobby_participants')
+        //   .update({ status: 'matched' })
+        //   .eq('lobby_id', lobbyId)
+        //   .in('user_id', matchedUserIds);
+
+        // if (updateError) {
+        //   console.error('Error updating participants:', updateError);
+        //   throw updateError;
+        // }
+
+        // console.log('Participants status updated successfully');
+
+        //remove participants
         const matchedUserIds = matches.flatMap(m => [m.user1_id, m.user2_id]);
         console.log('Removing participants:', matchedUserIds);
-        
+
         const { error: deleteError } = await supabase
           .from('lobby_participants')
           .delete()
@@ -196,10 +505,10 @@ export class MatchingService {
 
         if (deleteError) {
           console.error('Error removing participants:', deleteError);
-          // Don't throw here, matches are already created
-        } else {
-          console.log('Participants removed successfully');
+          throw deleteError;
         }
+
+        console.log('Participants removed successfully');
 
         return {
           success: true,
@@ -214,6 +523,14 @@ export class MatchingService {
     }
   }
 }
+
+
+
+
+
+
+
+
 //   static async matchParticipants(lobbyId: string) {
 //     try {
 //       console.log('Starting matching process for lobby:', lobbyId);

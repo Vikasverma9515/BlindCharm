@@ -199,26 +199,10 @@ export default function Home() {
 
   return (
 
-    <div className="relative min-h-screen overflow-hidden transition-colors duration-300 ">
-      {/* Silk Background */}
-      <div className="fixed inset-0 -z-10 pointer-events-none">
-        {/* <Silk
-          speed={5}
-          scale={2}
-          color="#7B7481"
-          noiseIntensity={2}
-          rotation={0}
-        /> */}
-        {/* Optionally, a very subtle overlay: */}
-        {/* <div className="absolute inset-0 bg-white/5 dark:bg-gray-900/10" /> */}
-      </div>
-      <div>
-
-      </div>
+    <div className="  relative min-h-screen overflow-hidden transition-colors duration-300 ">
       <SimpleTopNav />
 
-
-      <div className="pt-0 pb-15 md:pt-0 md:pb-0 lg:pt-0 lg:pb-0 sm:pb-3">
+      <div className=" px-2 pt-2 pb-15 md:pt-4 md:pb-0 lg:pt-4 lg:pb-0 sm:pb-3">
         <main className="relative ">
           {/* Hero Section */}
           {/* <Silk
@@ -229,10 +213,11 @@ export default function Home() {
           rotation={0}
         /> */}
 
-          <BackgroundPattern />
+          {/* <BackgroundPattern /> */}
           {/* Main Hero Section */}
-          <section className="relative min-h-screen flex items-center justify-center px-4 md:px-8 bg-gradient-to-br from-[#8966f1] via-[#9c7ff2] to-[#b899f3] dark:from-gray-900/50 dark:to-gray-800/50 transition-colors duration-300 overflow-hidden">
-
+          <section className="relative min-h-screen rounded-2xl flex items-center justify-center px-4 md:px-8 bg-gradient-to-br from-[#8966f1] via-[#9c7ff2] to-[#b899f3] dark:from-gray-900/50 dark:to-gray-800/50 transition-colors duration-300 overflow-hidden">
+          
+          
             {/* Enhanced Background Elements */}
             {/* Animated Gradient Orbs */}
             <div className="absolute inset-0 overflow-hidden">
@@ -402,7 +387,7 @@ export default function Home() {
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{
                     pathLength: [0, 1, 0],
-                    opacity: [0, 0.6, 0]
+                    opacity: [0, 1, 0]
                   }}
                   transition={{
                     duration: 8,
@@ -461,7 +446,7 @@ export default function Home() {
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               {/* Chat Bubble 1 */}
               <motion.div
-                className="absolute top-20 left-10 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30 "
+                className="absolute scale-70 lg:scale-100 lg:top-20 lg:left-10 top-2 left-5 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30 "
                 initial={{ opacity: 0, y: 20, x: -20 }}
                 animate={{
                   opacity: [0, 1, 1, 0],
@@ -484,7 +469,7 @@ export default function Home() {
 
               {/* Chat Bubble 2 */}
               <motion.div
-                className="absolute top-32 right-16 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30"
+                className="absolute scale-70 lg:scale-100 lg:top-32 lg:right-16 top-3 right-8 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30"
                 initial={{ opacity: 0, y: -20, x: 20 }}
                 animate={{
                   opacity: [0, 1, 1, 0],
@@ -745,7 +730,7 @@ export default function Home() {
           </section>
 
           {/* Why Choose BlindCharm Section */}
-          <section className="py-20 px-4 md:px-8 bg-[#ffffff]  dark:bg-gray-800 transition-colors duration-300">
+          <section className=" rounded-2xl py-20 px-4 md:px-8 bg-[#ffffff]  dark:bg-gray-800 transition-colors duration-300">
             <div className="max-w-7xl mx-auto">
               <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                 {/* Left Content */}
@@ -934,7 +919,7 @@ export default function Home() {
           </section>
 
           {/* CTA Section - Ready to Find Your Perfect Match */}
-          <section className="relative py-32 px-4 md:px-8 bg-gradient-to-br from-black via-gray-900 to-black overflow-hidden">
+          <section className="relative rounded-t-2xl lg:rounded-t-2xl  lg:pb-5 py-32 px-4 md:px-8 bg-gradient-to-br from-black via-gray-900 to-black overflow-hidden">
             {/* Animated Background Grid */}
             <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0" style={{
@@ -1056,8 +1041,8 @@ export default function Home() {
                               <span
                                 key={tag}
                                 className={`px-3 py-1 rounded-full text-xs font-medium ${index === 0 ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' :
-                                    index === 1 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
-                                      'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                                  index === 1 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
+                                    'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                                   }`}
                               >
                                 {tag}

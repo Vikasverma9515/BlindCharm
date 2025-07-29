@@ -108,6 +108,28 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+    const fontClasses = [
+    inter.className,
+    boldonse.variable,
+    bitcountGrid.variable,
+    specialGothic.variable,
+    poppins.variable,
+    montserrat.variable,
+    playfair.variable,
+    dancing.variable,
+    quicksand.variable,
+    nunito.variable,
+    comfortaa.variable,
+    raleway.variable,
+    caveat.variable,
+    righteous.variable,
+    fredoka.variable,
+    outfit.variable,
+    spaceGrotesk.variable,
+    orbitron.variable,
+    kalam.variable,
+    pacifico.variable
+  ].join(' ');
   return (
     <html lang="en">
       <head>
@@ -158,8 +180,11 @@ export default function RootLayout({
         <meta property="twitter:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
         <meta property="twitter:image" content="/icon-512x512.png" />
       </head>
+
       
-      <body className={`${inter.className} ${boldonse.variable} ${bitcountGrid.variable} ${specialGothic.variable} ${poppins.variable} ${montserrat.variable} ${playfair.variable} ${dancing.variable} ${quicksand.variable} ${nunito.variable} ${comfortaa.variable} ${raleway.variable} ${caveat.variable} ${righteous.variable} ${fredoka.variable} ${outfit.variable} ${spaceGrotesk.variable} ${orbitron.variable} ${kalam.variable} ${pacifico.variable}`}>
+      
+      {/* <body className={`${inter.className} ${boldonse.variable} ${bitcountGrid.variable} ${specialGothic.variable} ${poppins.variable} ${montserrat.variable} ${playfair.variable} ${dancing.variable} ${quicksand.variable} ${nunito.variable} ${comfortaa.variable} ${raleway.variable} ${caveat.variable} ${righteous.variable} ${fredoka.variable} ${outfit.variable} ${spaceGrotesk.variable} ${orbitron.variable} ${kalam.variable} ${pacifico.variable}`}> */}
+      <body className={fontClasses}>
         <ThemeProvider >
           <AuthProvider>
             {/* <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" > */}

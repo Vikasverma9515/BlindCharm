@@ -2,6 +2,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect } from 'react'
 import { ReactNode, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
@@ -24,6 +25,8 @@ import { Roboto } from 'next/font/google'
 // import { Boldonse } from 'next/font/google'
 import { Anton } from 'next/font/google'
 import { boldonse, righteous, specialGothic } from '@/app/fonts'
+import { supabase } from '@/lib/supabase'
+
 
 const anton= Anton({
   weight: ['400'],
@@ -47,11 +50,36 @@ interface ProfileAvatarProps {
 
 
 
+
+
 export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavProps) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const [userProfile, setUserProfile]= useState<UserProfile | null> (null)
   
+
+  useEffect(() => {
+      const fetchUserProfile = async () => {
+        if (!session?.user?.id) return
+        
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('id, full_name, username, profile_picture')
+            .eq('id', session.user.id)
+            .single()
+  
+          if (error) throw error
+          setUserProfile(data)
+        } catch (err) {
+          console.error('Error fetching user profile:', err)
+        }
+      }
+  
+      if (session?.user?.id) {
+        fetchUserProfile()
+      }
+    }, [session])
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' })
@@ -66,6 +94,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
   if (status === 'loading') {
     return null
   }
+  
 
   return (
     <>
@@ -146,10 +175,18 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                     <span>Profile</span>
                   </Link> */}
                   <NavItem
+                    href="/profile"
+                    icon={<ProfileAvatar userProfile={userProfile} />}
+                    isActive={isActive('/profile')}
+                    
+                  />
+                 {/* <NavItem 
                 href="/profile"
-                icon={<ProfileAvatar userProfile={userProfile} />}
-                isActive={isActive('/profile')}
-              />
+               icon={<ProfileAvatar userProfile={userProfile} />}
+                 isActive={isActive('/profile')}
+                
+               /><span>Profile</span> */}
+              
                   <button
                     onClick={handleLogout}
                     className="flex items-center space-x-2 px-4 py-2 rounded-full font-medium text-neutral-750 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 ml-2"
@@ -183,7 +220,8 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
       <motion.header 
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="w-full backdrop-blur-xl border-b border-primary-100/50 dark:border-gray-700/50 shadow-soft md:hidden bg-white/80 dark:bg-amber-400 transition-colors duration-300 rounded-b-2xl"
+        className="w-full backdrop-blur-xl border-b border-primary-100/50 dark:border-gray-700/50 shadow-soft md:hidden bg-white/50 dark:bg-amber-400 transition-colors duration-300 rounded-b-2xl"
+        // className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-amber-400 backdrop-blur-xl border-b-4 border-primary-100/50 dark:border-gray-700/50 shadow-soft hidden md:block transition-colors duration-300 rounded-b-2xl"
       >
         <div className="flex justify-between items-center h-16 px-5 ">
           {/* Left side - Logo and Page Name */}

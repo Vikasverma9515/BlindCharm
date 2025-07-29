@@ -307,8 +307,29 @@ export default function ModernLobbySelection() {
       return
     }
     
+    // Clear any previous errors
+    setError(null)
     setLoading(lobbyId)
+    
     try {
+      // First check if user is already in a lobby
+      const { data: existingParticipation, error: checkError } = await supabase
+        .from('lobby_participants')
+        .select('lobby_id')
+        .eq('user_id', session.user.id)
+        .eq('status', 'waiting')
+        .maybeSingle()
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError
+      }
+
+      if (existingParticipation && existingParticipation.lobby_id !== lobbyId) {
+        setError('You are already in another lobby. Please leave it first.')
+        return
+      }
+
+      // Attempt to join the lobby
       const { error } = await supabase
         .from('lobby_participants')
         .insert({
@@ -317,13 +338,31 @@ export default function ModernLobbySelection() {
           status: 'waiting'
         })
 
-      if (error) throw error
+      if (error) {
+        console.error('Database error:', error)
+        
+        // Provide more specific error messages
+        if (error.code === '23505') { // Unique constraint violation
+          setError('You are already in this lobby')
+        } else if (error.code === '42501') { // Insufficient privilege
+          setError('Unable to join lobby. Please check your permissions.')
+        } else if (error.message?.includes('RLS')) {
+          setError('Permission denied. Please try logging out and back in.')
+        } else {
+          setError(`Failed to join lobby: ${error.message}`)
+        }
+        return
+      }
 
       setUserJoinedLobbyId(lobbyId)
       await fetchActiveLobbies()
-    } catch (error) {
+      
+      // Success feedback
+      console.log('Successfully joined lobby:', lobbyId)
+      
+    } catch (error: any) {
       console.error('Error joining lobby:', error)
-      setError('Failed to join lobby')
+      setError(error.message || 'An unexpected error occurred while joining the lobby')
     } finally {
       setLoading(null)
     }
@@ -332,7 +371,10 @@ export default function ModernLobbySelection() {
   const handleLeaveLobby = async (lobbyId: string) => {
     if (!session?.user) return
     
+    // Clear any previous errors
+    setError(null)
     setLoading(lobbyId)
+    
     try {
       const { error } = await supabase
         .from('lobby_participants')
@@ -342,13 +384,29 @@ export default function ModernLobbySelection() {
           lobby_id: lobbyId 
         })
 
-      if (error) throw error
+      if (error) {
+        console.error('Database error:', error)
+        
+        // Provide more specific error messages
+        if (error.code === '42501') { // Insufficient privilege
+          setError('Unable to leave lobby. Please check your permissions.')
+        } else if (error.message?.includes('RLS')) {
+          setError('Permission denied. Please try logging out and back in.')
+        } else {
+          setError(`Failed to leave lobby: ${error.message}`)
+        }
+        return
+      }
 
       setUserJoinedLobbyId(null)
       await fetchActiveLobbies()
-    } catch (error) {
+      
+      // Success feedback
+      console.log('Successfully left lobby:', lobbyId)
+      
+    } catch (error: any) {
       console.error('Error leaving lobby:', error)
-      setError('Failed to leave lobby')
+      setError(error.message || 'An unexpected error occurred while leaving the lobby')
     } finally {
       setLoading(null)
     }
@@ -491,13 +549,16 @@ export default function ModernLobbySelection() {
                   >
                     <ModernCard className="hover:shadow-float bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 overflow-hidden p-0" hover>
                       <div className="flex flex-col h-full">
+                        
                         {/* Large Image Header */}
                         <div className="relative w-full aspect-[16/9] overflow-hidden">
+                        
                           {lobby.image_url ? (
                             <img
                               src={lobby.image_url}
                               alt={lobby.name}
                               className="w-full h-full object-cover"
+                              
                             />
                           ) : (
                             <div className={`w-full h-full ${themeConfig.bgColor} flex items-center justify-center`}>

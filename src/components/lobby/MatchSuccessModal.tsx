@@ -74,12 +74,12 @@ export const MatchSuccessModal = ({
           className="bg-white/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl text-center max-w-md w-full mx-4 border border-white/20"
         >
           {/* Animated Hearts Background */}
-          <div className="absolute inset-0 overflow-hidden rounded-3xl">
+          {/* <div className="absolute inset-0 overflow-hidden rounded-3xl">
             <div className="absolute top-4 left-4 text-primary-200 animate-pulse">💕</div>
             <div className="absolute top-8 right-6 text-secondary-200 animate-bounce" style={{ animationDelay: '0.5s' }}>💖</div>
             <div className="absolute bottom-6 left-8 text-primary-300 animate-pulse" style={{ animationDelay: '1s' }}>💝</div>
             <div className="absolute bottom-4 right-4 text-secondary-300 animate-bounce" style={{ animationDelay: '1.5s' }}>💗</div>
-          </div>
+          </div> */}
 
           {/* Main Content */}
           <div className="relative z-10">
@@ -105,7 +105,7 @@ export const MatchSuccessModal = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-3xl font-bold bg-red-500 to-secondary-600 bg-clip-text text-transparent mb-4"
+              className="text-3xl bg-red-500 to-secondary-600 bg-clip-text text-transparent mb-4 font-blindcharm-accent"
             >
               Perfect Match!
             </motion.h2>
@@ -117,7 +117,7 @@ export const MatchSuccessModal = ({
               transition={{ delay: 0.4 }}
               className="mb-6"
             >
-              <p className="text-lg text-neutral-700 mb-2">
+              <p className="text-lg text-neutral-700 mb-2 font-blindcharm-brand">
                 You've been matched with
               </p>
               <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-4 border border-red-100 dark:border-red-700/50">
