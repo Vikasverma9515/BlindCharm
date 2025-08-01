@@ -2,7 +2,7 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, MessageCircle, Users, Sparkles, ArrowRight, Star, Zap, X, Coffee, Music, Book, Camera } from 'lucide-react'
+import { Heart, MessageCircle, Users, Sparkles, ArrowRight, Star, Zap, X, Coffee, Music, Book, Camera,Mic } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import SimpleTopNav from '@/components/shared/SimpleTopNav'
@@ -729,6 +729,128 @@ export default function Home() {
 
           </section>
 
+          {/* Features Section */}
+          <section className="py-20 px-4 md:px-8 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 transition-colors duration-300">
+            <div className="max-w-7xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="text-center mb-16"
+              >
+                <div className="inline-flex items-center gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full px-6 py-2 mb-6">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-sm font-bold">DISCOVER FEATURES</span>
+                </div>
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+                  Connect in New Ways
+                </h2>
+                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                  Experience dating through multiple dimensions - from anonymous whispers to voice connections
+                </p>
+              </motion.div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* Voice Swipe Feature */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.1 }}
+                  viewport={{ once: true }}
+                  className="group"
+                >
+                  <Link href="/voice-swipe" className="block">
+                    <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-8 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 h-full">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <Mic className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4">Voice Swipe</h3>
+                      <p className="text-white/90 mb-6 leading-relaxed">
+                        Connect through voice! Record short audio responses to prompts and swipe on others' voices. 
+                        Find matches based on personality, not photos.
+                      </p>
+                      <div className="flex items-center text-white/80 group-hover:text-white transition-colors">
+                        <span className="font-medium">Try Voice Dating</span>
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+
+                {/* Lobby System */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  viewport={{ once: true }}
+                  className="group"
+                >
+                  <Link href="/lobby" className="block">
+                    <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-8 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 h-full">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <Users className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4">Lobby System</h3>
+                      <p className="text-white/90 mb-6 leading-relaxed">
+                        Join themed lobbies and participate in MindMatch games. 
+                        Connect with people who share your interests and values.
+                      </p>
+                      <div className="flex items-center text-white/80 group-hover:text-white transition-colors">
+                        <span className="font-medium">Join a Lobby</span>
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+
+                {/* Anonymous Whispers */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                  viewport={{ once: true }}
+                  className="group"
+                >
+                  <Link href="/whispers" className="block">
+                    <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl p-8 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 h-full">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <MessageCircle className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4">Anonymous Whispers</h3>
+                      <p className="text-white/90 mb-6 leading-relaxed">
+                        Share your thoughts anonymously and connect with others through 
+                        authentic conversations without judgment.
+                      </p>
+                      <div className="flex items-center text-white/80 group-hover:text-white transition-colors">
+                        <span className="font-medium">Share a Whisper</span>
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              </div>
+
+              {/* Call to Action */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                viewport={{ once: true }}
+                className="text-center mt-16"
+              >
+                <Link
+                  href="/register"
+                  className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                >
+                  <Heart className="w-5 h-5" />
+                  Start Connecting Today
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </motion.div>
+            </div>
+          </section>
+
           {/* Why Choose BlindCharm Section */}
           <section className=" rounded-2xl py-20 px-4 md:px-8 bg-[#ffffff]  dark:bg-gray-800 transition-colors duration-300">
             <div className="max-w-7xl mx-auto">
@@ -919,7 +1041,7 @@ export default function Home() {
           </section>
 
           {/* CTA Section - Ready to Find Your Perfect Match */}
-          <section className="relative rounded-t-2xl lg:rounded-t-2xl  lg:pb-5 py-32 px-4 md:px-8 bg-gradient-to-br from-black via-gray-900 to-black overflow-hidden">
+          <section className="relative rounded-t-2xl lg:rounded-t-2xl  lg:pb-5 py-32 px-4 md:px-8 bg-gradient-to-b from-black via-gray-900 to-black overflow-hidden ">
             {/* Animated Background Grid */}
             <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0" style={{

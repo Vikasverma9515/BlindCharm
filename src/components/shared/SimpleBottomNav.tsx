@@ -141,7 +141,8 @@ import {
   UserPlus,
   ShieldUser,
   VenetianMask,
-  MessageCircleHeart
+  MessageCircleHeart,
+  Mic
 } from 'lucide-react'
 // import { useNotifications } from '@/hooks/useNotifications'
 // import NotificationBadge from './NotificationBadge'
@@ -161,6 +162,7 @@ export default function SimpleBottomNav() {
 
   const isActive = (path: string) => {
     if (path === '/lobby' && pathname.startsWith('/lobby')) return true
+    if (path === '/voice-swipe' && pathname.startsWith('/voice-swipe')) return true
     return pathname === path
   }
 
@@ -192,30 +194,35 @@ export default function SimpleBottomNav() {
 
   return (
     <motion.nav 
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
+      // initial={{ y: 100 }}
+      // animate={{ y: 0 }}
       className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 md:hidden"
     >
       
       <div className="bg-white/90 dark:bg-black backdrop-blur-xl rounded-[28px] shadow-soft border border-primary-100/50 dark:border-gray-200 border-t-2 p-4 w-[420px] rounded-b-none transition-colors duration-300  shadow-sm ">
       {/* backdrop-blur-md border-b border-gray-200 shadow-sm */}
-        <div className="flex justify-between items-center px-10">
+        <div className="flex justify-between items-center px-12">
           {session ? (
             <>
               <NavItem
                 href="/lobby"
-                icon={<ShieldUser size={30} />}
+                icon={<ShieldUser size={26} />}
                 isActive={isActive('/lobby')}
               />
+              {/* <NavItem
+                href="/voice-swipe"
+                icon={<Mic size={26} />}
+                isActive={isActive('/voice-swipe')}
+              /> */}
               <NavItem
                 href="/matches"
-                icon={<MessageCircleHeart size={30} />}
+                icon={<MessageCircleHeart size={26} />}
                 isActive={isActive('/matches')}
                 // notificationCount={counts.total}
               />
               <NavItem
                 href="/whispers"
-                icon={<VenetianMask size={30} />}
+                icon={<VenetianMask size={26} />}
                 isActive={isActive('/whispers')}
               />
               <NavItem

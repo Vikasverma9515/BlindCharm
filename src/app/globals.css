@@ -677,8 +677,7 @@ html {
 /* Additional iOS-specific fixes */
 input, textarea, select {
   -webkit-appearance: none;
-  -webkit-border-radius: 0;
-  border-radius: 0;
+  /* Removed border-radius override to allow Tailwind classes to work */
 }
 
 /* Prevent zoom on focus for all input types */
@@ -817,10 +816,49 @@ select:focus {
   border-radius: 0 !important;
 } */
 
-input {
+/* input {
   border-radius: 0;
-}
+} */
 
 .rounded-inverse {
   border-radius: 0 0 -24px -24px;
+}
+
+
+
+@keyframes floaty {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(3deg);
+  }
+  75% {
+    transform: rotate(-3deg);
+  }
+}
+@layer utilities {
+  .animate-floaty {
+    animation: floaty 2s ease-in-out infinite;
+  }
+  .animate-wiggle {
+    animation: wiggle 1s ease-in-out infinite;
+  }
+}
+
+
+@keyframes slowspin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.animate-slowspin {
+  animation: slowspin 60s linear infinite;
 }

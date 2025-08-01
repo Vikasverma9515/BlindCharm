@@ -114,7 +114,7 @@ export default function SignUpForm() {
       <form onSubmit={handleSignUp} className="space-y-6 ">
         {/* Full Name */}
         <div className="group">
-          <label htmlFor="fullName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ">
+          <label htmlFor="fullName" className="block text-sm font-semibold text-white font-blindcharm-brand dark:text-gray-300 mb-2 ">
             Full Name
           </label>
           <div className="relative">
@@ -125,7 +125,7 @@ export default function SignUpForm() {
               value={formData.fullName}
               onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
               className="w-full px-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all duration-300 shadow-sm hover:shadow-md group-hover:border-gray-300 dark:group-hover:border-gray-500 text-base"
-              placeholder="Enter your full name"
+              placeholder="What's your lovely name?"
               style={{ fontSize: '16px' }}
             />
           </div>
@@ -133,7 +133,7 @@ export default function SignUpForm() {
 
         {/* Email */}
         <div className="group">
-          <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="email" className="block text-sm font-semibold text-white font-blindcharm-brand dark:text-gray-300 mb-2">
             Email Address
           </label>
           <div className="relative">
@@ -143,8 +143,8 @@ export default function SignUpForm() {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all duration-300 shadow-sm hover:shadow-md group-hover:border-gray-300 dark:group-hover:border-gray-500 text-base"
-              placeholder="Enter your email"
+              className="w-full  px-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all duration-300 shadow-sm hover:shadow-md group-hover:border-gray-300 dark:group-hover:border-gray-500 text-base"
+              placeholder="Enter your email address"
               style={{ fontSize: '16px' }}
             />
           </div>
@@ -152,7 +152,7 @@ export default function SignUpForm() {
 
         {/* Password */}
         <div className="group">
-          <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="password" className="block text-sm text-white font-blindcharm-brand dark:text-gray-300 mb-2">
             Password
           </label>
           <div className="relative">
@@ -163,7 +163,7 @@ export default function SignUpForm() {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full px-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all duration-300 shadow-sm hover:shadow-md group-hover:border-gray-300 dark:group-hover:border-gray-500 text-base"
-              placeholder="Create a secure password"
+              placeholder="Make it strong, make it secure ✨"
               style={{ fontSize: '16px' }}
             />
           </div>
@@ -185,12 +185,13 @@ export default function SignUpForm() {
                   </svg>
                   <span>Creating Account...</span>
                 </>
-              ) : (
+              ) : ( 
                 <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {/* <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  <span>Create Account</span>
+                  </svg> */}
+                  <span>◝(ᵔᗜᵔ)◜</span>
+                  <span className='font-blindcharm-brand'>Create Account</span>
                 </>
               )}
             </div>

@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Heart, Mail, MapPin, Instagram, ArrowUp } from 'lucide-react'
+import { Heart, Mail, MapPin, Instagram, ArrowUp, User, HeartHandshake, HeartPulseIcon, CalendarHeart, EyeClosed, EyeIcon, HeartCrackIcon, HeartOffIcon, MessageSquareHeart } from 'lucide-react'
+import { boldonse } from '@/app/fonts'
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -46,7 +47,7 @@ export default function Footer() {
               viewport={{ once: true }}
             >
               <Link href="/" className="inline-flex items-center gap-3 mb-6">
-              <div className="bg-white rounded-b-full p-2">
+              <div className="bg-white rounded-b-full p-2 ">
                 <Image
                   src="/logo2.png"
                   alt="BlindCharm Logo"
@@ -55,18 +56,30 @@ export default function Footer() {
                   className="w-20 h-12 "
                 />
                 </div>
-                <span className="text-3xl font-black text-white">
+                <span className={`${boldonse.className} text-3xl  text-red-500  `}>
                   BlindCharm
                 </span>
+                {/* <span className={` font-blindcharm-logo text-amber-50 lg:scale-100 scale-50`}>
+                  Let the fun begin
+                </span> */}
               </Link>
-              
-              <p className="text-gray-400 text-lg leading-relaxed mb-6 max-w-2xl mx-auto">
+              <br />
+              <span className={` font-blindcharm-logo text-amber-50 lg:scale-100 scale-100 inline-flex items-center `}>
+                  Let the fun begin
+                  <br />
+                  <div className='text-amber-400'>
+                   .(｡•̀ᴗ-)✧
+                   </div>
+                </span>
+              <br />
+              <br />
+              <p className={` text-gray-400 text-lg leading-relaxed mb-6 max-w-2xl mx-auto`}>
                 Where authentic connections begin. Experience dating beyond appearances through our innovative lobby system.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-gray-500">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-amber-400">
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
+                  <MessageSquareHeart className="w-4 h-4" />
                   <span>Building connections worldwide</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -115,14 +128,14 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             {/* Copyright */}
             <div className="text-center md:text-left">
-              <p className="text-gray-400 mb-2">
+              <p className="text-white mb-2">
                 © {new Date().getFullYear()} BlindCharm. All rights reserved.
               </p>
               <p className="text-sm text-gray-500">
-                Built with <Heart className="w-4 h-4 text-red-500 inline mx-1" /> by{' '}
+                Built with <HeartCrackIcon className="w-4 h-4 text-red-500 inline mx-1" /> by{' '}
                 <Link 
-                  href="/about-me" 
-                  className="font-semibold text-gray-400 hover:text-white transition-colors"
+                  href="/founder" 
+                  className="font-semibold text-red-500 hover:text-white transition-colors"
                 >
                   This Guy
                 </Link>
@@ -135,7 +148,7 @@ export default function Footer() {
                 href="https://www.instagram.com/blindcharmx"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center text-gray-400 hover:text-pink-400 transition-all duration-300 hover:scale-110"
+                className="w-10 h-10 bg-indigo-500 hover:bg-gray-700 rounded-full flex items-center justify-center text-white hover:text-pink-400 transition-all duration-300 hover:scale-110"
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -155,7 +168,7 @@ export default function Footer() {
 
               <motion.button
                 onClick={scrollToTop}
-                className="w-10 h-10 bg-white hover:bg-gray-200 rounded-full flex items-center justify-center text-black transition-all duration-300 hover:scale-110"
+                className="w-10 h-10 bg-indigo-400 text-white hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
