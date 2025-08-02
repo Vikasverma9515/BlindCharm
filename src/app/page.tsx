@@ -13,6 +13,7 @@ import InfiniteScroll from '@/components/ui/InfiniteScroll'
 import PixelCard from '@/blocks/Components/PixelCard/PixelCard'
 import DynamicBackground from '@/components/shared/DynamicBackground'
 import BackgroundPattern from '@/components/shared/BackgroundPattern'
+import CuteFaceBubble2 from '@/components/ui/CuteFaceBubble2'
 
 const LobbyCardSwap = () => {
   return (
@@ -218,163 +219,20 @@ export default function Home() {
           <section className="relative min-h-screen rounded-2xl flex items-center justify-center px-4 md:px-8 bg-gradient-to-br from-[#8966f1] via-[#9c7ff2] to-[#b899f3] dark:from-gray-900/50 dark:to-gray-800/50 transition-colors duration-300 overflow-hidden">
           
           
+          
             {/* Enhanced Background Elements */}
             {/* Animated Gradient Orbs */}
-            <div className="absolute inset-0 overflow-hidden">
+            {/* <div className="absolute inset-0 overflow-hidden">
               <div className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-r from-pink-400/30 to-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
               <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
               <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-yellow-400/15 to-orange-500/15 rounded-full blur-3xl animate-pulse delay-500"></div>
               <div className="absolute bottom-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-green-400/15 to-teal-500/15 rounded-full blur-3xl animate-pulse delay-700"></div>
             </div>
 
-            {/* Floating Hearts Animation */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {[...Array(8)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: '100%'
-                  }}
-                  initial={{
-                    y: 50,
-                    opacity: 0
-                  }}
-                  animate={{
-                    y: -100,
-                    opacity: [0, 0.6, 0],
-                    rotate: [0, 180, 360]
-                  }}
-                  transition={{
-                    duration: 8 + Math.random() * 4,
-                    repeat: Infinity,
-                    delay: i * 2,
-                    ease: "linear"
-                  }}
-                >
-                  <Heart className="w-4 h-4 text-white/30" />
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Sparkle Effects */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {[...Array(12)].map((_, i) => (
-                <motion.div
-                  key={`sparkle-${i}`}
-                  className="absolute"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                  }}
-                  animate={{
-                    scale: [0, 1, 0],
-                    rotate: [0, 180],
-                    opacity: [0, 1, 0]
-                  }}
-                  transition={{
-                    duration: 2 + Math.random() * 2,
-                    repeat: Infinity,
-                    delay: Math.random() * 4,
-                    ease: "easeInOut"
-                  }}
-                >
-                  <Sparkles className="w-3 h-3 text-yellow-300/60" />
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Grid Pattern Overlay */}
-            <div className="absolute inset-0 opacity-10">
-              <div
-                className="w-full h-full"
-                style={{
-                  backgroundImage: `
-                    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-                  `,
-                  backgroundSize: '50px 50px'
-                }}
-              ></div>
-            </div>
-
             {/* Radial Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/20"></div>
+          
 
-            {/* Interactive Mouse Follow Effect */}
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              animate={{
-                background: [
-                  'radial-gradient(600px circle at 0% 0%, rgba(255,255,255,0.1), transparent)',
-                  'radial-gradient(600px circle at 100% 100%, rgba(255,255,255,0.1), transparent)',
-                  'radial-gradient(600px circle at 0% 100%, rgba(255,255,255,0.1), transparent)',
-                  'radial-gradient(600px circle at 100% 0%, rgba(255,255,255,0.1), transparent)',
-                ]
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "linear"
-              }}
-            />
-
-            {/* Floating Geometric Shapes */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {/* Triangle */}
-              <motion.div
-                className="absolute top-1/4 left-1/3 w-4 h-4"
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.2, 1],
-                  opacity: [0.3, 0.7, 0.3]
-                }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                <div className="w-full h-full bg-gradient-to-r from-pink-400/40 to-purple-400/40 transform rotate-45"></div>
-              </motion.div>
-
-              {/* Circle */}
-              <motion.div
-                className="absolute top-3/4 right-1/4 w-6 h-6 bg-gradient-to-r from-blue-400/40 to-cyan-400/40 rounded-full"
-                animate={{
-                  y: [-10, 10, -10],
-                  x: [-5, 5, -5],
-                  scale: [1, 1.3, 1],
-                  opacity: [0.4, 0.8, 0.4]
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 2
-                }}
-              />
-
-              {/* Diamond */}
-              <motion.div
-                className="absolute top-1/2 left-1/6 w-3 h-3"
-                animate={{
-                  rotate: [45, 225, 45],
-                  scale: [1, 1.4, 1],
-                  opacity: [0.3, 0.6, 0.3]
-                }}
-                transition={{
-                  duration: 7,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 4
-                }}
-              >
-                <div className="w-full h-full bg-gradient-to-r from-yellow-400/40 to-orange-400/40 transform rotate-45"></div>
-              </motion.div>
-            </div>
-
+            
             {/* Animated Connection Lines */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -518,13 +376,14 @@ export default function Home() {
               <div className="text-center lg:text-left relative">
                 {/* Glow effect behind text */}
                 <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent rounded-3xl blur-xl"></div>
-
+                
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8 }}
                   className="relative z-10"
                 >
+                  
                   <motion.div
                     className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-full px-6 py-2 mb-8"
                     animate={{
@@ -540,12 +399,14 @@ export default function Home() {
                       ease: "easeInOut"
                     }}
                   >
+                    
                     <motion.div
                       animate={{ rotate: [0, 360] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                     >
                       <Sparkles className="w-4 h-4" />
                     </motion.div>
+                    
                     <span className="text-sm font-bold tracking-wide">NEW WAY TO CONNECT</span>
                   </motion.div>
 
@@ -572,6 +433,7 @@ export default function Home() {
                     >
                       Find Love
                     </motion.span>
+                    
                     <motion.span
                       className="block bg-gradient-to-r from-pink-300 via-rose-300 to-red-300 bg-clip-text text-transparent"
                       initial={{ opacity: 0, x: -30 }}
@@ -581,7 +443,9 @@ export default function Home() {
                       Beyond Looks
                     </motion.span>
                   </motion.h1>
-
+{/* <div className="flex justify-center scale-75 lg:">
+                                <CuteFaceBubble2 size="md" />
+                              </div> */}
                   <motion.p
                     className="text-xl text-white/90 mb-8 leading-relaxed"
                     initial={{ opacity: 0, y: 20 }}
@@ -671,7 +535,7 @@ export default function Home() {
                   />
 
                   {/* Pulsing glow effect */}
-                  <motion.div
+                  {/* <motion.div
                     className="absolute inset-4 bg-gradient-to-r from-pink-500/5 via-purple-500/5 to-blue-500/5 rounded-full blur-2xl"
                     animate={{
                       scale: [1, 1.2, 1],
@@ -682,42 +546,15 @@ export default function Home() {
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
-                  />
+                  /> */}
                 </div>
 
-                {/* Floating mini hearts around cards */}
-                <div className="absolute inset-0 pointer-events-none">
-                  {[...Array(6)].map((_, i) => (
-                    <motion.div
-                      key={`mini-heart-${i}`}
-                      className="absolute"
-                      style={{
-                        left: `${20 + Math.random() * 60}%`,
-                        top: `${20 + Math.random() * 60}%`,
-                      }}
-                      animate={{
-                        y: [-10, -20, -10],
-                        x: [-5, 5, -5],
-                        rotate: [0, 360],
-                        scale: [0.8, 1.2, 0.8],
-                        opacity: [0.4, 0.8, 0.4]
-                      }}
-                      transition={{
-                        duration: 3 + Math.random() * 2,
-                        repeat: Infinity,
-                        delay: i * 0.5,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <Heart className="w-2 h-2 text-pink-300/60" />
-                    </motion.div>
-                  ))}
-                </div>
+               
 
                 {/* <div className="relative z-10">
                   <LobbyCardSwap />
                 </div> */}
-                <div className="relative z-10  
+                <div className="relative z-10 scale-90 lg:scale-100 lg:mt-[-1rem] 
                 sm: ml-20            
                 md:mr-70                    
                 lg:ml-[px] lg:mr-auto       
@@ -729,127 +566,8 @@ export default function Home() {
 
           </section>
 
-          {/* Features Section */}
-          <section className="py-20 px-4 md:px-8 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 transition-colors duration-300">
-            <div className="max-w-7xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-                className="text-center mb-16"
-              >
-                <div className="inline-flex items-center gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full px-6 py-2 mb-6">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-sm font-bold">DISCOVER FEATURES</span>
-                </div>
-                <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-                  Connect in New Ways
-                </h2>
-                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-                  Experience dating through multiple dimensions - from anonymous whispers to voice connections
-                </p>
-              </motion.div>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Voice Swipe Feature */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                  viewport={{ once: true }}
-                  className="group"
-                >
-                  <Link href="/voice-swipe" className="block">
-                    <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-8 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 h-full">
-                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                        <Mic className="w-8 h-8" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4">Voice Swipe</h3>
-                      <p className="text-white/90 mb-6 leading-relaxed">
-                        Connect through voice! Record short audio responses to prompts and swipe on others' voices. 
-                        Find matches based on personality, not photos.
-                      </p>
-                      <div className="flex items-center text-white/80 group-hover:text-white transition-colors">
-                        <span className="font-medium">Try Voice Dating</span>
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-
-                {/* Lobby System */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                  viewport={{ once: true }}
-                  className="group"
-                >
-                  <Link href="/lobby" className="block">
-                    <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-8 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 h-full">
-                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                        <Users className="w-8 h-8" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4">Lobby System</h3>
-                      <p className="text-white/90 mb-6 leading-relaxed">
-                        Join themed lobbies and participate in MindMatch games. 
-                        Connect with people who share your interests and values.
-                      </p>
-                      <div className="flex items-center text-white/80 group-hover:text-white transition-colors">
-                        <span className="font-medium">Join a Lobby</span>
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-
-                {/* Anonymous Whispers */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                  viewport={{ once: true }}
-                  className="group"
-                >
-                  <Link href="/whispers" className="block">
-                    <div className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl p-8 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 h-full">
-                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                        <MessageCircle className="w-8 h-8" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4">Anonymous Whispers</h3>
-                      <p className="text-white/90 mb-6 leading-relaxed">
-                        Share your thoughts anonymously and connect with others through 
-                        authentic conversations without judgment.
-                      </p>
-                      <div className="flex items-center text-white/80 group-hover:text-white transition-colors">
-                        <span className="font-medium">Share a Whisper</span>
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              </div>
-
-              {/* Call to Action */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-                viewport={{ once: true }}
-                className="text-center mt-16"
-              >
-                <Link
-                  href="/register"
-                  className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-                >
-                  <Heart className="w-5 h-5" />
-                  Start Connecting Today
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-              </motion.div>
-            </div>
-          </section>
+          
+          
 
           {/* Why Choose BlindCharm Section */}
           <section className=" rounded-2xl py-20 px-4 md:px-8 bg-[#ffffff]  dark:bg-gray-800 transition-colors duration-300">

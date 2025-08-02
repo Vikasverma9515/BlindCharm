@@ -8,7 +8,7 @@ export default function LoginPage() {
     <div className="min-h-screen relative flex flex-col justify-center dark:bg-gray-900 transition-all duration-500">
       {/* Animated Background */}
       <div className="fixed inset-0 z-0 bg-lime-300 opacity-90"></div>
-      
+
       {/* Flowing Thread Animation */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -19,37 +19,37 @@ export default function LoginPage() {
               <stop offset="100%" stopColor="#84cc16" stopOpacity="0.4" />
             </linearGradient>
           </defs>
-          
+
           {/* Main flowing thread */}
-          <path 
+          <path
             d="M-100 50 Q200 150 400 100 T800 200 Q1000 250 1200 150 T1600 300"
-            stroke="url(#threadGradient)" 
-            strokeWidth="3" 
+            stroke="url(#threadGradient)"
+            strokeWidth="3"
             fill="none"
             opacity="0.7"
             className="animate-pulse"
           />
-          
+
           {/* Secondary thread */}
-          <path 
+          <path
             d="M-50 200 Q300 50 600 250 T1200 100 Q1400 200 1700 150"
-            stroke="#fbbf24" 
-            strokeWidth="2" 
+            stroke="#fbbf24"
+            strokeWidth="2"
             fill="none"
             opacity="0.5"
             className="animate-pulse"
-            style={{animationDelay: '1s'}}
+            style={{ animationDelay: '1s' }}
           />
-          
+
           {/* Subtle accent thread */}
-          <path 
+          <path
             d="M100 300 Q400 100 700 350 T1300 200 Q1500 100 1800 250"
-            stroke="#84cc16" 
-            strokeWidth="1.5" 
+            stroke="#84cc16"
+            strokeWidth="1.5"
             fill="none"
             opacity="0.4"
             className="animate-pulse"
-            style={{animationDelay: '2s'}}
+            style={{ animationDelay: '2s' }}
           />
         </svg>
       </div>
@@ -65,10 +65,10 @@ export default function LoginPage() {
               </svg>
             </div> */}
             <div className="flex justify-center mb-3 scale-75">
-                          <CuteFaceBubble2 size="md" />
-                        </div>
-            
-            <h1 className="text-3xl font-blindcharm-tech text-gray-900 dark:text-gray-100 mb-2">
+              <CuteFaceBubble2 size="md" />
+            </div>
+
+            <h1 className="text-3xl font-blindcharm-tech text-gray-900 dark:text-gray-100 mb-0">
               Welcome Back
             </h1>
             <p className="text-gray-800 dark:text-gray-400 text-lg">
@@ -77,7 +77,7 @@ export default function LoginPage() {
           </div>
 
           {/* Register link */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-3">
             <p className="text-sm text-gray-800 dark:text-gray-400">
               Don't have an account?{' '}
               <Link
@@ -95,7 +95,7 @@ export default function LoginPage() {
           <div className="relative">
             {/* Glassmorphism background */}
             <div className="absolute inset-0 bg-indigo-500 dark:bg-gray-800/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50"></div>
-            
+
             {/* Form content */}
             <div className="relative p-8">
               <LoginForm />

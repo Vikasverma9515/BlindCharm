@@ -71,13 +71,13 @@ export default function RegisterPage() {
       <div className="relative z-20 flex flex-col justify-center min-h-screen py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="w-full max-w-md mx-auto">
-          <div className="text-center mb-8">
+          <div className="text-center mb-3">
 
             <div className="flex justify-center mb-3 scale-75">
               <CuteFaceBubble2 size="md" />
             </div>
 
-            <h1 className="text-3xl font-blindcharm-tech text-gray-900 dark:text-gray-100 mb-2">
+            <h1 className="text-3xl font-blindcharm-tech text-gray-900 dark:text-gray-100 mb-0">
               Join BlindCharm
             </h1>
             <p className="text-gray-800 dark:text-gray-400 text-lg font-ui">
@@ -87,7 +87,7 @@ export default function RegisterPage() {
 
           <div>
             {/* Sign in link */}
-            <div className="text-center mb-8 ">
+            <div className="text-center mb-3 ">
               <p className="text-sm  text-gray-800 dark:text-gray-400">
                 Already have an account?{' '}
                 <Link

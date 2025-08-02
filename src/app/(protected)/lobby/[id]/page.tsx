@@ -838,10 +838,10 @@ export default function LobbyPage({ params }: PageProps) {
     ]).finally(() => setLoading(false))
 
     return () => {
-    participantsSubscription?.unsubscribe?.();
-    messagesSubscription?.unsubscribe?.();
-    matchSubscription?.unsubscribe?.();
-  };
+      participantsSubscription?.unsubscribe?.();
+      messagesSubscription?.unsubscribe?.();
+      matchSubscription?.unsubscribe?.();
+    };
   }, [session?.user?.id, lobbyId]);
 
   // Update match time and current time
@@ -888,26 +888,26 @@ export default function LobbyPage({ params }: PageProps) {
       });
     }, 30000);
 
-   return () => {
-  console.log('🧹 Cleaning up subscriptions and timers');
-  
-  // Safely unsubscribe from subscriptions
-  if (participantsSubscription.current) {
-    participantsSubscription.current.unsubscribe();
-  }
-  
-  if (messagesSubscription.current) {
-    messagesSubscription.current.unsubscribe();
-  }
-  
-  if (matchSubscription.current) {
-    matchSubscription.current.unsubscribe();
-  }
+    return () => {
+      console.log('🧹 Cleaning up subscriptions and timers');
 
-  clearInterval(matchingTimer);
-  clearInterval(timeUpdateTimer);
-  clearInterval(refreshTimer);
-}
+      // Safely unsubscribe from subscriptions
+      if (participantsSubscription.current) {
+        participantsSubscription.current.unsubscribe();
+      }
+
+      if (messagesSubscription.current) {
+        messagesSubscription.current.unsubscribe();
+      }
+
+      if (matchSubscription.current) {
+        matchSubscription.current.unsubscribe();
+      }
+
+      clearInterval(matchingTimer);
+      clearInterval(timeUpdateTimer);
+      clearInterval(refreshTimer);
+    }
   }, [session?.user?.id, lobbyId])
 
   // Broadcast subscription for match notifications
@@ -1152,84 +1152,148 @@ export default function LobbyPage({ params }: PageProps) {
                   </div>
                 ) : (
                   /* Desktop Header */
-                  <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={() => router.push('/lobby')}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                      >
-                        <ArrowLeft className="w-5 h-5 text-gray-600" />
-                      </button>
-                      <div className="flex items-center gap-3">
-                        {/* Lobby Image */}
-                        <div className="flex-shrink-0 relative z-30">
-                          {lobby?.image_url ? (
-                            <>
-                              <img
-                                src={lobby.image_url}
-                                alt={lobby.name || 'Lobby'}
-                                className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow-soft relative z-30"
-                                onError={(e) => {
-                                  console.error('Desktop header: Error loading lobby image:', lobby?.image_url);
-                                  e.currentTarget.style.display = 'none';
-                                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                                  if (fallback) {
-                                    fallback.style.display = 'flex';
-                                    fallback.classList.remove('hidden');
-                                  }
-                                }}
-                              />
-                              <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center shadow-soft  absolute top-0 left-0 z-30">
-                                <MessageCircle className="w-5 h-5 text-white" />
-                              </div>
-                            </>
-                          ) : (
-                            <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center shadow-soft relative z-30">
-                              <MessageCircle className="w-5 h-5 text-white" />
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <h1 className="text-xl font-semibold text-neutral-850">
-                            {lobby?.name ? `${lobby.name} Chat` : 'Lobby Chat'}
-                          </h1>
-                          <p className="text-sm text-neutral-750">Get to know each other before matching!</p>
-                        </div>
-                      </div>
-                    </div>
+                  // <div className="absolute top-0 left-0 right-0 max-w-6xl mx-auto flex items-center justify-between p-4">
+                  //   <div className="absolute top-0 left-0 right-0 flex items-center gap-4">
+                  //     <button
+                  //       onClick={() => router.push('/lobby')}
+                  //       className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  //     >
+                  //       <ArrowLeft className="w-5 h-5 text-gray-600" />
+                  //     </button>
+                  //     <div className="flex items-center gap-3">
+                  //       {/* Lobby Image */}
+                  //       {/* <div className="flex-shrink-0 relative z-30">
+                  //         {lobby?.image_url ? (
+                  //           <>
+                  //             <img
+                  //               src={lobby.image_url}
+                  //               alt={lobby.name || 'Lobby'}
+                  //               className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow-soft relative z-30"
+                  //               onError={(e) => {
+                  //                 console.error('Desktop header: Error loading lobby image:', lobby?.image_url);
+                  //                 e.currentTarget.style.display = 'none';
+                  //                 const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                  //                 if (fallback) {
+                  //                   fallback.style.display = 'flex';
+                  //                   fallback.classList.remove('hidden');
+                  //                 }
+                  //               }}
+                  //             />
+                  //             <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center shadow-soft  absolute top-0 left-0 z-30">
+                  //               <MessageCircle className="w-5 h-5 text-white" />
+                  //             </div>
+                  //           </>
+                  //         ) : (
+                  //           <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center shadow-soft relative z-30">
+                  //             <MessageCircle className="w-5 h-5 text-white" />
+                  //           </div>
+                  //         )}
+                  //       </div> */}
+                  //       <div>
+                  //         <h1 className="text-xl font-semibold text-neutral-850">
+                  //           {lobby?.name ? `${lobby.name} Chat` : 'Lobby Chat'}
+                  //         </h1>
+                  //         <p className="text-sm text-neutral-750">Get to know each other before matching!</p>
+                  //       </div>
+                  //     </div>
+                  //   </div>
 
-                    <div className="flex items-center gap-6 text-neutral-750">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span className="text-sm font-medium">{participants.length} online</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-sm font-medium">Next: {nextMatchTime}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-neutral-600">
-                        <span>Now: {currentTime}</span>
-                      </div>
-                      {/* Manual trigger for testing - only show if admin or in development */}
-                      {(process.env.NODE_ENV === 'development' || session?.user?.email?.includes('admin')) && (
-                        <>
+                  //   <div className="flex items-center gap-6 text-neutral-750">
+                  //     <div className="flex items-center gap-2">
+                  //       <Users className="w-4 h-4" />
+                  //       <span className="text-sm font-medium">{participants.length} online</span>
+                  //     </div>
+                  //     <div className="flex items-center gap-2">
+                  //       <Clock className="w-4 h-4" />
+                  //       <span className="text-sm font-medium">Next: {nextMatchTime}</span>
+                  //     </div>
+                  //     <div className="flex items-center gap-2 text-xs text-neutral-600">
+                  //       <span>Now: {currentTime}</span>
+                  //     </div>
+                  //     {/* Manual trigger for testing - only show if admin or in development */}
+                  //     {(process.env.NODE_ENV === 'development' || session?.user?.email?.includes('admin')) && (
+                  //       <>
+                  //         <button
+                  //           onClick={triggerMatching}
+                  //           disabled={isMatching || participants.length < 2}
+                  //           className="px-3 py-1 text-xs bg-primary-500 text-white rounded-full hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  //         >
+                  //           {isMatching ? 'Matching...' : 'Test Match'}
+                  //         </button>
+                  //         {/* <button
+                  //           // onClick={() => MatchingService.testMatchInsertion(lobbyId)}
+                  //           onClick={triggerMatching}
+                  //           disabled={isMatching || participants.length < 2}
+                  //           className="px-3 py-1 text-xs bg-yellow-500 text-white rounded-full hover:bg-yellow-600"
+                  //         >
+                  //           Test DB
+                  //         </button> */}
+                  //       </>
+                  //     )}
+                  //   </div>
+                  // </div>
+
+                  // <div className="absolute top-0 z-50 w-full bg-white/80 backdrop-blur-lg border-b border-gray-100">
+                  //   <div className="absolute top-0 left-0 right-0 max-w-6xl mx-auto px-4 py-3">
+                  //     <div className=" absolute flex items-center justify-between">
+                  <div className="fixed top-0 left-0 right-0 z-50 bg-black/30 backdrop-blur-lg border-b border-gray-100">
+                    <div className="absolute top-0 left-0 right-0 max-w-6xl mx-auto px-4 py-3">
+                      <div className="flex items-center justify-between w-full">
+                        {/* Left Side - Back Button & Lobby Info */}
+                        <div className="flex items-center gap-3">
                           <button
-                            onClick={triggerMatching}
-                            disabled={isMatching || participants.length < 2}
-                            className="px-3 py-1 text-xs bg-primary-500 text-white rounded-full hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => router.push('/lobby')}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                           >
-                            {isMatching ? 'Matching...' : 'Test Match'}
+                            <ArrowLeft className="w-5 h-5 text-white" />
                           </button>
-                          {/* <button
-                            // onClick={() => MatchingService.testMatchInsertion(lobbyId)}
-                            onClick={triggerMatching}
-                            disabled={isMatching || participants.length < 2}
-                            className="px-3 py-1 text-xs bg-yellow-500 text-white rounded-full hover:bg-yellow-600"
-                          >
-                            Test DB
-                          </button> */}
-                        </>
-                      )}
+
+                          <div>
+                            <h1 className="text-xl font-blindcharm-brand text-amber-400 dark:text-white">
+                              {lobby?.name ? `${lobby.name} Chat` : 'Lobby Chat'}
+                            </h1>
+                            <p className="text-sm text-white">
+                              Get to know each other before matching!
+                            </p>
+                          </div>
+                        </div>
+
+
+
+                        <div className="ml-auto flex items-center gap-3">
+                          {/* Online Users Pill */}
+                          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
+                            <Users className="w-4 h-4" />
+                            <span className="text-sm font-medium">{participants.length} online</span>
+                          </div>
+
+                          {/* Next Time Pill */}
+                          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
+                            <Clock className="w-4 h-4" />
+                            <span className="text-sm font-medium">Next: {nextMatchTime}</span>
+                          </div>
+
+                          {/* Current Time Pill */}
+                          {/* <div className="px-4 py-2 bg-white rounded-full shadow-sm">
+                            <span className="text-sm">Now: {currentTime}</span>
+                          </div> */}
+
+                          {/* Test Match Button */}
+                          {(process.env.NODE_ENV === 'development' ||
+                            session?.user?.email?.includes('admin')) && (
+                              <button
+                                onClick={triggerMatching}
+                                disabled={isMatching || participants.length < 2}
+                                className="px-4 py-2 text-sm font-medium text-white 
+                     bg-rose-500 hover:bg-rose-600 
+                     rounded-full transition-colors
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Test Match
+                              </button>
+                            )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1538,8 +1602,10 @@ export default function LobbyPage({ params }: PageProps) {
               </div>
             ) : (
               // Desktop Layout
-              <div className="max-w-[1600px] mx-auto px-6">
-                <div className="flex gap-6 h-[calc(100vh-90px)]">
+              // <div className="max-w-[1600px] mx-auto px-4  lg:pt-4 lg:pb-0  ">
+              <div className="max-w-[1600px] mx-auto px-4 h-[calc(100vh-80px)]">
+                {/* <div className="flex gap-6 h-[calc(90vh-40px)] bg-blue-600"> */}
+                <div className="flex gap-6 h-full">
                   {/* Information Section - Left side */}
                   <div className="w-80 flex-shrink-0 ">
                     <div className="bg-white rounded-3xl shadow-soft border border-gray-100 h-full flex flex-col overflow-hidden">
@@ -1651,13 +1717,13 @@ export default function LobbyPage({ params }: PageProps) {
 
                         {/* Next Match Info */}
                         <div className="px-6 pb-6">
-                          <div className="text-center bg-indigo-400 rounded-2xl p-4">
+                          <div className="text-center bg-lime-300 rounded-2xl p-4">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                              <Clock className="w-5 h-5 text-primary-500" />
-                              <span className="text-sm font-medium text-white">Next Match</span>
+                              <Clock className="w-5 h-5 text-black" />
+                              <span className="text-sm font-medium text-black">Next Match</span>
                             </div>
                             <p className="text-2xl font-bold text-primary-600">{nextMatchTime}</p>
-                            <p className="text-xs text-white mt-1">
+                            <p className="text-xs text-black mt-1">
                               Matches happen every few hours
                             </p>
 
