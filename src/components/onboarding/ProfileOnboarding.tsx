@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import '@/styles/onboarding.css'
+// import '@/styles/onboarding.css'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -221,10 +221,10 @@ export default function ProfileOnboarding() {
               />
             </div>
             <div>
-              <h2 className="text-3xl text-gray-900 mb-2 font-blindcharm-logo">Welcome to BlindCharm!</h2>
-              <p className="text-gray-600 text-lg font-moderna">Let's set up your profile to find your perfect match</p>
+              <h2 className="text-3xl text-white mb-2 font-blindcharm-logo">Welcome to BlindCharm!</h2>
+              <p className="text-green-200 text-lg font-moderna">Let's set up your profile to find your perfect match</p>
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="bg-lime-100 border border-lime-200 rounded-lg p-4">
               <p className="text-amber-800 text-sm">
                 ✨ Your profile will remain hidden until you both choose to reveal. 
                 This creates authentic connections based on personality first!
@@ -237,24 +237,24 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl text-gray-900 mb-2 font-blindcharm-logo">Tell us about yourself</h2>
-              <p className="text-gray-600 font-moderna">Basic information to get started</p>
+              <h2 className="text-2xl text-white mb-2 font-blindcharm-logo">Tell us about yourself</h2>
+              <p className="text-gray-200 font-moderna">Basic information to get started</p>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm  text-gray-700 mb-2 font-semibold">Full Name (ᵕ—ᴗ—)</label>
+                <label className="block text-sm  text-gray-100 mb-2 font-semibold">Full Name (ᵕ—ᴗ—)</label>
                 <input
                   type="text"
                   value={data.full_name}
                   onChange={(e) => updateData('full_name', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent "
+                  className="w-full px-4 py-3 text-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent "
                   placeholder="Your beautiful name here "
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth ⸜(｡˃ ᵕ ˂)⸝♡ </label>
+                <label className="block text-sm font-medium text-gray-100 mb-2">Date of Birth ⸜(｡˃ ᵕ ˂)⸝♡ </label>
                 {/* <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth </label>
                 <label className="inline-flex items-center ml-2">⸜(｡˃ ᵕ ˂)⸝♡</label>
@@ -263,12 +263,12 @@ export default function ProfileOnboarding() {
                   type="date"
                   value={data.dob}
                   onChange={(e) => updateData('dob', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-4 py-3 text-gray-300 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Gender (˶ˆ꒳ˆ˵) </label>
+                <label className="block text-sm font-medium text-gray-100 mb-2">Gender (˶ˆ꒳ˆ˵) </label>
                 <div className="grid grid-cols-3 gap-3">
                   {['male', 'female', 'other'].map((gender) => (
                     <button
@@ -288,7 +288,7 @@ export default function ProfileOnboarding() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-100 mb-2">
                   Height: {data.height} cm
                 </label>
                 <input
@@ -308,8 +308,8 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl  text-gray-900 mb-2 font-blindcharm-logo">Add your best photo </h2>
-              <p className="text-gray-600 font-moderna">This will be revealed when you both choose to connect</p>
+              <h2 className="text-2xl  text-gray-100 mb-2 font-blindcharm-logo">Add your best photo </h2>
+              <p className="text-gray-300 font-moderna">This will be revealed when you both choose to connect</p>
             </div>
             
             <div className="flex justify-center">
@@ -331,8 +331,9 @@ export default function ProfileOnboarding() {
                 ) : (
                   <div className="w-48 h-48 rounded-full border-4 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
                     <div className="text-center">
-                      <Camera className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500 text-sm">Add Photo (˶ˆ꒳ˆ˵) </p>
+                      <Camera className="w-12 h-12 text-gray-900 mx-auto mb-2" />
+                      <p className="text-gray-800 text-sm">Add Photo</p>
+                      <p>(˶ˆ꒳ˆ˵)</p>
                     </div>
                   </div>
                 )}
@@ -349,7 +350,7 @@ export default function ProfileOnboarding() {
                     handleImageUpload(file)
                   }
                 }}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                className="block w-full text-sm text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
               />
             </div>
           </div>
@@ -359,60 +360,60 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-blindcharm-logo text-gray-900 mb-2">Tell your story</h2>
-              <p className="text-gray-600">Share what makes you unique</p>
+              <h2 className="text-2xl font-blindcharm-logo text-gray-100 mb-2">Tell your story</h2>
+              <p className="text-gray-200">Share what makes you unique</p>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bio ( ˘ ³˘)♥</label>
+                <label className="block text-sm font-medium text-gray-200 mb-2">Bio ( ˘ ³˘)♥</label>
                 <textarea
                   value={data.bio}
                   onChange={(e) => updateData('bio', e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 border text-gray-200 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                   placeholder="Tell us about yourself, your passions, what makes you laugh..."
                 />
-                <p className="text-sm text-gray-500 mt-1">{data.bio.length}/500 characters</p>
+                <p className="text-sm text-gray-300 mt-1">{data.bio.length}/500 characters</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Occupation (｡♥‿♥｡)</label>
+                <label className="block text-sm font-medium text-gray-100 mb-2">Occupation (｡♥‿♥｡)</label>
                 <input
                   type="text"
                   value={data.occupation}
                   onChange={(e) => updateData('occupation', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-4 py-3 text-gray-200 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="What do you do for work?"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Education (っ´▽`)っ</label>
+                <label className="block text-sm font-medium text-gray-100 mb-2">Education (っ´▽`)っ</label>
                 <input
                   type="text"
                   value={data.education}
                   onChange={(e) => updateData('education', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-4 py-3 text-gray-200 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Your educational background"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location (づ｡◕‿‿◕｡)づ</label>
+                <label className="block text-sm font-medium text-gray-100 mb-2">Location (づ｡◕‿‿◕｡)づ</label>
                 <div className="grid grid-cols-2 gap-3">
                   <input
                     type="text"
                     value={data.city}
                     onChange={(e) => updateData('city', e.target.value)}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="px-4 py-3 border text-gray-200 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="City"
                   />
                   <input
                     type="text"
                     value={data.country}
                     onChange={(e) => updateData('country', e.target.value)}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="px-4 py-3 text-gray-200 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="Country"
                   />
                 </div>
@@ -425,9 +426,9 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">What are you into?</h2>
-              <p className="text-gray-600">(｡•ᴗ•｡)♡</p>
-              <p className="text-gray-600">Select your interests (choose at least 3)</p>
+              <h2 className="text-2xl font-bold text-gray-100 mb-2">What are you into?</h2>
+              <p className="text-gray-200">(｡•ᴗ•｡)♡</p>
+              <p className="text-gray-200">Select your interests (choose at least 3)</p>
             </div>
             
             <div className="flex flex-wrap gap-2">
@@ -444,7 +445,7 @@ export default function ProfileOnboarding() {
                   className={`px-4 py-2 rounded-full border-2 transition-colors ${
                     data.interests.includes(interest)
                       ? 'border-red-500 bg-red-50 text-red-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      : 'border-gray-300 text-gray-100 hover:border-gray-400'
                   }`}
                 >
                   {interest}
@@ -452,7 +453,7 @@ export default function ProfileOnboarding() {
               ))}
             </div>
             
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm text-amber-400">
               Selected: {data.interests.length} interests
             </p>
           </div>
@@ -462,8 +463,8 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Describe your personality (✿◕‿◕)</h2>
-              <p className="text-gray-600">Pick traits that describe you best</p>
+              <h2 className="text-2xl font-bold text-gray-100 mb-2">Describe your personality (✿◕‿◕)</h2>
+              <p className="text-gray-200">Pick traits that describe you best</p>
             </div>
             
             <div className="flex flex-wrap gap-2">
@@ -480,7 +481,7 @@ export default function ProfileOnboarding() {
                   className={`px-4 py-2 rounded-full border-2 transition-colors ${
                     data.personality_tags.includes(tag)
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      : 'border-gray-300 text-gray-300 hover:border-gray-400'
                   }`}
                 >
                   {tag}
@@ -494,8 +495,8 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Your lifestyle (≧∀≦)</h2>
-              <p className="text-gray-600">How do you like to spend your time?</p>
+              <h2 className="text-2xl font-bold text-gray-100 mb-2">Your lifestyle (≧∀≦)</h2>
+              <p className="text-gray-200">How do you like to spend your time?</p>
             </div>
             
             <div className="flex flex-wrap gap-2">
@@ -512,7 +513,7 @@ export default function ProfileOnboarding() {
                   className={`px-4 py-2 rounded-full border-2 transition-colors ${
                     data.lifestyle_tags.includes(tag)
                       ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      : 'border-gray-300 text-gray-300 hover:border-gray-400'
                   }`}
                 >
                   {tag}
@@ -526,8 +527,8 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">What are you looking for?  (๑•́ ₃ •̀๑)</h2>
-              <p className="text-gray-600">Help us find your perfect match</p>
+              <h2 className="text-2xl font-bold text-gray-100 mb-2">What are you looking for?  (๑•́ ₃ •̀๑)</h2>
+              <p className="text-gray-200">Help us find your perfect match</p>
             </div>
             
             <div className="space-y-3">
@@ -544,7 +545,7 @@ export default function ProfileOnboarding() {
                   className={`w-full p-4 rounded-lg border-2 text-left transition-colors ${
                     data.looking_for.includes(option)
                       ? 'border-pink-500 bg-pink-50 text-pink-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      : 'border-gray-300 text-gray-300 hover:border-gray-400'
                   }`}
                 >
                   {option}
@@ -558,9 +559,9 @@ export default function ProfileOnboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">What are your deal breakers? </h2>
-              <p className="text-gray-600">(๑´•.̫ • `๑)</p>
-              <p className="text-gray-600">Select things that would be absolute no-gos for you</p>
+              <h2 className="text-2xl font-bold text-gray-100 mb-2">What are your deal breakers? </h2>
+              <p className="text-gray-100">(๑´•.̫ • `๑)</p>
+              <p className="text-gray-200">Select things that would be absolute no-gos for you</p>
             </div>
             
             <div className="space-y-3">
@@ -577,7 +578,7 @@ export default function ProfileOnboarding() {
                   className={`w-full p-4 rounded-lg border-2 text-left transition-colors ${
                     data.dealbreakers.includes(dealbreaker)
                       ? 'border-red-500 bg-red-50 text-red-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      : 'border-gray-300 text-gray-300 hover:border-gray-400'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -605,9 +606,9 @@ export default function ProfileOnboarding() {
               <Check className="w-12 h-12 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">You're all set! </h2>
-              <p className="text-gray-600 font-moderna">(☞ﾟヮﾟ)☞</p>
-              <p className="text-gray-600 text-lg">Your profile is complete and ready to find matches</p>
+              <h2 className="text-3xl font-blindcharm-tech text-gray-100 mb-2">You're all set! </h2>
+              <p className="text-gray-200 font-moderna">(☞ﾟヮﾟ)☞</p>
+              <p className="text-gray-200 text-lg">Your profile is complete and ready to find matches</p>
             </div>
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-green-800 text-sm">
@@ -652,28 +653,29 @@ export default function ProfileOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center p-4">
+    <div className=" min-h-screen bg-lime-300 flex items-center justify-center p-4">
+      
       <div className="w-full max-w-2xl">
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-900">
               Step {currentStep + 1} of {steps.length}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-900">
               {Math.round(((currentStep + 1) / steps.length) * 100)}% complete
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-red-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+              className="bg-indigo-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
             />
           </div>
         </div>
-
+       
         {/* Step Content */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-indigo-500 rounded-2xl shadow-xl p-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -693,8 +695,8 @@ export default function ProfileOnboarding() {
               disabled={currentStep === 0}
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors ${
                 currentStep === 0
-                  ? 'text-gray-400 cursor-not-allowed'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'text-white cursor-not-allowed'
+                  : 'text-white hover:bg-gray-100'
               }`}
             >
               <ArrowLeft className="w-4 h-4" />
@@ -705,7 +707,7 @@ export default function ProfileOnboarding() {
               <button
                 onClick={handleComplete}
                 disabled={loading}
-                className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-pink-500 text-white px-8 py-3 rounded-lg hover:from-red-600 hover:to-pink-600 transition-colors disabled:opacity-50"
+                className="flex items-center space-x-2 bg-red-500 text-white px-8 py-3 rounded-lg hover:from-red-600 hover:to-pink-600 transition-colors disabled:opacity-50"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -720,7 +722,7 @@ export default function ProfileOnboarding() {
                 disabled={!canProceed()}
                 className={`flex items-center space-x-2 px-8 py-3 rounded-lg transition-colors ${
                   canProceed()
-                    ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600'
+                    ? 'bg-lime-400 text-black hover:from-red-600 hover:to-pink-600'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >

@@ -404,8 +404,8 @@ export default function ProfilePage() {
     <>
       <SimpleTopNav pageName="My Profile" />
 
-      <main className="min-h-screen pt-0 pb-0 md:pt-0 md:pb-0 bg-gray-50 dark:bg-gray-900 transition-colors duration-300 ">
-        <div className="max-w-md mx-auto px-4 py-6 md:max-w-2xl md:pt-8">
+      <main className="min-h-screen pt-0 pb-4 md:pt-0 md:pb-8 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500">
+        <div className="max-w-md mx-auto px-4 py-6 md:max-w-2xl md:pt-8 space-y-6">
 
           {/* Error Message */}
           {error && (
@@ -418,98 +418,181 @@ export default function ProfilePage() {
             </motion.div>
           )}
 
-          {/* Profile Completion Card */}
+          {/* Modern Profile Completion Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300"
+            className="relative overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-500 rounded-full">
-                  <Star className="w-5 h-5 text-white" />
+            <div className="bg-indigo-600 rounded-3xl p-6 shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+                    <Star className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Profile Strength</h2>
+                    <p className="text-white/80 text-sm font-medium">Complete your profile to get more matches</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Profile Strength</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Complete your profile to get more matches</p>
+                <div className="text-right">
+                  <div className="text-3xl font-black text-white">{completionPercentage}%</div>
+                  <div className="text-white/60 text-xs font-semibold uppercase tracking-wider">Complete</div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{completionPercentage}%</div>
+              
+              {/* Modern Progress Bar */}
+              <div className="relative">
+                <div className="h-4 bg-white/20 backdrop-blur-sm rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${completionPercentage}%` }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="h-full bg-gradient-to-r from-white to-white/90 rounded-full shadow-lg"
+                  />
+                </div>
+                {/* Completion milestones */}
+                <div className="flex justify-between mt-2 text-xs text-white/60 font-semibold">
+                  <span>Basic</span>
+                  <span>Good</span>
+                  <span>Great</span>
+                  <span>Perfect</span>
+                </div>
               </div>
-            </div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${completionPercentage}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className="h-full bg-red-500 rounded-full"
-              />
+              
+              {/* Floating elements */}
+              <div className="absolute top-4 right-4 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
+              <div className="absolute bottom-4 left-4 w-16 h-16 bg-pink-300/20 rounded-full blur-xl"></div>
             </div>
           </motion.div>
 
-          {/* Profile Header Card */}
+          {/* Modern Profile Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mb-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-300"
+            className="mb-8"
           >
-            {/* Cover Photo */}
-            <div className="relative h-32 bg-black dark:bg-gray-900">
-              <div className="absolute inset-0 bg-amber-400 dark:bg-amber-400"></div>
-            </div>
-            
-            {/* Profile Info */}
-            <div className="relative px-6 pb-6">
-              {/* Profile Picture */}
-              <div className="absolute -top-12 left-6">
-                <ImageUpload
-                  currentImage={profile.profile_picture}
-                  onImageUpload={handleImageUpload}
-                  loading={loading}
-                />
-              </div>
-              {/* Name and Age */}
-              <div className="pt-16">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <h1 className="text-xl font-blindcharm-brand text-gray-900 dark:text-gray-100">
-                        {profile.full_name || 'Complete your profile'}
+            {/* Photo Gallery Section - Instagram Style */}
+            <div className="relative mb-6">
+              <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-indigo-700">
+                {profile.profile_picture ? (
+                  <img
+                    src={profile.profile_picture}
+                    alt={profile.full_name || 'Profile'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <Camera size={48} className="mx-auto mb-4 opacity-60" />
+                      <p className="text-lg font-medium opacity-80">Add your photo</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                
+                {/* Profile Info Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <div className="flex items-end justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h1 className="text-3xl font-bold tracking-tight">
+                          {profile.full_name || 'Your Name'}
+                        </h1>
                         {profile.dob && (
-                          <span className="text-xl font-normal text-red-500 dark:text-gray-400 ml-2">
+                          <span className="text-2xl font-light opacity-90">
                             {getAge(profile.dob)}
                           </span>
                         )}
-                      </h1>
-                      {profile.is_admin && (
-                        <AdminBadge size="sm" />
+                        {profile.is_admin && (
+                          <div className="ml-2">
+                            <AdminBadge size="sm" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
+                        <div className="flex items-center gap-2 mb-3">
+                          <MapPin className="w-4 h-4 opacity-80" />
+                          <span className="text-sm font-medium opacity-90">
+                            {typeof profile.location === 'string'
+                              ? profile.location
+                              : profile.location && typeof profile.location === 'object'
+                                ? `${profile.location.city}${profile.location.country ? `, ${profile.location.country}` : ''}`
+                                : ''
+                            }
+                          </span>
+                        </div>
+                      )}
+                      
+                      {profile.bio && (
+                        <p className="text-sm leading-relaxed opacity-90 line-clamp-2">
+                          {profile.bio}
+                        </p>
                       )}
                     </div>
-                    {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {typeof profile.location === 'string'
-                            ? profile.location
-                            : profile.location && typeof profile.location === 'object'
-                              ? `${profile.location.city}${profile.location.country ? `, ${profile.location.country}` : ''}`
-                              : ''
-                          }
-                        </span>
-                      </div>
-                    )}
+                    
+                    {/* Edit Photo Button */}
+                    <div className="ml-4">
+                      <ImageUpload
+                        currentImage={profile.profile_picture}
+                        onImageUpload={handleImageUpload}
+                        loading={loading}
+                      />
+                    </div>
                   </div>
                 </div>
-
-                {/* Bio */}
-                {profile.bio && (
-                  <p className="mt-4 text-gray-700 dark:text-gray-300 leading-relaxed font-blindcharm-accent text-xl">
-                    {profile.bio}
-                  </p>
-                )}
+                
+                {/* Status Indicators */}
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <div className="px-3 py-1.5 bg-green-500 rounded-full flex items-center gap-1.5 shadow-lg">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    <span className="text-white text-xs font-semibold">Active</span>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-lg border border-gray-100 dark:border-gray-700"
+              >
+                <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                  {completionPercentage}%
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">Complete</div>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-lg border border-gray-100 dark:border-gray-700"
+              >
+                <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+                  {(profile.interests?.length || 0) + (profile.hobbies?.length || 0)}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">Interests</div>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-lg border border-gray-100 dark:border-gray-700"
+              >
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {profile.languages?.length || 0}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">Languages</div>
+              </motion.div>
             </div>
           </motion.div>
            <div>
@@ -535,7 +618,7 @@ export default function ProfilePage() {
                 )} */}
               </div>
           {/* Profile Sections */}
-          <div className="space-y-4 ">
+          <div className="space-y-6">
 
             {/* Basic Info Section */}
             <ProfileSection
@@ -992,110 +1075,124 @@ export default function ProfilePage() {
               )}
             </ProfileSection>
 
-            {/* Settings Section */}
+            {/* Modern Settings Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-300"
+              className="group"
             >
-              <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-500 rounded-full text-white">
-                    <Settings className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Settings & Privacy</h3>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-4">
-                {/* Account Settings */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Account</h4>
-                  <div className="space-y-2">
-                    <SettingsItem
-                      icon={<Bell className="w-5 h-5" />}
-                      title="Notifications"
-                      subtitle="Manage your notification preferences"
-                      onClick={() => {/* TODO: Navigate to notifications */ }}
-                    />
-                    <SettingsItem
-                      icon={<Eye className="w-5 h-5" />}
-                      title="Privacy Settings"
-                      subtitle="Control who can see your profile"
-                      onClick={() => {/* TODO: Navigate to privacy */ }}
-                    />
-                    <SettingsItem
-                      icon={<Shield className="w-5 h-5" />}
-                      title="Safety & Security"
-                      subtitle="Block users, report issues"
-                      onClick={() => {/* TODO: Navigate to safety */ }}
-                    />
+              <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+                
+                {/* Modern Header */}
+                <div className="relative p-6 pb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg">
+                      <Settings className="w-6 h-6 text-white" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl opacity-20 blur-lg scale-110"></div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                        Settings & Privacy
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                        Manage your account and preferences
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                {/* App Settings */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">App Settings</h4>
-                  <div className="space-y-2">
-                    <ThemeToggle variant="settings" />
-                    <SettingsItem
-                      icon={<MessageCircle className="w-5 h-5" />}
-                      title="Chat Settings"
-                      subtitle="Message preferences and filters"
-                      onClick={() => {/* TODO: Navigate to chat settings */ }}
-                    />
-                    <SettingsItem
-                      icon={<Heart className="w-5 h-5" />}
-                      title="Match Preferences"
-                      subtitle="Age range, distance, and more"
-                      onClick={() => {/* TODO: Navigate to match preferences */ }}
-                    />
+                <div className="px-6 pb-6 space-y-6">
+                  {/* Account Settings */}
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">Account</h4>
+                    <div className="space-y-3">
+                      <SettingsItem
+                        icon={<Bell className="w-5 h-5" />}
+                        title="Notifications"
+                        subtitle="Manage your notification preferences"
+                        onClick={() => {/* TODO: Navigate to notifications */ }}
+                      />
+                      <SettingsItem
+                        icon={<Eye className="w-5 h-5" />}
+                        title="Privacy Settings"
+                        subtitle="Control who can see your profile"
+                        onClick={() => {/* TODO: Navigate to privacy */ }}
+                      />
+                      <SettingsItem
+                        icon={<Shield className="w-5 h-5" />}
+                        title="Safety & Security"
+                        subtitle="Block users, report issues"
+                        onClick={() => {/* TODO: Navigate to safety */ }}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Support */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Support</h4>
-                  <div className="space-y-2">
-                    <SettingsItem
-                      icon={<HelpCircle className="w-5 h-5" />}
-                      title="Help & Support"
-                      subtitle="FAQs, contact us"
-                      onClick={() => {/* TODO: Navigate to help */ }}
-                    />
+                  {/* App Settings */}
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">Preferences</h4>
+                    <div className="space-y-3">
+                      <div className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-2xl">
+                        <ThemeToggle variant="settings" />
+                      </div>
+                      <SettingsItem
+                        icon={<MessageCircle className="w-5 h-5" />}
+                        title="Chat Settings"
+                        subtitle="Message preferences and filters"
+                        onClick={() => {/* TODO: Navigate to chat settings */ }}
+                      />
+                      <SettingsItem
+                        icon={<Heart className="w-5 h-5" />}
+                        title="Match Preferences"
+                        subtitle="Age range, distance, and more"
+                        onClick={() => {/* TODO: Navigate to match preferences */ }}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Danger Zone */}
-                <div>
-                  <h4 className="text-sm font-medium text-red-600 dark:text-red-400 mb-3">Account Actions</h4>
-                  <div className="space-y-2">
-                    <SettingsItem
-                      icon={<LogOut className="w-5 h-5" />}
-                      title="Sign Out"
-                      subtitle="Sign out of your account"
-                      onClick={async () => {
-                        try {
-                          await signOut({ callbackUrl: '/login' })
-                        } catch (error) {
-                          console.error('Error signing out:', error)
-                        }
-                      }}
-                      danger
-                    />
-                    <SettingsItem
-                      icon={<Trash2 className="w-5 h-5" />}
-                      title="Delete Account"
-                      subtitle="Permanently delete your account"
-                      onClick={() => {
-                        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                          // TODO: Implement account deletion
-                          alert('Account deletion feature coming soon')
-                        }
-                      }}
-                      danger
-                    />
+                  {/* Support */}
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">Support</h4>
+                    <div className="space-y-3">
+                      <SettingsItem
+                        icon={<HelpCircle className="w-5 h-5" />}
+                        title="Help & Support"
+                        subtitle="FAQs, contact us"
+                        onClick={() => {/* TODO: Navigate to help */ }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Danger Zone */}
+                  <div>
+                    <h4 className="text-sm font-bold text-red-600 dark:text-red-400 mb-4 uppercase tracking-wider">Danger Zone</h4>
+                    <div className="space-y-3 p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30">
+                      <SettingsItem
+                        icon={<LogOut className="w-5 h-5" />}
+                        title="Sign Out"
+                        subtitle="Sign out of your account"
+                        onClick={async () => {
+                          try {
+                            await signOut({ callbackUrl: '/login' })
+                          } catch (error) {
+                            console.error('Error signing out:', error)
+                          }
+                        }}
+                        danger
+                      />
+                      <SettingsItem
+                        icon={<Trash2 className="w-5 h-5" />}
+                        title="Delete Account"
+                        subtitle="Permanently delete your account"
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                            // TODO: Implement account deletion
+                            alert('Account deletion feature coming soon')
+                          }
+                        }}
+                        danger
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1130,55 +1227,85 @@ function ProfileSection({ title, icon, children, isEditing, onEdit, onCancel, on
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg border ${themeConfig.border} ${themeConfig.dark.border} overflow-hidden transition-colors duration-300 hover:${themeConfig.hover} ${themeConfig.dark.hover}`}
+      className="group"
     >
-      <div className={`flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r ${themeConfig.gradient} ${themeConfig.dark.gradient}`}>
-        <div className="flex items-center gap-3">
-          <div className={`p-2 ${themeConfig.icon} rounded-full text-white`}>
-            {icon}
+      {/* Modern Card Design */}
+      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+        
+        {/* Header with floating icon */}
+        <div className="relative p-6 pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Floating Icon */}
+              <div className={`relative p-3 ${themeConfig.icon} rounded-2xl shadow-lg`}>
+                <div className="text-white">
+                  {icon}
+                </div>
+                {/* Subtle glow effect */}
+                <div className={`absolute inset-0 ${themeConfig.icon} rounded-2xl opacity-20 blur-lg scale-110`}></div>
+              </div>
+              
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                  {title}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  {isEditing ? 'Editing mode' : 'Tap to edit'}
+                </p>
+              </div>
+            </div>
+            
+            {!isEditing && (
+              <button
+                onClick={onEdit}
+                className="p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-2xl transition-all duration-200 group-hover:scale-105"
+              >
+                <Edit2 className="w-5 h-5" />
+              </button>
+            )}
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
         </div>
-        {!isEditing && (
-          <button
-            onClick={onEdit}
-            className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            <Edit2 className="w-5 h-5" />
-          </button>
-        )}
-      </div>
 
-      <div className="p-6">
-        {children}
-
-        {isEditing && (
-          <div className="flex gap-3 mt-6">
-            <button
-              onClick={onCancel}
-              className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onSave}
-              disabled={loading}
-              className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all font-medium disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  Save
-                </>
-              )}
-            </button>
+        {/* Content Area */}
+        <div className="px-6 pb-6">
+          {/* Content with better spacing */}
+          <div className={`${isEditing ? 'bg-gray-50 dark:bg-gray-700/30 rounded-2xl p-4' : ''}`}>
+            {children}
           </div>
-        )}
+
+          {/* Modern Action Buttons */}
+          {isEditing && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex gap-3 mt-6"
+            >
+              <button
+                onClick={onCancel}
+                className="flex-1 px-6 py-3.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onSave}
+                disabled={loading}
+                className="flex-1 px-6 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 font-semibold disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </motion.div>
+          )}
+        </div>
       </div>
     </motion.div>
   )
@@ -1192,10 +1319,10 @@ interface InfoItemProps {
 
 function InfoItem({ label, value }: InfoItemProps) {
   return (
-    <div className="flex justify-between items-center py-2">
-      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{label}</span>
-      <span className="text-gray-900 dark:text-gray-100 font-medium">
-        {value || <span className="text-gray-400 dark:text-gray-500 italic">Not set</span>}
+    <div className="flex justify-between items-center py-3 px-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+      <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">{label}</span>
+      <span className="text-gray-900 dark:text-gray-100 font-semibold">
+        {value || <span className="text-gray-400 dark:text-gray-500 italic font-normal">Add {label.toLowerCase()}</span>}
       </span>
     </div>
   )
@@ -1214,28 +1341,36 @@ function SettingsItem({ icon, title, subtitle, onClick, danger = false }: Settin
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-gray-50 dark:hover:bg-gray-700 ${danger ? 'hover:bg-red-50 dark:hover:bg-red-900/20' : ''
-        }`}
+      className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 hover:scale-[1.02] ${
+        danger 
+          ? 'hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-lg hover:shadow-red-100 dark:hover:shadow-red-900/20' 
+          : 'hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-lg'
+      }`}
     >
-      <div className={`p-2 rounded-full ${danger
-          ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+      <div className={`p-3 rounded-2xl shadow-sm ${danger
+          ? 'bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30 text-red-600 dark:text-red-400'
+          : 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-600 dark:text-gray-400'
         }`}>
         {icon}
       </div>
       <div className="flex-1 text-left">
-        <h4 className={`font-medium ${danger
+        <h4 className={`font-bold text-base ${danger
             ? 'text-red-600 dark:text-red-400'
             : 'text-gray-900 dark:text-gray-100'
           }`}>
           {title}
         </h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{subtitle}</p>
       </div>
-      <ChevronRight className={`w-5 h-5 ${danger
-          ? 'text-red-400 dark:text-red-500'
-          : 'text-gray-400 dark:text-gray-500'
-        }`} />
+      <div className={`p-2 rounded-full ${danger
+          ? 'bg-red-100 dark:bg-red-900/30'
+          : 'bg-gray-100 dark:bg-gray-700'
+        }`}>
+        <ChevronRight className={`w-4 h-4 ${danger
+            ? 'text-red-500 dark:text-red-400'
+            : 'text-gray-400 dark:text-gray-500'
+          }`} />
+      </div>
     </button>
   )
 }

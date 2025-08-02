@@ -1302,13 +1302,13 @@ export default function LobbyPage({ params }: PageProps) {
           </div>
 
           {/* Main Content */}
-          <div className={`${isMobile ? 'pt-[80px] pb-[5px] h-[100dvh]' : 'pt-20 pb-8'} `}>
+          <div className={`${isMobile ? 'pt-[80px] pb-[0px] h-[100dvh]' : 'pt-20 pb-8'} `}>
             {isMobile ? (
               // Mobile Layout with Tabs
               <div className="h-full relative">
                 {/* Tab Navigation */}
-                <div className="mx-4 mb-4">
-                  <div className="bg-white rounded-2xl shadow-soft border border-gray-100 p-2">
+                <div className="mx-4 mb-1">
+                  <div className="bg-white rounded-2xl  p-2">
                     <div className="flex gap-1">
                       <button
                         onClick={() => setActiveTab('chat')}
@@ -1348,7 +1348,7 @@ export default function LobbyPage({ params }: PageProps) {
                         exit={{ opacity: 0, x: -20 }}
                         className="h-full"
                       >
-                        <div className="bg-white rounded-3xl shadow-soft border border-gray-100 h-full overflow-hidden flex flex-col">
+                        <div className="bg-white rounded-3xl h-full overflow-hidden flex flex-col">
                           <LobbyChat
                             lobbyId={lobbyId}
                             messages={messages}

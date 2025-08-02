@@ -414,7 +414,7 @@ export default function ModernLobbySelection() {
   
 
   return (
-    <div className="min-h-screen bg-gradient-to-bottom from-indigo-50 via-sky-50 to-teal-50 dark:from-indigo-900 dark:via-sky-900 dark:bg-gray-900 pb-20 md:pb-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50  dark:from-indigo-900 dark:via-sky-900 dark:bg-gray-900 pb-20 md:pb-8 transition-colors duration-300">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -437,8 +437,8 @@ export default function ModernLobbySelection() {
             {/* Desktop Header */}
             <div className="hidden md:flex justify-between items-center">
               <div className="flex-1">
-                <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-neutral-850 dark:text-gray-100 mb-2 blindcharm-heading">
-                   Hello, {profile?.full_name || profile?.username || profile?.email || profile?.gender || 'Guest'} 
+                <h1 className="flex items-start text-2xl md:text-4xl lg:text-2xl font-blindcharm-brand tracking-tight text-neutral-850 dark:text-gray-100 mb-2 ">
+                   Hello, {profile?.full_name || profile?.username || profile?.email || 'BlindCharm User'} 
                    <HandMetal size={24} className="ml-2" />
                 </h1>
                 <p className="text-neutral-750 dark:text-gray-400 text-sm md:text-base font-body">
@@ -516,7 +516,7 @@ export default function ModernLobbySelection() {
               )}
               {!isAdmin && (
               <div className="flex items-end justify-between gap-3">
-                <div className="flex items-center space-x-2 bg-secondary-50 dark:bg-gray-800 px-4 py-2 rounded-full">
+                <div className="flex items-center space-x-2 bg-lime-50 dark:bg-gray-800 px-4 py-2 rounded-full">
                   <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
                   <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
                     {activeLobbies.length} active
@@ -529,7 +529,7 @@ export default function ModernLobbySelection() {
           
 
           {/* Lobbies Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[...activeLobbies]
               .sort((a, b) => {
                 if (a.id === userJoinedLobbyId) return -1;
@@ -539,6 +539,17 @@ export default function ModernLobbySelection() {
               .map((lobby, index) => {
                 const themeConfig = getThemeConfig(lobby.theme)
                 const IconComponent = themeConfig.icon
+                const isJoined = userJoinedLobbyId === lobby.id
+                const isLoading = loading === lobby.id
+                const canJoin = !isLoading && userJoinedLobbyId === null
+                
+                const handleCardClick = () => {
+                  if (isJoined) {
+                    router.push(`/lobby/${lobby.id}`)
+                  } else if (canJoin) {
+                    handleJoinLobby(lobby.id)
+                  }
+                }
                 
                 return (
                   <motion.div
@@ -546,129 +557,142 @@ export default function ModernLobbySelection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
+                    className="group"
                   >
-                    <ModernCard className="hover:shadow-float bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 overflow-hidden p-0" hover>
-                      <div className="flex flex-col h-full">
-                        
-                        {/* Large Image Header */}
-                        <div className="relative w-full aspect-[16/9] overflow-hidden">
-                        
-                          {lobby.image_url ? (
-                            <img
-                              src={lobby.image_url}
-                              alt={lobby.name}
-                              className="w-full h-full object-cover"
-                              
-                            />
-                          ) : (
-                            <div className={`w-full h-full ${themeConfig.bgColor} flex items-center justify-center`}>
-                              <IconComponent size={64} className={themeConfig.iconColor} />
-                            </div>
-                          )}
-                          {/* Overlay gradient */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                          
-                          {/* Status indicator */}
-                          {userJoinedLobbyId === lobby.id && (
-                            <div className="absolute top-3 right-3">
-                              <div className="w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm"></div>
-                            </div>
-                          )}
-                          
-                          {/* Theme badge */}
-                          <div className="absolute bottom-3 left-3">
-                            <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-gray-800 rounded-full text-xs font-medium">
-                              {lobby.theme}
-                            </span>
+                    {/* Modern Card with Floating Content */}
+                    <div 
+                      className={`
+                        relative group transition-all duration-300 cursor-pointer
+                        ${canJoin || isJoined ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'}
+                      `}
+                      onClick={handleCardClick}
+                    >
+                      {/* Image/Icon Section */}
+                      <div className={`
+                        relative aspect-[16/9] overflow-hidden rounded-3xl shadow-lg
+                        transition-all duration-300 
+                        ${isJoined ? 'ring-2 ring-primary-500 shadow-xl' : 'hover:shadow-xl hover:-translate-y-1'}
+                      `}>
+                        {lobby.image_url ? (
+                          <img
+                            src={lobby.image_url}
+                            alt={lobby.name}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className={`w-full h-full ${themeConfig.bgColor} flex items-center justify-center transition-transform duration-300 group-hover:scale-105`}>
+                            <IconComponent size={64} className={themeConfig.iconColor} />
                           </div>
+                        )}
+                        
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                        
+                        {/* Status Indicators */}
+                        <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                          {/* Theme Badge */}
+                          <span className="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-gray-800 rounded-full text-xs font-semibold shadow-sm">
+                            {lobby.theme}
+                          </span>
+                          
+                          {/* Joined Indicator */}
+                          {isJoined && (
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 rounded-full shadow-sm">
+                              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                              <span className="text-white text-xs font-semibold">Joined</span>
+                            </div>
+                          )}
+                        </div>
 
-                          {/* Title overlay on image */}
-                          <div className="absolute bottom-3 right-3">
-                            <h3 className="text-white font-semibold text-lg drop-shadow-lg">
-                              {lobby.name}
-                            </h3>
+                        {/* Bottom Content on Image */}
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <h3 className="text-white font-bold text-xl mb-2 drop-shadow-lg line-clamp-1">
+                            {lobby.name}
+                          </h3>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-white/90">
+                              <Users size={16} />
+                              <span className="text-sm font-semibold">{lobby.participant_count} members</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                              <span className="text-white/90 text-sm font-semibold">Live</span>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Compact Content */}
-                        <div className="p-4 flex-1 flex flex-col justify-between">
-                          <div className="space-y-2">
-                            <p className="text-neutral-750 dark:text-gray-300 text-xs leading-relaxed line-clamp-2">
-                              {lobby.description || 'Join the conversation and meet new people!'}
-                            </p>
-                    
-                            {/* Stats */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1">
-                                <Users size={14} className="text-primary-500" />
-                                <span className="text-xs font-medium text-neutral-750 dark:text-gray-300">
-                                  {lobby.participant_count}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                                <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                                  Active
-                                </span>
-                              </div>
+                        {/* Loading Overlay on Image */}
+                        {isLoading && (
+                          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center rounded-3xl">
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="animate-spin h-10 w-10 border-3 border-white border-t-transparent rounded-full" />
+                              <span className="text-sm font-semibold text-white">
+                                {isJoined ? 'Entering...' : 'Joining...'}
+                              </span>
                             </div>
                           </div>
+                        )}
+                      </div>
 
-                          {/* Action Buttons */}
-                          <div className="pt-2">
-                            {userJoinedLobbyId === lobby.id ? (
-                              <div className="flex gap-2">
-                                <ModernButton
-                                  variant="primary"
-                                  size="sm"
-                                  className="flex-1"
-                                  onClick={() => router.push(`/lobby/${lobby.id}`)}
-                                  disabled={loading === lobby.id}
-                                >
-                                  {loading === lobby.id ? (
-                                    <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />
-                                  ) : (
-                                    <>
-                                      <ArrowRight size={14} className="mr-1" />
-                                      Enter
-                                    </>
-                                  )}
-                                </ModernButton>
-                                <ModernButton
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleLeaveLobby(lobby.id)}
-                                  disabled={loading === lobby.id}
-                                  className="px-3"
-                                >
-                                  <LogOut size={14} />
-                                </ModernButton>
+                      {/* Floating Content Section - No Background */}
+                      <div className="mt-2 px-1 font-black">
+                        {/* Description */}
+                        <p className="text-neutral-700 dark:text-gray-300 text-sm leading-relaxed line-clamp-2 mb-1">
+                          {lobby.description || 'Join the conversation and meet new people!'}
+                        </p>
+
+                        {/* Action Area */}
+                        <div className="flex items-center justify-between">
+                          {isJoined ? (
+                            <>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center shadow-md">
+                                  <ArrowRight size={18} className="text-white" />
+                                </div>
+                                <div>
+                                  <span className="text-primary-600 dark:text-primary-400 font-bold text-base block">Enter Lobby</span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">Tap anywhere to enter</span>
+                                </div>
                               </div>
-                            ) : (
-                              <ModernButton
-                                variant="primary"
-                                size="sm"
-                                className="w-full"
-                                onClick={() => handleJoinLobby(lobby.id)}
-                                disabled={loading === lobby.id || userJoinedLobbyId !== null}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleLeaveLobby(lobby.id)
+                                }}
+                                className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all duration-200"
+                                disabled={isLoading}
                               >
-                                {loading === lobby.id ? (
-                                  <>
-                                    <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full mr-2" />
-                                    Joining...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Plus size={14} className="mr-1" />
-                                    Join
-                                  </>
-                                )}
-                              </ModernButton>
-                            )}
-                          </div>
+                                <LogOut size={18} />
+                              </button>
+                            </>
+                          ) : (
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ${
+                                  canJoin ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
+                                }`}>
+                                  {isLoading ? (
+                                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                                  ) : (
+                                    <Plus size={18} className="text-white" />
+                                  )}
+                                </div>
+                                <div>
+                                  <span className={`font-bold text-base block transition-colors duration-200 ${
+                                    canJoin ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'
+                                  }`}>
+                                    {isLoading ? 'Joining...' : 'Join Lobby'}
+                                  </span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {canJoin ? 'Tap anywhere to join' : 'Already in another lobby'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </ModernCard>
+                    </div>
                   </motion.div>
                 )
               })}
