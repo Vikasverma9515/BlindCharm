@@ -51,6 +51,8 @@ interface UserProfile {
   bio: string;
   interests: string[];
   profile_picture: string | null;
+  additional_photo_1: string | null;
+  additional_photo_2: string | null;
   is_admin?: boolean;
   height: number;
   occupation: string;
@@ -216,7 +218,9 @@ export default function ProfilePage() {
         dealbreakers: Array.isArray(data.dealbreakers) ? data.dealbreakers : [],
         languages: Array.isArray(data.languages) ? data.languages : [],
         hobbies: Array.isArray(data.hobbies) ? data.hobbies : [],
-        photos: Array.isArray(data.photos) ? data.photos : []
+        photos: Array.isArray(data.photos) ? data.photos : [],
+        additional_photo_1: data.additional_photo_1 || null,
+        additional_photo_2: data.additional_photo_2 || null
       }
 
       setEditForm(safeData)
@@ -251,14 +255,15 @@ export default function ProfilePage() {
     setCompletionPercentage(Math.round((completedFields / fields.length) * 100))
   }
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageUpload = async (file: File, photoType: 'profile_picture' | 'additional_photo_1' | 'additional_photo_2' = 'profile_picture') => {
     if (!session?.user?.id) return;
 
     setLoading(true);
     try {
       // Delete old image if it exists
-      if (profile?.profile_picture) {
-        const oldFileName = profile.profile_picture.split('/').pop();
+      const currentImage = profile?.[photoType];
+      if (currentImage) {
+        const oldFileName = currentImage.split('/').pop();
         if (oldFileName && !oldFileName.includes('default')) {
           await supabase.storage
             .from('profile-pictures')
@@ -268,7 +273,7 @@ export default function ProfilePage() {
 
       // Always use a unique file name
       const fileExt = file.name.split('.').pop() || 'jpg';
-      const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${session.user.id}-${photoType}-${Date.now()}.${fileExt}`;
 
       // Upload compressed and cropped image
       const { error: uploadError } = await supabase
@@ -295,7 +300,7 @@ export default function ProfilePage() {
       // Update user profile with new image URL
       const { error: updateError } = await supabase
         .from('users')
-        .update({ profile_picture: publicUrl })
+        .update({ [photoType]: publicUrl })
         .eq('id', session.user.id);
 
       if (updateError) throw updateError;
@@ -306,6 +311,41 @@ export default function ProfilePage() {
     } catch (err) {
       console.error('Error uploading image:', err);
       setError('Failed to upload image');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemovePhoto = async (photoType: 'additional_photo_1' | 'additional_photo_2') => {
+    if (!session?.user?.id) return;
+
+    setLoading(true);
+    try {
+      // Delete image from storage if it exists
+      const currentImage = profile?.[photoType];
+      if (currentImage) {
+        const fileName = currentImage.split('/').pop();
+        if (fileName && !fileName.includes('default')) {
+          await supabase.storage
+            .from('profile-pictures')
+            .remove([fileName]);
+        }
+      }
+
+      // Update user profile to remove image URL
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ [photoType]: null })
+        .eq('id', session.user.id);
+
+      if (updateError) throw updateError;
+
+      // Refresh profile
+      await fetchProfile();
+      setError(''); // Clear any previous errors
+    } catch (err) {
+      console.error('Error removing image:', err);
+      setError('Failed to remove image');
     } finally {
       setLoading(false);
     }
@@ -404,7 +444,7 @@ export default function ProfilePage() {
     <>
       <SimpleTopNav pageName="My Profile" />
 
-      <main className="min-h-screen pt-0 pb-4 md:pt-0 md:pb-8 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500">
+      <main className="min-h-screen pt-0 pb-4 md:pt-0 md:pb-8 bg-gray-50 dark:bg-gray-900 transition-all duration-500">
         <div className="max-w-md mx-auto px-4 py-6 md:max-w-2xl md:pt-8 space-y-6">
 
           {/* Error Message */}
@@ -424,45 +464,41 @@ export default function ProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             className="relative overflow-hidden"
           >
-            <div className="bg-indigo-600 rounded-3xl p-6 shadow-2xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
-                    <Star className="w-6 h-6 text-white" />
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                    <Star className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">Profile Strength</h2>
-                    <p className="text-white/80 text-sm font-medium">Complete your profile to get more matches</p>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Profile Strength</h2>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Complete your profile to get more matches</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-black text-white">{completionPercentage}%</div>
-                  <div className="text-white/60 text-xs font-semibold uppercase tracking-wider">Complete</div>
+                <div className="text-center sm:text-right">
+                  <div className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">{completionPercentage}%</div>
+                  <div className="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Complete</div>
                 </div>
               </div>
               
               {/* Modern Progress Bar */}
               <div className="relative">
-                <div className="h-4 bg-white/20 backdrop-blur-sm rounded-full overflow-hidden">
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${completionPercentage}%` }}
                     transition={{ duration: 1.5, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-white to-white/90 rounded-full shadow-lg"
+                    className="h-full bg-blue-500 dark:bg-blue-400 rounded-full"
                   />
                 </div>
                 {/* Completion milestones */}
-                <div className="flex justify-between mt-2 text-xs text-white/60 font-semibold">
+                <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
                   <span>Basic</span>
                   <span>Good</span>
                   <span>Great</span>
                   <span>Perfect</span>
                 </div>
               </div>
-              
-              {/* Floating elements */}
-              <div className="absolute top-4 right-4 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
-              <div className="absolute bottom-4 left-4 w-16 h-16 bg-pink-300/20 rounded-full blur-xl"></div>
             </div>
           </motion.div>
 
@@ -473,70 +509,27 @@ export default function ProfilePage() {
             transition={{ delay: 0.1 }}
             className="mb-8"
           >
-            {/* Photo Gallery Section - Instagram Style */}
-            <div className="relative mb-6">
-              <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl bg-indigo-700">
-                {profile.profile_picture ? (
-                  <img
-                    src={profile.profile_picture}
-                    alt={profile.full_name || 'Profile'}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <Camera size={48} className="mx-auto mb-4 opacity-60" />
-                      <p className="text-lg font-medium opacity-80">Add your photo</p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                
-                {/* Profile Info Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <div className="flex items-end justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-3xl font-bold tracking-tight">
-                          {profile.full_name || 'Your Name'}
-                        </h1>
-                        {profile.dob && (
-                          <span className="text-2xl font-light opacity-90">
-                            {getAge(profile.dob)}
-                          </span>
-                        )}
-                        {profile.is_admin && (
-                          <div className="ml-2">
-                            <AdminBadge size="sm" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
-                        <div className="flex items-center gap-2 mb-3">
-                          <MapPin className="w-4 h-4 opacity-80" />
-                          <span className="text-sm font-medium opacity-90">
-                            {typeof profile.location === 'string'
-                              ? profile.location
-                              : profile.location && typeof profile.location === 'object'
-                                ? `${profile.location.city}${profile.location.country ? `, ${profile.location.country}` : ''}`
-                                : ''
-                            }
-                          </span>
+            {/* Profile Info Card */}
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg mb-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Profile Picture */}
+                <div className="flex-shrink-0">
+                  <div className="relative">
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-700">
+                      {profile.profile_picture ? (
+                        <img
+                          src={profile.profile_picture}
+                          alt={profile.full_name || 'Profile'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Camera size={32} className="text-gray-400 dark:text-gray-500" />
                         </div>
                       )}
-                      
-                      {profile.bio && (
-                        <p className="text-sm leading-relaxed opacity-90 line-clamp-2">
-                          {profile.bio}
-                        </p>
-                      )}
                     </div>
-                    
                     {/* Edit Photo Button */}
-                    <div className="ml-4">
+                    <div className="absolute -bottom-2 -right-2">
                       <ImageUpload
                         currentImage={profile.profile_picture}
                         onImageUpload={handleImageUpload}
@@ -545,13 +538,151 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
-                
-                {/* Status Indicators */}
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <div className="px-3 py-1.5 bg-green-500 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    <span className="text-white text-xs font-semibold">Active</span>
+
+                {/* Profile Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                        {profile.full_name || 'Your Name'}
+                      </h1>
+                      {profile.dob && (
+                        <span className="text-lg sm:text-xl font-medium text-gray-600 dark:text-gray-400">
+                          {getAge(profile.dob)}
+                        </span>
+                      )}
+                    </div>
+                    {/* Admin Badge - Moved to top right */}
+                    {profile.is_admin && (
+                      <div className="flex-shrink-0">
+                        <AdminBadge size="sm" />
+                      </div>
+                    )}
                   </div>
+                  
+                  {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                        {typeof profile.location === 'string'
+                          ? profile.location
+                          : profile.location && typeof profile.location === 'object'
+                            ? `${profile.location.city}${profile.location.country ? `, ${profile.location.country}` : ''}`
+                            : ''
+                        }
+                      </span>
+                    </div>
+                  )}
+                  
+                  {profile.bio && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
+                      {profile.bio}
+                    </p>
+                  )}
+
+                  {/* Status Indicator */}
+                  <div className="flex items-center gap-2 mt-3">
+                    <div className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-full flex items-center gap-1.5">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-green-700 dark:text-green-400 text-xs font-medium">Active</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Photo Gallery Section */}
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Photos</h3>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Add up to 3 photos</span>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-3">
+                {/* Main Profile Picture */}
+                <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
+                  {profile.profile_picture ? (
+                    <img
+                      src={profile.profile_picture}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Camera size={24} className="text-gray-400 dark:text-gray-500" />
+                    </div>
+                  )}
+                  <div className="absolute bottom-1 left-1 px-2 py-1 bg-black/50 rounded text-white text-xs font-medium">
+                    Main
+                  </div>
+                </div>
+
+                {/* Additional Photo 1 */}
+                <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
+                  {profile.additional_photo_1 ? (
+                    <>
+                      <img
+                        src={profile.additional_photo_1}
+                        alt="Additional Photo 1"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={() => handleRemovePhoto('additional_photo_1')}
+                        className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                        title="Remove photo"
+                      >
+                        <X size={12} />
+                      </button>
+                    </>
+                  ) : (
+                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border-2 border-dashed border-gray-300 dark:border-gray-600">
+                      <Plus size={20} className="text-gray-400 dark:text-gray-500 mb-1" />
+                      <span className="text-xs text-gray-500 dark:text-gray-400 text-center">Add Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleImageUpload(file, 'additional_photo_1');
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Additional Photo 2 */}
+                <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
+                  {profile.additional_photo_2 ? (
+                    <>
+                      <img
+                        src={profile.additional_photo_2}
+                        alt="Additional Photo 2"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={() => handleRemovePhoto('additional_photo_2')}
+                        className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                        title="Remove photo"
+                      >
+                        <X size={12} />
+                      </button>
+                    </>
+                  ) : (
+                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border-2 border-dashed border-gray-300 dark:border-gray-600">
+                      <Plus size={20} className="text-gray-400 dark:text-gray-500 mb-1" />
+                      <span className="text-xs text-gray-500 dark:text-gray-400 text-center">Add Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleImageUpload(file, 'additional_photo_2');
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
               </div>
             </div>
@@ -1087,9 +1218,8 @@ export default function ProfilePage() {
                 {/* Modern Header */}
                 <div className="relative p-6 pb-4">
                   <div className="flex items-center gap-4">
-                    <div className="relative p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg">
+                    <div className="p-3 bg-indigo-500 dark:bg-indigo-600 rounded-2xl shadow-lg">
                       <Settings className="w-6 h-6 text-white" />
-                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl opacity-20 blur-lg scale-110"></div>
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
@@ -1289,7 +1419,7 @@ function ProfileSection({ title, icon, children, isEditing, onEdit, onCancel, on
               <button
                 onClick={onSave}
                 disabled={loading}
-                className="flex-1 px-6 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 font-semibold disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                className="flex-1 px-6 py-3.5 bg-blue-500 dark:bg-blue-600 text-white rounded-2xl hover:bg-blue-600 dark:hover:bg-blue-700 transition-all duration-200 font-semibold disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
               >
                 {loading ? (
                   <>
@@ -1348,8 +1478,8 @@ function SettingsItem({ icon, title, subtitle, onClick, danger = false }: Settin
       }`}
     >
       <div className={`p-3 rounded-2xl shadow-sm ${danger
-          ? 'bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30 text-red-600 dark:text-red-400'
-          : 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-600 dark:text-gray-400'
+          ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
         }`}>
         {icon}
       </div>
