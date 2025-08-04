@@ -103,6 +103,7 @@ import {
   caveat, righteous, fredoka, outfit, spaceGrotesk, orbitron, kalam, pacifico
 } from './fonts'
 import { Toaster } from 'sonner';
+import { NotificationProvider } from '@/components/notifications/NotificationProvider';
 export default function RootLayout({
   children,
 }: {
@@ -187,18 +188,20 @@ export default function RootLayout({
       <body className={fontClasses}>
         <ThemeProvider >
           <AuthProvider>
-            {/* <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" > */}
-            <div  className="light">
-              {/* <Navbar /> */}
-              <ErrorBoundary>
-                {/* Main content area */}
-                <div className="flex-1 relative">
-                  {children}
-                  <Toaster />
-                </div>
-              </ErrorBoundary>
-              <PWAInstallPrompt />
-            </div>
+            <NotificationProvider>
+              {/* <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" > */}
+              <div  className="light">
+                {/* <Navbar /> */}
+                <ErrorBoundary>
+                  {/* Main content area */}
+                  <div className="flex-1 relative">
+                    {children}
+                    <Toaster />
+                  </div>
+                </ErrorBoundary>
+                <PWAInstallPrompt />
+              </div>
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

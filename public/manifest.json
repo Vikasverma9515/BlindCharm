@@ -116,5 +116,9 @@
   "related_applications": [],
   "edge_side_panel": {
     "preferred_width": 400
-  }
+  },
+  "permissions": [
+    "notifications"
+  ],
+  "gcm_sender_id": "103953800507"
 }

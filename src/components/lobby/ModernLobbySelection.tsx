@@ -455,7 +455,7 @@ export default function ModernLobbySelection() {
                       size="sm"
                       onClick={() => setShowCreateModal(true)}
                     >
-                      <Plus size={16} className="mr-2" />
+                      <Plus size={12} className="mr-2" />
                       Create Lobby
                     </ModernButton>
                   </>

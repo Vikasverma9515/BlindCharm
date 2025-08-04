@@ -40,6 +40,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle'
 import AdminBadge from '@/components/ui/AdminBadge'
 import { signOut } from 'next-auth/react'
 import FaceVerification from '@/components/profile/FaceVerification'
+import BroadcastNotifications from '@/components/admin/BroadcastNotifications'
 
 interface UserProfile {
   id: string;
@@ -189,7 +190,8 @@ export default function ProfilePage() {
   const [editForm, setEditForm] = useState<Partial<UserProfile>>({})
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [showVerifier, setShowVerifier] = useState(false);
- 
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+
 
   useEffect(() => {
     fetchProfile()
@@ -480,7 +482,7 @@ export default function ProfilePage() {
                   <div className="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Complete</div>
                 </div>
               </div>
-              
+
               {/* Modern Progress Bar */}
               <div className="relative">
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -554,12 +556,12 @@ export default function ProfilePage() {
                     </div>
                     {/* Admin Badge - Moved to top right */}
                     {profile.is_admin && (
-                      <div className="flex-shrink-0">
+                      <div className="absolute pt-2 right-8  flex-shrink-0">
                         <AdminBadge size="sm" />
                       </div>
                     )}
                   </div>
-                  
+
                   {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
                     <div className="flex items-center gap-2 mb-3">
                       <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
@@ -573,7 +575,7 @@ export default function ProfilePage() {
                       </span>
                     </div>
                   )}
-                  
+
                   {profile.bio && (
                     <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
                       {profile.bio}
@@ -597,7 +599,7 @@ export default function ProfilePage() {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Photos</h3>
                 <span className="text-sm text-gray-500 dark:text-gray-400">Add up to 3 photos</span>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-3">
                 {/* Main Profile Picture */}
                 <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -700,7 +702,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">Complete</div>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -712,7 +714,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">Interests</div>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -726,13 +728,13 @@ export default function ProfilePage() {
               </motion.div>
             </div>
           </motion.div>
-           <div>
-                {/* <h1>Your Profile</h1>
+          <div>
+            {/* <h1>Your Profile</h1>
                 <button onClick={() => setShowVerifier(true)}>
                   {`🔒 Get Verified`}
                 </button> */}
 
-                {/* {showVerifier && (
+            {/* {showVerifier && (
                   <FaceVerification
                     onVerificationComplete={(success, data) => {
                       console.log('Verification complete:', { success, data });
@@ -747,7 +749,7 @@ export default function ProfilePage() {
                     onClose={() => setShowVerifier(false)}
                   />
                 )} */}
-              </div>
+          </div>
           {/* Profile Sections */}
           <div className="space-y-6">
 
@@ -989,8 +991,8 @@ export default function ProfilePage() {
                         type="button"
                         onClick={() => handleTagToggle('interests', interest, editForm.interests || [])}
                         className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${(editForm.interests || []).includes(interest)
-                            ? 'bg-red-500 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-red-500 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                       >
                         {interest}
@@ -1043,8 +1045,8 @@ export default function ProfilePage() {
                           type="button"
                           onClick={() => handleTagToggle('personality_tags', tag, editForm.personality_tags || [])}
                           className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${(editForm.personality_tags || []).includes(tag)
-                              ? 'bg-red-500 text-white shadow-md'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-red-500 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
                           {tag}
@@ -1061,8 +1063,8 @@ export default function ProfilePage() {
                           type="button"
                           onClick={() => handleTagToggle('lifestyle_tags', tag, editForm.lifestyle_tags || [])}
                           className={`px-3 py-2 rounded-full text-sm font-medium transition-all ${(editForm.lifestyle_tags || []).includes(tag)
-                              ? 'bg-yellow-500 text-black shadow-md'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-yellow-500 text-black shadow-md'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
                           {tag}
@@ -1138,8 +1140,8 @@ export default function ProfilePage() {
                           type="button"
                           onClick={() => handleTagToggle('looking_for', option, editForm.looking_for || [])}
                           className={`w-full px-4 py-3 rounded-xl text-left font-medium transition-all ${(editForm.looking_for || []).includes(option)
-                              ? 'bg-red-500 text-white shadow-md'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-red-500 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
                           {option}
@@ -1156,8 +1158,8 @@ export default function ProfilePage() {
                           type="button"
                           onClick={() => handleTagToggle('dealbreakers', option, editForm.dealbreakers || [])}
                           className={`px-3 py-2 rounded-xl text-sm font-medium transition-all text-left ${(editForm.dealbreakers || []).includes(option)
-                              ? 'bg-black text-white shadow-md'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-black text-white shadow-md'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
                           {option}
@@ -1214,7 +1216,7 @@ export default function ProfilePage() {
               className="group"
             >
               <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-                
+
                 {/* Modern Header */}
                 <div className="relative p-6 pb-4">
                   <div className="flex items-center gap-4">
@@ -1239,9 +1241,9 @@ export default function ProfilePage() {
                     <div className="space-y-3">
                       <SettingsItem
                         icon={<Bell className="w-5 h-5" />}
-                        title="Notifications"
+                        title="Notification Settings"
                         subtitle="Manage your notification preferences"
-                        onClick={() => {/* TODO: Navigate to notifications */ }}
+                        onClick={() => setShowNotificationSettings(true)}
                       />
                       <SettingsItem
                         icon={<Eye className="w-5 h-5" />}
@@ -1293,6 +1295,8 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
+
+
                   {/* Danger Zone */}
                   <div>
                     <h4 className="text-sm font-bold text-red-600 dark:text-red-400 mb-4 uppercase tracking-wider">Danger Zone</h4>
@@ -1325,9 +1329,40 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
+               
+                {profile.is_admin && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="group"
+                  >
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+                      <div className="relative p-6 pb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 bg-purple-500 dark:bg-purple-600 rounded-2xl shadow-lg">
+                            <Bell className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                              Admin Notifications
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                              Send notifications to users
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="px-6 pb-6">
+                        <BroadcastNotifications />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
               </div>
             </motion.div>
-           
+
           </div>
         </div>
       </main>
@@ -1352,7 +1387,7 @@ interface ProfileSectionProps {
 
 function ProfileSection({ title, icon, children, isEditing, onEdit, onCancel, onSave, loading, theme }: ProfileSectionProps) {
   const themeConfig = sectionThemes[theme]
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -1361,7 +1396,7 @@ function ProfileSection({ title, icon, children, isEditing, onEdit, onCancel, on
     >
       {/* Modern Card Design */}
       <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-        
+
         {/* Header with floating icon */}
         <div className="relative p-6 pb-4">
           <div className="flex items-center justify-between">
@@ -1374,7 +1409,7 @@ function ProfileSection({ title, icon, children, isEditing, onEdit, onCancel, on
                 {/* Subtle glow effect */}
                 <div className={`absolute inset-0 ${themeConfig.icon} rounded-2xl opacity-20 blur-lg scale-110`}></div>
               </div>
-              
+
               <div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
                   {title}
@@ -1384,7 +1419,7 @@ function ProfileSection({ title, icon, children, isEditing, onEdit, onCancel, on
                 </p>
               </div>
             </div>
-            
+
             {!isEditing && (
               <button
                 onClick={onEdit}
@@ -1471,34 +1506,33 @@ function SettingsItem({ icon, title, subtitle, onClick, danger = false }: Settin
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 hover:scale-[1.02] ${
-        danger 
-          ? 'hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-lg hover:shadow-red-100 dark:hover:shadow-red-900/20' 
-          : 'hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-lg'
-      }`}
+      className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 hover:scale-[1.02] ${danger
+        ? 'hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-lg hover:shadow-red-100 dark:hover:shadow-red-900/20'
+        : 'hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-lg'
+        }`}
     >
       <div className={`p-3 rounded-2xl shadow-sm ${danger
-          ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+        ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
         }`}>
         {icon}
       </div>
       <div className="flex-1 text-left">
         <h4 className={`font-bold text-base ${danger
-            ? 'text-red-600 dark:text-red-400'
-            : 'text-gray-900 dark:text-gray-100'
+          ? 'text-red-600 dark:text-red-400'
+          : 'text-gray-900 dark:text-gray-100'
           }`}>
           {title}
         </h4>
         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{subtitle}</p>
       </div>
       <div className={`p-2 rounded-full ${danger
-          ? 'bg-red-100 dark:bg-red-900/30'
-          : 'bg-gray-100 dark:bg-gray-700'
+        ? 'bg-red-100 dark:bg-red-900/30'
+        : 'bg-gray-100 dark:bg-gray-700'
         }`}>
         <ChevronRight className={`w-4 h-4 ${danger
-            ? 'text-red-500 dark:text-red-400'
-            : 'text-gray-400 dark:text-gray-500'
+          ? 'text-red-500 dark:text-red-400'
+          : 'text-gray-400 dark:text-gray-500'
           }`} />
       </div>
     </button>
