@@ -421,6 +421,59 @@ export class MatchingService {
           userIdToUsername.set(p.user_id, p.user.username);
         });
 
+        // Send push notifications for matches
+        const pushNotificationPromises = matchData?.map(async (match) => {
+          try {
+            const user1Username = userIdToUsername.get(match.user1_id);
+            const user2Username = userIdToUsername.get(match.user2_id);
+
+            // Send push notification to user1
+            await fetch('/api/notifications/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: match.user1_id,
+                title: '💕 New Match!',
+                body: user2Username 
+                  ? `You matched with ${user2Username}! Start chatting now.`
+                  : 'You have a new match! Start chatting now.',
+                type: 'match',
+                url: `/matches/${match.id}`,
+                matchId: match.id,
+                requireInteraction: true
+              })
+            });
+
+            // Send push notification to user2
+            await fetch('/api/notifications/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: match.user2_id,
+                title: '💕 New Match!',
+                body: user1Username 
+                  ? `You matched with ${user1Username}! Start chatting now.`
+                  : 'You have a new match! Start chatting now.',
+                type: 'match',
+                url: `/matches/${match.id}`,
+                matchId: match.id,
+                requireInteraction: true
+              })
+            });
+
+            console.log(`✅ Push notifications sent for match ${match.id}`);
+          } catch (error) {
+            console.error(`❌ Error sending push notifications for match ${match.id}:`, error);
+          }
+        });
+
+        // Wait for push notifications to complete (but don't block the main flow)
+        if (pushNotificationPromises) {
+          Promise.all(pushNotificationPromises).catch(error => {
+            console.error('Some push notifications failed:', error);
+          });
+        }
+
         // Send broadcast notifications for each match
         const notificationPromises = matchData?.map(async (match) => {
           try {

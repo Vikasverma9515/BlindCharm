@@ -14,6 +14,7 @@ import PixelCard from '@/blocks/Components/PixelCard/PixelCard'
 import DynamicBackground from '@/components/shared/DynamicBackground'
 import BackgroundPattern from '@/components/shared/BackgroundPattern'
 import CuteFaceBubble2 from '@/components/ui/CuteFaceBubble2'
+import NotificationPrompt from '@/components/notifications/NotificationPrompt'
 
 const LobbyCardSwap = () => {
   return (
@@ -916,6 +917,9 @@ export default function Home() {
       </div>
 
       <SimpleBottomNav />
+      
+      {/* Notification Prompt */}
+      <NotificationPrompt />
     </div>
   )
 }

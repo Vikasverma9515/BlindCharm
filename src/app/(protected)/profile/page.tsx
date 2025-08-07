@@ -41,6 +41,8 @@ import AdminBadge from '@/components/ui/AdminBadge'
 import { signOut } from 'next-auth/react'
 import FaceVerification from '@/components/profile/FaceVerification'
 import BroadcastNotifications from '@/components/admin/BroadcastNotifications'
+import AdminNotificationPanel from '@/components/admin/AdminNotificationPanel'
+import { useRouter } from 'next/navigation'
 
 interface UserProfile {
   id: string;
@@ -182,6 +184,7 @@ const sectionThemes = {
 
 export default function ProfilePage() {
   const { data: session } = useSession()
+  const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editingSection, setEditingSection] = useState<string | null>(null)
@@ -191,6 +194,19 @@ export default function ProfilePage() {
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [showVerifier, setShowVerifier] = useState(false);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+
+  // Check if user is admin (same logic as lobby components)
+  const isAdmin = profile?.is_admin || 
+                  session?.user?.email === 'admin@blindcharm.com' || 
+                  session?.user?.email === 'Blindcharm@gmail.com';
+
+  // Debug admin status
+  console.log('🔍 Admin Debug:', {
+    profileIsAdmin: profile?.is_admin,
+    sessionEmail: session?.user?.email,
+    finalIsAdmin: isAdmin,
+    profile: profile
+  });
 
 
   useEffect(() => {
@@ -1243,7 +1259,7 @@ export default function ProfilePage() {
                         icon={<Bell className="w-5 h-5" />}
                         title="Notification Settings"
                         subtitle="Manage your notification preferences"
-                        onClick={() => setShowNotificationSettings(true)}
+                        onClick={() => router.push('/settings/notifications')}
                       />
                       <SettingsItem
                         icon={<Eye className="w-5 h-5" />}
@@ -1330,34 +1346,46 @@ export default function ProfilePage() {
                   </div>
                 </div>
                
-                {profile.is_admin && (
+                {/* Debug Admin Status */}
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h3 className="font-medium text-yellow-800 mb-2">🔍 Admin Debug Info</h3>
+                  <div className="text-sm text-yellow-700 space-y-1">
+                    <p><strong>profile?.is_admin:</strong> {String(profile?.is_admin)}</p>
+                    <p><strong>session?.user?.email:</strong> {session?.user?.email}</p>
+                    <p><strong>session?.user?.id:</strong> {session?.user?.id}</p>
+                    <p><strong>isAdmin result:</strong> {String(isAdmin)}</p>
+                    <p><strong>Should show panel:</strong> {isAdmin ? 'YES' : 'NO'}</p>
+                    <p><strong>Current URL port:</strong> {typeof window !== 'undefined' ? window.location.port : 'N/A'}</p>
+                  </div>
+                  <div className="mt-2 p-2 bg-yellow-100 rounded text-xs">
+                    <p><strong>Note:</strong> Make sure you're accessing the correct port (3001, not 3000)</p>
+                    <p><strong>Correct URL:</strong> http://localhost:3001/admin-test</p>
+                    <a 
+                      href="/admin-test" 
+                      className="inline-block mt-1 text-blue-600 hover:text-blue-800 underline"
+                    >
+                      → Test Admin Status on Correct Port
+                    </a>
+                  </div>
+                </div>
+
+                {isAdmin && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="group"
+                    transition={{ delay: 0.8 }}
                   >
-                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-                      <div className="relative p-6 pb-4">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-purple-500 dark:bg-purple-600 rounded-2xl shadow-lg">
-                            <Bell className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-                              Admin Notifications
-                            </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                              Send notifications to users
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="px-6 pb-6">
-                        <BroadcastNotifications />
-                      </div>
-                    </div>
+                    <AdminNotificationPanel />
                   </motion.div>
+                )}
+
+                {!isAdmin && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h3 className="font-medium text-red-800 mb-2">❌ Admin Panel Not Showing</h3>
+                    <p className="text-sm text-red-700">
+                      The admin panel is not showing because isAdmin = {String(isAdmin)}
+                    </p>
+                  </div>
                 )}
 
               </div>

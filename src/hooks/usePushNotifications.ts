@@ -128,8 +128,16 @@ export const usePushNotifications = (): PushNotificationHook => {
         return false;
       }
 
-      // Register service worker
-      const registration = await navigator.serviceWorker.register('/sw-push.js');
+      // Register service worker - try custom first, then default
+      let registration;
+      try {
+        registration = await navigator.serviceWorker.register('/sw-custom.js');
+        console.log('Custom service worker registered');
+      } catch (e) {
+        console.log('Custom SW failed, trying default:', e);
+        registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('Default service worker registered');
+      }
       await navigator.serviceWorker.ready;
 
       // Subscribe to push manager

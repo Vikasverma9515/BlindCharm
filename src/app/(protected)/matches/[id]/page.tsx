@@ -337,6 +337,30 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
       // Also fetch all messages to ensure consistency
       await fetchMessages();
+
+      // Send push notification to the other user
+      try {
+        const otherUserId = match.user1_id === session.user.id ? match.user2_id : match.user1_id;
+        const senderName = session.user.name || 'Someone';
+        
+        await fetch('/api/notifications/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: otherUserId,
+            title: `💬 ${senderName}`,
+            body: messageContent.length > 50 
+              ? `${messageContent.substring(0, 50)}...`
+              : messageContent,
+            type: 'message',
+            url: `/matches/${match.id}`,
+            matchId: match.id
+          })
+        });
+      } catch (notificationError) {
+        console.error('Failed to send push notification:', notificationError);
+        // Don't throw here - message was sent successfully, notification is just a bonus
+      }
     } catch (err) {
       console.error('Error sending message:', err);
       // Restore the message in input if there was an error
