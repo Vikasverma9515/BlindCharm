@@ -1,143 +1,315 @@
-// // src/hooks/useChat.ts
-// 'use client'
+// src/hooks/useChat.ts
+'use client'
 
-// import { useState, useEffect } from 'react'
-// import { supabase } from '@/lib/supabase'
-// import { Message, ChatState } from '@/types/chat'
-// import { useSocket } from '../hooks/useSocket'
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
+import { chatCacheService, CachedMessage } from '@/lib/services/ChatCacheService';
 
-// export function useChat(matchId: string) {
-//   const [state, setState] = useState<ChatState>({
-//     messages: [],
-//     isTyping: false,
-//     isLoading: true,
-//     error: null
-//   })
+interface UseChatOptions {
+  chatId: string;
+  type: 'lobby' | 'match';
+  userId?: string;
+  enabled?: boolean;
+  pageSize?: number;
+}
 
-//   const socket = useSocket()
+interface UseChatReturn {
+  messages: CachedMessage[];
+  loading: boolean;
+  error: string | null;
+  sendMessage: (content: string) => Promise<void>;
+  loadMoreMessages: () => Promise<void>;
+  hasMoreMessages: boolean;
+  refreshMessages: () => Promise<void>;
+  clearError: () => void;
+}
 
-//   useEffect(() => {
-//     // Load initial messages
-//     const loadMessages = async () => {
-//       try {
-//         const { data, error } = await supabase
-//           .from('messages')
-//           .select('*')
-//           .eq('match_id', matchId)
-//           .order('created_at', { ascending: true })
+export function useChat({
+  chatId,
+  type,
+  userId,
+  enabled = true,
+  pageSize = 50
+}: UseChatOptions): UseChatReturn {
+  const [messages, setMessages] = useState<CachedMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  
+  const subscriptionRef = useRef<any>(null);
+  const loadingRef = useRef(false);
 
-//         if (error) throw error
+  // Clear error function
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
 
-//         setState(prev => ({ ...prev, messages: data, isLoading: false }))
-//       } catch (error) {
-//         setState(prev => ({ 
-//           ...prev, 
-//           error: 'Failed to load messages',
-//           isLoading: false 
-//         }))
-//       }
-//     }
+  // Fetch messages from database
+  const fetchMessagesFromDB = useCallback(async (
+    limit: number = pageSize,
+    before?: string
+  ): Promise<{ messages: CachedMessage[]; hasMore: boolean }> => {
+    try {
+      let query = supabase
+        .from(type === 'lobby' ? 'lobby_messages' : 'private_messages')
+        .select(`
+          id,
+          content,
+          ${type === 'lobby' ? 'user_id, lobby_id' : 'sender_id, chat_id'},
+          created_at,
+          ${type === 'lobby' ? 'user:user_id' : 'sender:sender_id'} (
+            id,
+            username,
+            ${type === 'lobby' ? 'gender,' : ''}
+            profile_picture
+          )
+        `)
+        .eq(type === 'lobby' ? 'lobby_id' : 'chat_id', chatId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-//     loadMessages()
+      if (before) {
+        query = query.lt('created_at', before);
+      }
 
-//     // Subscribe to new messages
-//     const subscription = supabase
-//       .channel(`match:${matchId}`)
-//       .on('postgres_changes', {
-//         event: 'INSERT',
-//         schema: 'public',
-//         table: 'messages',
-//         filter: `match_id=eq.${matchId}`
-//       }, payload => {
-//         setState(prev => ({
-//           ...prev,
-//           messages: [...prev.messages, payload.new as Message]
-//         }))
-//       })
-//       .subscribe()
+      const { data, error } = await query;
 
-//     return () => {
-//       subscription.unsubscribe()
-//     }
-//   }, [matchId])
+      if (error) throw error;
 
-//   const sendMessage = async (content: string) => {
-//     try {
-//       const { data, error } = await supabase
-//         .from('messages')
-//         .insert({
-//           match_id: matchId,
-//           content,
-//           sender_id: (await supabase.auth.getUser()).data.user?.id
-//         })
-//         .single()
+      const transformedMessages: CachedMessage[] = (data || []).map((msg: any) => {
+        const user = type === 'lobby' ? msg.user : msg.sender;
+        return {
+          id: msg.id,
+          content: msg.content,
+          user_id: type === 'lobby' ? msg.user_id : msg.sender_id,
+          [type === 'lobby' ? 'lobby_id' : 'chat_id']: type === 'lobby' ? msg.lobby_id : msg.chat_id,
+          created_at: msg.created_at,
+          user: {
+            id: user?.id || '',
+            username: user?.username || 'Unknown User',
+            gender: user?.gender || 'other',
+            profile_picture: user?.profile_picture || null,
+          },
+          timestamp: Date.now()
+        };
+      }).reverse(); // Reverse to get chronological order
 
-//       if (error) throw error
+      const hasMore = data?.length === limit;
 
-//       socket.emit('message:sent', { matchId, message: data })
-//     } catch (error) {
-//       setState(prev => ({ ...prev, error: 'Failed to send message' }))
-//     }
-//   }
+      return { messages: transformedMessages, hasMore };
+    } catch (err) {
+      console.error(`Error fetching ${type} messages:`, err);
+      throw err;
+    }
+  }, [chatId, type, pageSize]);
 
-//   const setTyping = (isTyping: boolean) => {
-//     socket.emit('user:typing', { matchId, isTyping })
-//   }
+  // Load initial messages
+  const loadInitialMessages = useCallback(async () => {
+    if (!enabled || !chatId || loadingRef.current) return;
 
-//   return {
-//     messages: state.messages,
-//     isLoading: state.isLoading,
-//     error: state.error,
-//     isTyping: state.isTyping,
-//     sendMessage,
-//     setTyping
-//   }
-// }
+    setLoading(true);
+    loadingRef.current = true;
+    setError(null);
 
-// // src/hooks/useChat.ts
-// import { useState, useEffect } from 'react';
-// import { ChatService } from '@/lib/chat/ChatService';
-// import { Message } from '@/types/chat';
-// import { useAuth } from '@/hooks/useAuth';
-
-// export function useChat(matchId: string) {
-//   const [messages, setMessages] = useState<Message[]>([]);
-//   const [isTyping, setIsTyping] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
-//   const { user } = useAuth();
-//   const [chatService, setChatService] = useState<ChatService | null>(null);
-
-//   useEffect(() => {
-//     if (user?.id) {
-//       const service = new ChatService(user.id);
-//       setChatService(service);
-
-//       return () => {
-//         service.disconnect();
-//       };
-//     }
-//   }, [user?.id]);
-
-//   const sendMessage = async (content: string) => {
-//     try {
-//       if (!chatService) throw new Error('Chat service not initialized');
+    try {
+      // Try to get from cache first
+      const cachedMessages = chatCacheService.getCachedMessages(chatId, type);
       
-//       const message = await chatService.sendMessage(matchId, content);
-//       setMessages(prev => [...prev, message]);
-//     } catch (error) {
-//       setError(error instanceof Error ? error.message : 'Failed to send message');
-//     }
-//   };
+      if (cachedMessages && cachedMessages.length > 0) {
+        setMessages(cachedMessages);
+        setHasMoreMessages(chatCacheService.shouldLoadMore(chatId, type, pageSize));
+        setInitialLoadComplete(true);
+        console.log(`📦 Loaded ${cachedMessages.length} messages from cache for ${type} chat ${chatId}`);
+      } else {
+        // Fetch from database
+        const { messages: fetchedMessages, hasMore } = await fetchMessagesFromDB(pageSize);
+        
+        setMessages(fetchedMessages);
+        setHasMoreMessages(hasMore);
+        
+        // Cache the messages
+        chatCacheService.cacheMessages(chatId, type, fetchedMessages);
+        
+        console.log(`🌐 Loaded ${fetchedMessages.length} messages from database for ${type} chat ${chatId}`);
+      }
+      
+      setInitialLoadComplete(true);
+    } catch (err) {
+      setError(`Failed to load messages: ${(err as Error).message}`);
+      console.error(`Error loading initial messages for ${type} chat ${chatId}:`, err);
+    } finally {
+      setLoading(false);
+      loadingRef.current = false;
+    }
+  }, [enabled, chatId, type, pageSize, fetchMessagesFromDB]);
 
-//   const handleTyping = (isTyping: boolean) => {
-//     chatService?.emitTyping(matchId, isTyping);
-//   };
+  // Load more messages (pagination)
+  const loadMoreMessages = useCallback(async () => {
+    if (!hasMoreMessages || loading || loadingRef.current) return;
 
-//   return {
-//     messages,
-//     isTyping,
-//     error,
-//     sendMessage,
-//     handleTyping
-//   };
-// }
+    setLoading(true);
+    loadingRef.current = true;
+
+    try {
+      const oldestMessage = messages[0];
+      if (!oldestMessage) return;
+
+      const { messages: moreMessages, hasMore } = await fetchMessagesFromDB(
+        pageSize,
+        oldestMessage.created_at
+      );
+
+      if (moreMessages.length > 0) {
+        const updatedMessages = [...moreMessages, ...messages];
+        setMessages(updatedMessages);
+        
+        // Update cache
+        chatCacheService.cacheMessages(chatId, type, updatedMessages);
+        
+        console.log(`📄 Loaded ${moreMessages.length} more messages for ${type} chat ${chatId}`);
+      }
+
+      setHasMoreMessages(hasMore);
+    } catch (err) {
+      setError(`Failed to load more messages: ${(err as Error).message}`);
+      console.error(`Error loading more messages for ${type} chat ${chatId}:`, err);
+    } finally {
+      setLoading(false);
+      loadingRef.current = false;
+    }
+  }, [hasMoreMessages, loading, messages, pageSize, fetchMessagesFromDB, chatId, type]);
+
+  // Refresh messages
+  const refreshMessages = useCallback(async () => {
+    // Invalidate cache and reload
+    chatCacheService.invalidateCache(chatId, type);
+    setInitialLoadComplete(false);
+    await loadInitialMessages();
+  }, [chatId, type, loadInitialMessages]);
+
+  // Send message
+  const sendMessage = useCallback(async (content: string) => {
+    if (!userId || !content.trim()) return;
+
+    try {
+      const messageData = {
+        [type === 'lobby' ? 'lobby_id' : 'chat_id']: chatId,
+        [type === 'lobby' ? 'user_id' : 'sender_id']: userId,
+        content: content.trim()
+      };
+
+      const { data, error } = await supabase
+        .from(type === 'lobby' ? 'lobby_messages' : 'private_messages')
+        .insert(messageData)
+        .select('id, content, created_at')
+        .single();
+
+      if (error) throw error;
+
+      // The real-time subscription will handle adding the message to the UI
+      console.log(`📤 Sent message to ${type} chat ${chatId}`);
+    } catch (err) {
+      setError(`Failed to send message: ${(err as Error).message}`);
+      console.error(`Error sending message to ${type} chat ${chatId}:`, err);
+      throw err;
+    }
+  }, [userId, chatId, type]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!enabled || !chatId || !initialLoadComplete) return;
+
+    const tableName = type === 'lobby' ? 'lobby_messages' : 'private_messages';
+    const filterColumn = type === 'lobby' ? 'lobby_id' : 'chat_id';
+
+    const channel = supabase
+      .channel(`${type}_messages_${chatId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: tableName,
+          filter: `${filterColumn}=eq.${chatId}`
+        },
+        async (payload) => {
+          const newMsg = payload.new;
+          
+          // Fetch user data for the new message
+          try {
+            const { data: userData } = await supabase
+              .from('users')
+              .select('id, username, gender, profile_picture')
+              .eq('id', type === 'lobby' ? newMsg.user_id : newMsg.sender_id)
+              .single();
+
+            const message: CachedMessage = {
+              id: newMsg.id,
+              content: newMsg.content,
+              user_id: type === 'lobby' ? newMsg.user_id : newMsg.sender_id,
+              [type === 'lobby' ? 'lobby_id' : 'chat_id']: type === 'lobby' ? newMsg.lobby_id : newMsg.chat_id,
+              created_at: newMsg.created_at,
+              user: {
+                id: userData?.id || '',
+                username: userData?.username || 'Unknown User',
+                gender: userData?.gender || 'other',
+                profile_picture: userData?.profile_picture || null,
+              },
+              timestamp: Date.now()
+            };
+
+            // Check if message already exists to prevent duplicates
+            setMessages(prev => {
+              if (prev.some(msg => msg.id === message.id)) return prev;
+              const updated = [...prev, message];
+              
+              // Add to cache
+              chatCacheService.addMessageToCache(chatId, type, message);
+              
+              return updated;
+            });
+
+            console.log(`📨 Received new message in ${type} chat ${chatId}`);
+          } catch (err) {
+            console.error('Error processing new message:', err);
+          }
+        }
+      )
+      .subscribe();
+
+    subscriptionRef.current = channel;
+
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
+    };
+  }, [enabled, chatId, type, initialLoadComplete]);
+
+  // Load initial messages when component mounts
+  useEffect(() => {
+    loadInitialMessages();
+  }, [loadInitialMessages]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+      }
+    };
+  }, []);
+
+  return {
+    messages,
+    loading,
+    error,
+    sendMessage,
+    loadMoreMessages,
+    hasMoreMessages,
+    refreshMessages,
+    clearError
+  };
+}

@@ -32,6 +32,7 @@ import { Brain } from 'lucide-react'
 // import type { MindMatchAnswer } from '@/types/mindmatch';
 // import CompatibilityBoard from '@/components/lobby/CompatibilityBoard';
 import AdminBadge from '@/components/ui/AdminBadge'
+import CacheStats from '@/components/debug/CacheStats'
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -1243,13 +1244,13 @@ export default function LobbyPage({ params }: PageProps) {
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => router.push('/lobby')}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors dark:hover:bg-gray-700"
                           >
                             <ArrowLeft className="w-5 h-5 text-white" />
                           </button>
 
                           <div>
-                            <h1 className="text-xl font-blindcharm-brand text-amber-400 dark:text-white">
+                            <h1 className="text-xl font-blindcharm-brand text-amber-400 dark:amber-400">
                               {lobby?.name ? `${lobby.name} Chat` : 'Lobby Chat'}
                             </h1>
                             <p className="text-sm text-white">
@@ -1260,19 +1261,19 @@ export default function LobbyPage({ params }: PageProps) {
 
 
 
-                        <div className="ml-auto flex items-center gap-3">
+                        <div className="ml-auto flex items-center gap-3 ">
                           {/* Online Users Pill */}
-                          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full shadow-sm">
                             <Users className="w-4 h-4" />
                             <span className="text-sm font-medium">{participants.length} online</span>
                           </div>
 
                           {/* Next Time Pill */}
-                          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full shadow-sm">
                             <Clock className="w-4 h-4" />
                             <span className="text-sm font-medium">Next: {nextMatchTime}</span>
                           </div>
-
+                           
                           {/* Current Time Pill */}
                           {/* <div className="px-4 py-2 bg-white rounded-full shadow-sm">
                             <span className="text-sm">Now: {currentTime}</span>
@@ -1352,8 +1353,6 @@ export default function LobbyPage({ params }: PageProps) {
                         <div className="bg-white rounded-3xl h-full overflow-hidden flex flex-col dark:bg-gray-800">
                           <LobbyChat
                             lobbyId={lobbyId}
-                            messages={messages}
-                            setMessages={setMessages}
                             currentUser={currentUser}
                             participants={participants}
                           />
@@ -1604,17 +1603,17 @@ export default function LobbyPage({ params }: PageProps) {
             ) : (
               // Desktop Layout
               // <div className="max-w-[1600px] mx-auto px-4  lg:pt-4 lg:pb-0  ">
-              <div className="max-w-[1600px] mx-auto px-4 h-[calc(100vh-80px)]">
+              <div className="max-w-[1600px] mx-auto px-10 h-[calc(90vh-40px)] pt-10 pb-0">
                 {/* <div className="flex gap-6 h-[calc(90vh-40px)] bg-blue-600"> */}
                 <div className="flex gap-6 h-full">
                   {/* Information Section - Left side */}
                   <div className="w-80 flex-shrink-0 ">
-                    <div className="bg-white rounded-3xl shadow-soft border border-gray-100 h-full flex flex-col overflow-hidden">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-soft border border-gray-100 h-full flex flex-col overflow-hidden">
                       {/* Header - Fixed at top */}
                       <div className="p-6 flex-shrink-0 border-b border-gray-100">
                         <div className="flex items-center gap-3">
                           <Users className="w-6 h-6 text-primary-500" />
-                          <h2 className="text-xl font-semibold text-neutral-850">Participants ({participants.length})</h2>
+                          <h2 className="text-xl font-semibold text-neutral-850 dark:text-white">Participants ({participants.length})</h2>
                         </div>
                       </div>
 
@@ -1626,7 +1625,7 @@ export default function LobbyPage({ params }: PageProps) {
                               key={participant.id}
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-colors"
+                              className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-colors"
                             >
                               {participant.user?.profile_picture ? (
                                 <img
@@ -1647,7 +1646,7 @@ export default function LobbyPage({ params }: PageProps) {
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <p className="font-medium text-neutral-850 truncate">
+                                  <p className="font-medium text-neutral-850 dark:text-lime-400 truncate">
                                     {participant.user?.username || 'Anonymous'}
                                   </p>
                                   {participant.blur_profile && (
@@ -1659,7 +1658,7 @@ export default function LobbyPage({ params }: PageProps) {
                                     </div>
                                   )}
                                 </div>
-                                <p className="text-sm text-neutral-750">
+                                <p className="text-sm text-neutral-750 dark:text-amber-200">
                                   {participant.user?.gender === 'male' ? '♂️ Male' : participant.user?.gender === 'female' ? '♀️ Female' : '⚧️ Other'}
                                   {' • '}Waiting for match...
                                 </p>
@@ -1669,7 +1668,7 @@ export default function LobbyPage({ params }: PageProps) {
 
                           {participants.length === 0 && (
                             <div className="text-center py-12">
-                              <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                              <Users className="w-16 h-16 text-gray-300  mx-auto mb-4" />
                               <p className="text-neutral-750 font-medium">No participants yet</p>
                               <p className="text-neutral-650 text-sm">Be the first to join!</p>
                             </div>
@@ -1678,10 +1677,10 @@ export default function LobbyPage({ params }: PageProps) {
                       </div>
 
                       {/* Fixed bottom section with settings and match info */}
-                      <div className="flex-shrink-0 border-t border-gray-100">
+                      <div className="flex-shrink-0 border-t border-gray-100 ">
                         {/* Privacy Settings */}
                         <div className="p-6">
-                          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-4">
+                          <div className="bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-300  rounded-2xl p-4">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${blurMyProfile ? 'bg-primary-500' : 'bg-gray-500'
@@ -1698,7 +1697,7 @@ export default function LobbyPage({ params }: PageProps) {
                                   )}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-neutral-850">Blur My Profile</p>
+                                  <p className="text-sm font-medium text-neutral-850 dark:text-lime-400">Blur My Profile</p>
                                   <p className="text-xs text-neutral-650">Hide your profile picture for privacy</p>
                                 </div>
                               </div>
@@ -1756,8 +1755,6 @@ export default function LobbyPage({ params }: PageProps) {
                     <div className="bg-white rounded-3xl shadow-soft border border-gray-100 h-full overflow-hidden flex flex-col dark:bg-gray-800">
                       <LobbyChat
                         lobbyId={lobbyId}
-                        messages={messages}
-                        setMessages={setMessages}
                         currentUser={currentUser}
                         participants={participants}
                       />

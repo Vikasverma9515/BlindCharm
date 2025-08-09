@@ -15,6 +15,7 @@ import DynamicBackground from '@/components/shared/DynamicBackground'
 import BackgroundPattern from '@/components/shared/BackgroundPattern'
 import CuteFaceBubble2 from '@/components/ui/CuteFaceBubble2'
 import NotificationPrompt from '@/components/notifications/NotificationPrompt'
+import AnnouncementBar from '@/components/announcement/AnnouncementBar'
 
 const LobbyCardSwap = () => {
   return (
@@ -217,9 +218,12 @@ export default function Home() {
 
           {/* <BackgroundPattern /> */}
           {/* Main Hero Section */}
+          <AnnouncementBar />
           <section className="relative min-h-screen rounded-2xl flex items-center justify-center px-4 md:px-8 bg-gradient-to-br from-[#8966f1] via-[#4718d5] to-[#4f09d3] dark:bg-gradient-to-br dark:from-[#661eee] dark:via-[#9c7ff2] dark:to-[#8966f1] transition-colors duration-300 overflow-hidden">
           
-          
+             
+
+            
           
             {/* Enhanced Background Elements */}
             {/* Animated Gradient Orbs */}

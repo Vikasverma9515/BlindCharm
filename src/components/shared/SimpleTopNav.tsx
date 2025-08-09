@@ -102,7 +102,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
       <motion.nav
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-amber-400 backdrop-blur-xl border-b-4 border-primary-100/50 dark:border-gray-700/50 shadow-soft hidden md:block transition-colors duration-300 rounded-b-2xl "
+        className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black backdrop-blur-xl border-b-4 border-primary-100/50 dark:border-gray-700/50 shadow-soft hidden md:block transition-colors duration-300 rounded-b-2xl "
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 rounded-[28px]  ">
           <div className="flex justify-between items-center h-16 px-5">
@@ -111,7 +111,12 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
               <img
                 src="/logo2.png"
                 alt="BlindCharm Logo"
-                className="h-10 w-auto"
+                className="h-10 w-auto dark:hidden"
+              />
+              <img
+                src="/logo3.png"
+                alt="BlindCharm Logo"
+                className="h-8 w-auto hidden dark:block"
               />
               <span className={`${boldonse.className} text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent`}>
                 BlindCharm
