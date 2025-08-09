@@ -862,3 +862,41 @@ select:focus {
 .animate-slowspin {
   animation: slowspin 60s linear infinite;
 }
+
+/* Safe Area Insets for iOS devices */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .pt-safe-area-inset-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .pb-safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pl-safe-area-inset-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .pr-safe-area-inset-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Fallback for devices that don't support safe-area-inset */
+@supports not (padding-top: env(safe-area-inset-top)) {
+  .pt-safe-area-inset-top {
+    padding-top: 20px; /* Status bar height fallback */
+  }
+  
+  .pb-safe-area-inset-bottom {
+    padding-bottom: 0;
+  }
+  
+  .pl-safe-area-inset-left {
+    padding-left: 0;
+  }
+  
+  .pr-safe-area-inset-right {
+    padding-right: 0;
+  }
+}

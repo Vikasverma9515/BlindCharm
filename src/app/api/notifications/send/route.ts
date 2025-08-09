@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import webpush from 'web-push';
 import { createClient } from '@supabase/supabase-js';
 
+
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -21,6 +23,23 @@ try {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check environment variables first
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('❌ Missing required environment variables');
+      return NextResponse.json(
+        { error: 'Server configuration error - missing database credentials' },
+        { status: 500 }
+      );
+    }
+
+    if (!process.env.VAPID_EMAIL || !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+      console.error('❌ Missing VAPID configuration');
+      return NextResponse.json(
+        { error: 'Server configuration error - missing VAPID keys' },
+        { status: 500 }
+      );
+    }
+
     console.log('🔧 Environment check:');
     console.log('- SUPABASE_URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
     console.log('- SERVICE_ROLE_KEY:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -56,20 +75,24 @@ export async function POST(request: NextRequest) {
 
     if (broadcast) {
       // Send to all users with push subscriptions
+      console.log('🌍 Fetching all subscriptions for broadcast...');
+      
       const { data: allSubscriptions, error } = await supabase
         .from('push_subscriptions')
         .select('user_id')
         .neq('user_id', null);
 
       if (error) {
-        console.error('Error fetching all subscriptions:', error);
+        console.error('❌ Error fetching all subscriptions:', error);
         return NextResponse.json(
-          { error: 'Failed to fetch subscriptions' },
+          { error: 'Failed to fetch subscriptions', details: error.message },
           { status: 500 }
         );
       }
 
+      console.log('📊 Found subscriptions:', allSubscriptions?.length || 0);
       targetUserIds = allSubscriptions?.map(sub => sub.user_id) || [];
+      console.log('🎯 Unique target user IDs:', [...new Set(targetUserIds)].length);
     } else if (userIds && Array.isArray(userIds)) {
       targetUserIds = userIds;
     } else if (userId) {

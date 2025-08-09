@@ -154,7 +154,7 @@ export default function MatchesPage() {
                 <div
                   key={match.id}
                   onClick={() => router.push(`/matches/${match.id}`)}
-                  className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors bg-white dark:bg-gray-800 rounded-2xl border-b-8  ${
+                  className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors bg-white dark:bg-indigo-700 rounded-2xl border-b-8  ${
                     index !== matches.length - 1 ? 'border-b border-gray-100' : ''
                   }`}
                 >
@@ -181,10 +181,10 @@ export default function MatchesPage() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between mb-1">
-                      <h3 className="font-semibold text-gray-900 truncate">
+                      <h3 className="font-semibold text-gray-900 dark:text-lime-200 truncate">
                         {match.bothRevealed ? match.otherUser.username : 'Anonymous Match'}
                       </h3>
-                      <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                      <span className="text-xs text-gray-500 dark:text-gray-200 ml-2 flex-shrink-0">
                         {new Date(match.created_at).toLocaleDateString('en-US', { 
                           month: 'short', 
                           day: 'numeric' 
@@ -194,11 +194,11 @@ export default function MatchesPage() {
                     
                     <div className="flex items-center justify-between">
                       {match.lastMessage ? (
-                        <p className="text-sm text-gray-600 truncate">
+                        <p className="text-sm text-gray-600 dark:text-gray-200 truncate">
                           {match.lastMessage.content}
                         </p>
                       ) : (
-                        <p className="text-sm text-gray-400 italic">
+                        <p className="text-sm text-gray-300 italic">
                           Tap to start chatting
                         </p>
                       )}

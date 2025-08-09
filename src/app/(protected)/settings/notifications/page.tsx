@@ -16,7 +16,6 @@ export default function NotificationSettingsPage() {
   
   // Check if user is admin
   const isAdmin = userIsAdmin || 
-                  
                   session?.user?.email === 'admin@blindcharm.com' || 
                   session?.user?.email === 'Blindcharm@gmail.com';
 

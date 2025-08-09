@@ -189,34 +189,29 @@ const AdminNotificationPanel: React.FC = () => {
         console.error('Error fetching user count:', userError);
       }
 
-      // Get total subscriptions
+      // Get total subscriptions (for ALL users)
       const { count: subCount, error: subError } = await supabase
         .from('push_subscriptions')
         .select('*', { count: 'exact', head: true });
 
       if (subError) {
         console.error('Error fetching subscription count:', subError);
+        setStats(prev => ({ ...prev, totalSubscriptions: 0 }));
       }
 
-      // Get notification stats (handle if table doesn't exist)
+      // Get notification stats
       let totalSent = 0;
       let totalFailed = 0;
-
       try {
         const { data: notifications, error: notifError } = await supabase
           .from('notifications')
           .select('sent_count, failed_count');
-
-        if (notifError) {
-          console.warn('Notifications table not found or error:', notifError);
-          // Table might not exist yet, use default values
-        } else {
-          totalSent = notifications?.reduce((sum, n) => sum + (n.sent_count || 0), 0) || 0;
-          totalFailed = notifications?.reduce((sum, n) => sum + (n.failed_count || 0), 0) || 0;
+        if (!notifError && notifications) {
+          totalSent = notifications.reduce((sum, n) => sum + (n.sent_count || 0), 0);
+          totalFailed = notifications.reduce((sum, n) => sum + (n.failed_count || 0), 0);
         }
       } catch (notifTableError) {
         console.warn('Notifications table not accessible:', notifTableError);
-        // Use default values
       }
 
       setStats({
@@ -227,7 +222,6 @@ const AdminNotificationPanel: React.FC = () => {
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
-      // Set default stats on error
       setStats({
         totalUsers: 0,
         totalSubscriptions: 0,
@@ -346,6 +340,9 @@ const AdminNotificationPanel: React.FC = () => {
       }
     } catch (error) {
       console.error('Error sending notification:', error);
+      console.error('❌ Error in send notification route:', error);
+      // Optionally log error details if available
+      // console.error('❌ Error details:', error);
       setSendResult({
         success: false,
         message: 'Network error occurred',
@@ -403,6 +400,40 @@ const AdminNotificationPanel: React.FC = () => {
       setSendResult({
         success: false,
         message: `API test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        sent: 0,
+        failed: 0
+      });
+    }
+  };
+
+  const debugSubscriptions = async () => {
+    try {
+      console.log('🔍 Debugging subscriptions...');
+      const response = await fetch('/api/notifications/debug-subscriptions');
+      const result = await response.json();
+      
+      console.log('🔍 Subscription Debug Result:', result);
+      
+      if (response.ok) {
+        setSendResult({
+          success: true,
+          message: `Found ${result.stats.totalSubscriptions} subscriptions for ${result.stats.uniqueUsers} users`,
+          sent: result.stats.totalSubscriptions,
+          failed: result.stats.invalidSubscriptions
+        });
+      } else {
+        setSendResult({
+          success: false,
+          message: 'Failed to debug subscriptions',
+          sent: 0,
+          failed: 0
+        });
+      }
+    } catch (error) {
+      console.error('🔍 Debug Error:', error);
+      setSendResult({
+        success: false,
+        message: `Debug failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         sent: 0,
         failed: 0
       });
@@ -680,17 +711,30 @@ const AdminNotificationPanel: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Test API Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={testApiConnection}
-                  disabled={isLoading}
-                  className="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 px-6 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-4"
-                >
-                  <Settings className="w-4 h-4" />
-                  Test API Connection
-                </motion.button>
+                {/* Debug Buttons */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={testApiConnection}
+                    disabled={isLoading}
+                    className="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Test API
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={debugSubscriptions}
+                    disabled={isLoading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Users className="w-4 h-4" />
+                    Debug Subs
+                  </motion.button>
+                </div>
 
                 {/* Send Button */}
                 <motion.button

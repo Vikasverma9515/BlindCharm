@@ -96,7 +96,7 @@ const BroadcastNotifications: React.FC<BroadcastNotificationsProps> = ({ classNa
       url: '/lobby'
     },
     {
-      title: '🔥 Activity Boost',
+      title: '🔥 Dont Miss Out!',
       body: 'Your area is buzzing with activity. Jump in now!',
       url: '/lobby'
     }

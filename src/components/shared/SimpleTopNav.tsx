@@ -8,13 +8,13 @@ import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { 
-  Home, 
-  User, 
-  Users, 
-  Heart, 
-  MessageCircle, 
-  LogIn, 
+import {
+  Home,
+  User,
+  Users,
+  Heart,
+  MessageCircle,
+  LogIn,
   UserPlus,
   LogOut,
   ShieldUser,
@@ -28,7 +28,7 @@ import { boldonse, righteous, specialGothic } from '@/app/fonts'
 import { supabase } from '@/lib/supabase'
 
 
-const anton= Anton({
+const anton = Anton({
   weight: ['400'],
   subsets: ['latin'],
   // variable: '--font-roboto'
@@ -55,31 +55,31 @@ interface ProfileAvatarProps {
 export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavProps) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
-  const [userProfile, setUserProfile]= useState<UserProfile | null> (null)
-  
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+
 
   useEffect(() => {
-      const fetchUserProfile = async () => {
-        if (!session?.user?.id) return
-        
-        try {
-          const { data, error } = await supabase
-            .from('users')
-            .select('id, full_name, username, profile_picture')
-            .eq('id', session.user.id)
-            .single()
-  
-          if (error) throw error
-          setUserProfile(data)
-        } catch (err) {
-          console.error('Error fetching user profile:', err)
-        }
+    const fetchUserProfile = async () => {
+      if (!session?.user?.id) return
+
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, full_name, username, profile_picture')
+          .eq('id', session.user.id)
+          .single()
+
+        if (error) throw error
+        setUserProfile(data)
+      } catch (err) {
+        console.error('Error fetching user profile:', err)
       }
-  
-      if (session?.user?.id) {
-        fetchUserProfile()
-      }
-    }, [session])
+    }
+
+    if (session?.user?.id) {
+      fetchUserProfile()
+    }
+  }, [session])
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' })
@@ -94,12 +94,12 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
   if (status === 'loading') {
     return null
   }
-  
+
 
   return (
     <>
       {/* Desktop Navigation */}
-      <motion.nav 
+      <motion.nav
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-amber-400 backdrop-blur-xl border-b-4 border-primary-100/50 dark:border-gray-700/50 shadow-soft hidden md:block transition-colors duration-300 rounded-b-2xl "
@@ -108,9 +108,9 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
           <div className="flex justify-between items-center h-16 px-5">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-3">
-              <img 
-                src="/logo2.png" 
-                alt="BlindCharm Logo" 
+              <img
+                src="/logo2.png"
+                alt="BlindCharm Logo"
                 className="h-10 w-auto"
               />
               <span className={`${boldonse.className} text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent`}>
@@ -126,8 +126,8 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                     href="/lobby"
                     className={`
                       flex items-center space-x-2 px-4 py-2 rounded-full font-medium transition-all duration-200
-                      ${isActive('/lobby') 
-                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 shadow-soft' 
+                      ${isActive('/lobby')
+                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 shadow-soft'
                         : 'text-neutral-750 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'
                       }
                     `}
@@ -139,8 +139,8 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                     href="/matches"
                     className={`
                       flex items-center space-x-2 px-4 py-2 rounded-full font-medium transition-all duration-200
-                      ${isActive('/matches') 
-                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 shadow-soft' 
+                      ${isActive('/matches')
+                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 shadow-soft'
                         : 'text-neutral-750 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'
                       }
                     `}
@@ -152,8 +152,8 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                     href="/whispers"
                     className={`
                       flex items-center space-x-2 px-4 py-2 rounded-full font-medium transition-all duration-200
-                      ${isActive('/whispers') 
-                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 shadow-soft' 
+                      ${isActive('/whispers')
+                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 shadow-soft'
                         : 'text-neutral-750 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'
                       }
                     `}
@@ -178,15 +178,15 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                     href="/profile"
                     icon={<ProfileAvatar userProfile={userProfile} />}
                     isActive={isActive('/profile')}
-                    
+
                   />
-                 {/* <NavItem 
+                  {/* <NavItem 
                 href="/profile"
                icon={<ProfileAvatar userProfile={userProfile} />}
                  isActive={isActive('/profile')}
                 
                /><span>Profile</span> */}
-              
+
                   <button
                     onClick={handleLogout}
                     className="flex items-center space-x-2 px-4 py-2 rounded-full font-medium text-neutral-750 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-200 ml-2"
@@ -217,25 +217,45 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
       </motion.nav>
 
       {/* Mobile Top Header */}
-      <motion.header 
+      {/* <motion.header 
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="w-full backdrop-blur-xl border-b border-primary-100/50 dark:border-gray-700/50 shadow-soft md:hidden bg-white/50 dark:bg-amber-400 transition-colors duration-300 rounded-b-2xl"
         // className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-amber-400 backdrop-blur-xl border-b-4 border-primary-100/50 dark:border-gray-700/50 shadow-soft hidden md:block transition-colors duration-300 rounded-b-2xl"
+      > */}
+      <motion.header
+        // initial={{ y: -100, opacity: 0 }}
+        // animate={{ y: 0, opacity: 1 }}
+        style={{ paddingTop: 'env(safe-area-inset-top)' }} // ✅ Safe area padding
+        className="top-0 left-0 right-0 z-50 
+             w-full 
+             backdrop-blur-xl 
+             border-b border-primary-100/50 dark:border-b-white 
+             shadow-soft md:hidden 
+             bg-white/50 dark:bg-black/50  
+             transition-colors duration-300 
+             rounded-b-2xl"
       >
         <div className="flex justify-between items-center h-16 px-5 ">
           {/* Left side - Logo and Page Name */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3">
-              <img 
-                src="/logo2.png" 
-                alt="BlindCharm Logo" 
-                className="h-8 w-auto"
+              {/* Light mode logo */}
+              <img
+                src="/logo2.png"
+                alt="BlindCharm Logo"
+                className="h-8 w-auto dark:hidden"
+              />
+              {/* Dark mode logo */}
+              <img
+                src="/logo3.png"
+                alt="BlindCharm Logo"
+                className="h-8 w-auto hidden dark:block"
               />
               <div className={`${boldonse.className} text-md font-bold`}>
-              <span className=" bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
-                BlindCharm
-              </span>
+                <span className=" bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
+                  BlindCharm
+                </span>
               </div>
             </Link>
             {pageName && (
@@ -245,7 +265,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
               </>
             )}
           </div>
-          
+
           {/* Right side - Action Button */}
           {actionButton && (
             <div className="flex items-center">
@@ -277,25 +297,24 @@ const NavItem = ({ href, icon, isActive, notificationCount }: NavItemProps) => {
         whileTap={{ scale: 0.95 }}
       >
         {isActive && (
-           <motion.div
-    layoutId="activeBackground"
-    className="absolute inset-0 bg-primary-500 rounded-full shadow-soft"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-  />
+          <motion.div
+            layoutId="activeBackground"
+            className="absolute inset-0 bg-primary-500 rounded-full shadow-soft"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
         )}
         <div
-          className={`relative z-10 transition-colors duration-200 ${
-            isActive ? 'text-white' : 'text-neutral-750 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400'
-          }`}
+          className={`relative z-10 transition-colors duration-200 ${isActive ? 'text-white' : 'text-neutral-750 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400'
+            }`}
         >
           {icon}
         </div>
         {/* {notificationCount && notificationCount > 0 && (
           // <NotificationBadge count={NotificationStatus} size="sm" />
         )} */}
-      
+
       </motion.div>
     </Link>
   )
@@ -319,7 +338,7 @@ const ProfileAvatar = ({ userProfile }: ProfileAvatarProps) => {
     if (userProfile?.username) {
       return userProfile.username[0].toUpperCase()
     }
-    return <div><User size={24} /></div> 
+    return <div><User size={24} /></div>
   }
 
   return (

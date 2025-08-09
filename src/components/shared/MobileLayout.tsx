@@ -21,8 +21,8 @@ export default function MobileLayout({ children, pageName, actionButton }: Mobil
       {/* Mobile Top Header */}
       <TopHeader pageName={pageName} actionButton={actionButton} />
       
-      {/* Main Content with proper spacing - no gap between navbar and content */}
-      <main className="flex-1 pt-16 pb-16 md:pt-0 md:pb-0">
+      {/* Main Content with proper spacing - account for safe area + header height */}
+      <main className="flex-1 pt-[calc(4rem+env(safe-area-inset-top))] pb-[calc(4rem+env(safe-area-inset-bottom))] md:pt-0 md:pb-0">
         {children}
       </main>
       

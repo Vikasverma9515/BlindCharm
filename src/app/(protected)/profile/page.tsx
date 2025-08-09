@@ -528,86 +528,170 @@ export default function ProfilePage() {
             className="mb-8"
           >
             {/* Profile Info Card */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg mb-6">
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Profile Picture */}
-                <div className="flex-shrink-0">
-                  <div className="relative">
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-700">
-                      {profile.profile_picture ? (
-                        <img
-                          src={profile.profile_picture}
-                          alt={profile.full_name || 'Profile'}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Camera size={32} className="text-gray-400 dark:text-gray-500" />
-                        </div>
-                      )}
-                    </div>
-                    {/* Edit Photo Button */}
-                    <div className="absolute -bottom-2 -right-2">
-                      <ImageUpload
-                        currentImage={profile.profile_picture}
-                        onImageUpload={handleImageUpload}
-                        loading={loading}
-                      />
-                    </div>
-                  </div>
-                </div>
+            <div className="w-full max-w-3xl mx-auto">
+  {/* Main Profile Card - Dark theme with glass effect */}
+  <div className="bg-gray-900/95 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl">
+    {/* Profile Header Section */}
+    <div className="relative">
+      {/* Large Profile Picture */}
+      <div className="w-full h-64 sm:h-80 relative">
+        {profile.profile_picture ? (
+          <img
+            src={profile.profile_picture}
+            alt={profile.full_name || 'Profile'}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+            <Camera size={48} className="text-gray-600" />
+          </div>
+        )}
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
+      </div>
 
-                {/* Profile Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                        {profile.full_name || 'Your Name'}
-                      </h1>
-                      {profile.dob && (
-                        <span className="text-lg sm:text-xl font-medium text-gray-600 dark:text-gray-400">
-                          {getAge(profile.dob)}
-                        </span>
-                      )}
-                    </div>
-                    {/* Admin Badge - Moved to top right */}
-                    {profile.is_admin && (
-                      <div className="absolute pt-2 right-8  flex-shrink-0">
-                        <AdminBadge size="sm" />
-                      </div>
-                    )}
-                  </div>
+      {/* Edit Photo Button - Floating */}
+      <div className="absolute top-4 right-4">
+        <ImageUpload
+          currentImage={profile.profile_picture}
+          onImageUpload={handleImageUpload}
+          loading={loading}
+          className="bg-gray-900/50 backdrop-blur-md hover:bg-gray-800/50 text-white rounded-full p-2"
+        />
+      </div>
+    </div>
 
-                  {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
-                    <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                        {typeof profile.location === 'string'
-                          ? profile.location
-                          : profile.location && typeof profile.location === 'object'
-                            ? `${profile.location.city}${profile.location.country ? `, ${profile.location.country}` : ''}`
-                            : ''
-                        }
-                      </span>
-                    </div>
-                  )}
+    {/* Profile Info Section */}
+    <div className="px-4 sm:px-6 pb-6">
+      {/* Name and Age */}
+      <div className="flex items-center justify-between -mt-8 relative z-10 mb-4">
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">
+            {profile.full_name || 'Your Name'}
+          </h1>
+          {profile.dob && (
+            <span className="text-xl text-gray-300">
+              {getAge(profile.dob)}
+            </span>
+          )}
+        </div>
+        {/* Admin Badge */}
+        {profile.is_admin && (
+          <div className="flex-shrink-0">
+            <AdminBadge size="sm" />
+          </div>
+        )}
+      </div>
 
-                  {profile.bio && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
-                      {profile.bio}
-                    </p>
-                  )}
+      {/* Location */}
+      {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
+        <div className="flex items-center gap-2 mb-4">
+          <MapPin className="w-5 h-5 text-gray-400" />
+          <span className="text-gray-300 text-sm">
+            {typeof profile.location === 'string'
+              ? profile.location
+              : profile.location && typeof profile.location === 'object'
+                ? `${profile.location.city}${profile.location.country ? `, ${profile.location.country}` : ''}`
+                : ''
+            }
+          </span>
+        </div>
+      )}
 
-                  {/* Status Indicator */}
-                  <div className="flex items-center gap-2 mt-3">
-                    <div className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-full flex items-center gap-1.5">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-green-700 dark:text-green-400 text-xs font-medium">Active</span>
-                    </div>
-                  </div>
-                </div>
+      {/* Active Status */}
+      <div className="flex items-center gap-2 mb-6">
+        <div className="px-3 py-1.5 bg-green-500/10 rounded-full flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-green-400 text-sm font-medium">Active</span>
+        </div>
+      </div>
+
+      {/* Bio */}
+      {profile.bio && (
+        <div className="mb-6">
+          <h2 className="text-gray-400 text-sm font-medium mb-2">About</h2>
+          <p className="text-gray-300 text-sm leading-relaxed">
+            {profile.bio}
+          </p>
+        </div>
+      )}
+
+      {/* Basic Info Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+        {profile.height && (
+          <div className="bg-gray-800/50 rounded-xl p-3">
+            <p className="text-gray-400 text-xs mb-1">Height</p>
+            <p className="text-white font-medium">{profile.height} cm</p>
+          </div>
+        )}
+        {profile.occupation && (
+          <div className="bg-gray-800/50 rounded-xl p-3">
+            <p className="text-gray-400 text-xs mb-1">Work</p>
+            <p className="text-white font-medium">{profile.occupation}</p>
+          </div>
+        )}
+        {profile.education && (
+          <div className="bg-gray-800/50 rounded-xl p-3">
+            <p className="text-gray-400 text-xs mb-1">Education</p>
+            <p className="text-white font-medium">{profile.education}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Interests */}
+      {profile.interests && profile.interests.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-gray-400 text-sm font-medium mb-3">Interests</h2>
+          <div className="flex flex-wrap gap-2">
+            {profile.interests.map((interest, index) => (
+              <span
+                key={index}
+                className="px-3 py-1.5 bg-gray-800/50 rounded-full text-gray-300 text-sm"
+              >
+                {interest}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Other Sections (Languages, Hobbies, etc.) */}
+      {profile.languages && profile.languages.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-gray-400 text-sm font-medium mb-3">Languages</h2>
+          <div className="flex flex-wrap gap-2">
+            {profile.languages.map((language, index) => (
+              <span
+                key={index}
+                className="px-3 py-1.5 bg-gray-800/50 rounded-full text-gray-300 text-sm"
+              >
+                {language}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Additional Photos Grid */}
+      {/* {profile.photos && profile.photos.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-gray-400 text-sm font-medium mb-3">Photos</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {profile.photos.map((photo, index) => (
+              <div key={index} className="aspect-square rounded-xl overflow-hidden">
+                <img
+                  src={photo}
+                  alt={`Photo ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
               </div>
-            </div>
+            ))}
+          </div>
+        </div>
+      )} */}
+    </div>
+  </div>
+</div>
 
             {/* Photo Gallery Section */}
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg mb-6">
@@ -1347,7 +1431,7 @@ export default function ProfilePage() {
                 </div>
                
                 {/* Debug Admin Status */}
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                {/* <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <h3 className="font-medium text-yellow-800 mb-2">🔍 Admin Debug Info</h3>
                   <div className="text-sm text-yellow-700 space-y-1">
                     <p><strong>profile?.is_admin:</strong> {String(profile?.is_admin)}</p>
@@ -1367,7 +1451,7 @@ export default function ProfilePage() {
                       → Test Admin Status on Correct Port
                     </a>
                   </div>
-                </div>
+                </div> */}
 
                 {isAdmin && (
                   <motion.div

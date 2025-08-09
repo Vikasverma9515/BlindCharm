@@ -1,4 +1,3 @@
-
 // src/app/(protected)/matches/[id]/page.tsx
 'use client'
 
@@ -8,6 +7,10 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { boldonse, inter, poppins } from '@/app/fonts'
 import MobileLayout from '@/components/shared/MobileLayout'
+import { LucideVoicemail, Mic, Play, Pause } from 'lucide-react';
+import { uploadVoiceMessage } from '@/lib/supabase-storage';
+import { getVoiceMessageUrl } from '@/utils/voice'
+
 
 interface MatchParams {
   params: { id: string }
@@ -54,6 +57,18 @@ interface Message {
     username: string
     profile_picture: string | null
   }
+  type: 'text' | 'voice' | 'image'
+  metadata?: Record<string, any>
+}
+
+interface VoiceMessage extends Message {
+  type: 'voice';
+  metadata: {
+    audio_url: string;
+    duration: number;
+    waveform?: number[];
+    transcription?: string;
+  };
 }
 
 
@@ -102,8 +117,123 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   const [isUser1, setIsUser1] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const audioChunks = useRef<Blob[]>([]);
 
+  // Voice recording logic
+  const startRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream, {
+      mimeType: 'audio/webm;codecs=opus'
+    });
+    
+    audioChunks.current = []; // Clear previous chunks
 
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        audioChunks.current.push(e.data);
+      }
+    };
+
+    recorder.onstop = async () => {
+      try {
+        const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
+        setAudioBlob(audioBlob);
+        await handleVoiceMessage(audioBlob);
+      } catch (error) {
+        console.error('Error handling voice message:', error);
+      }
+    };
+
+    setMediaRecorder(recorder);
+    recorder.start();
+    setIsRecording(true);
+  } catch (error) {
+    console.error('Error accessing microphone:', error);
+  }
+};
+
+const stopRecording = () => {
+  if (mediaRecorder && isRecording) {
+    try {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      // Stop all audio tracks
+      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    } catch (error) {
+      console.error('Error stopping recording:', error);
+    }
+  }
+};
+const formatDuration = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
+
+  // Helper to get audio duration
+  const getAudioDuration = (blob: Blob): Promise<number> => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      audio.src = URL.createObjectURL(blob);
+      audio.onloadedmetadata = () => {
+        URL.revokeObjectURL(audio.src);
+        resolve(audio.duration);
+      };
+    });
+  };
+
+  // Upload and send voice message
+  const handleVoiceMessage = async (blob: Blob) => {
+  if (!match?.id || !session?.user?.id) return;
+
+  try {
+    // Convert Blob to File
+    const file = new File([blob], `voice-${Date.now()}.webm`, {
+      type: 'audio/webm'
+    });
+
+    // Get audio duration
+    const duration = await getAudioDuration(blob);
+
+    // Upload to Supabase storage
+    const uploadResult = await uploadVoiceMessage(file, match.id);
+    if (!uploadResult?.path) throw new Error('Upload failed');
+
+    // Get the public URL
+    const audioUrl = getVoiceMessageUrl(uploadResult.path);
+
+    // Create message in database
+    const { data: messageData, error: messageError } = await supabase
+      .from('match_messages')
+      .insert({
+        match_id: match.id,
+        sender_id: session.user.id,
+        content: '🎤 Voice message',
+        type: 'voice',
+        metadata: {
+          audio_url: audioUrl,
+          duration: duration
+        }
+      })
+      .select('*, sender:sender_id(*)')
+      .single();
+
+    if (messageError) throw messageError;
+
+    // Update messages state
+    if (messageData) {
+      setMessages(prev => [...prev, messageData]);
+      setTimeout(() => scrollToBottom(), 100);
+    }
+
+  } catch (error) {
+    console.error('Error sending voice message:', error);
+  }
+};
 
   // All useRef hooks
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -223,19 +353,19 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-
-
   const fetchMessages = async () => {
     const { data, error } = await supabase
       .from('match_messages')
-      .select('id, content, sender_id, created_at, sender:sender_id(id, username, profile_picture)')
+      .select('id, content, sender_id, created_at, type, metadata, sender:sender_id(id, username, profile_picture)')
       .eq('match_id', matchId)
       .order('created_at', { ascending: true });
 
     if (!error && data) {
-      const transformed = data.map(msg => ({
+      const transformed: Message[] = data.map(msg => ({
         ...msg,
-        sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender
+        sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender,
+        type: msg.type ?? 'text',
+        metadata: msg.metadata ?? undefined
       }));
       setMessages(transformed);
       // Use setTimeout to ensure DOM is updated before scrolling
@@ -316,20 +446,22 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
           sender_id: session.user.id,
           content: messageContent
         })
-        .select('id, content, sender_id, created_at')
+        .select('id, content, sender_id, created_at, metadata')
         .single();
 
       if (error) throw error;
 
       // Immediately add the message to the local state for instant feedback
       if (data) {
-        const newMsg = {
+        const newMsg: Message = {
           ...data,
           sender: {
             id: session.user.id,
             username: session.user.name || 'You',
             profile_picture: null
-          }
+          },
+          type: 'text',
+          metadata: data.metadata ?? undefined
         };
         setMessages(prev => [...prev, newMsg]);
         setTimeout(() => scrollToBottom(), 100);
@@ -342,14 +474,14 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
       try {
         const otherUserId = match.user1_id === session.user.id ? match.user2_id : match.user1_id;
         const senderName = session.user.name || 'Someone';
-        
+
         await fetch('/api/notifications/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: otherUserId,
-            title: `💬 ${senderName}`,
-            body: messageContent.length > 50 
+            title: ` ${senderName} 💥`,
+            body: messageContent.length > 50
               ? `${messageContent.substring(0, 50)}...`
               : messageContent,
             type: 'message',
@@ -395,161 +527,200 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   }, []);
 
 
+  // const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number, isOwn?: boolean }) => {
+  //   const audioRef = useRef<HTMLAudioElement>(null);
+  //   const [isPlaying, setIsPlaying] = useState(false);
+  //   const [currentTime, setCurrentTime] = useState(0);
+  //   const [isLoaded, setIsLoaded] = useState(false);
+
+  //   useEffect(() => {
+  //     if (audioRef.current) {
+  //       audioRef.current.addEventListener('loadedmetadata', () => setIsLoaded(true));
+  //       audioRef.current.addEventListener('timeupdate', () =>
+  //         setCurrentTime(audioRef.current?.currentTime || 0)
+  //       );
+  //       audioRef.current.addEventListener('ended', () => setIsPlaying(false));
+  //     }
+
+  //     return () => {
+  //       if (audioRef.current) {
+  //         audioRef.current.removeEventListener('loadedmetadata', () => setIsLoaded(true));
+  //         audioRef.current.removeEventListener('timeupdate', () =>
+  //           setCurrentTime(audioRef.current?.currentTime || 0)
+  //         );
+  //         audioRef.current.removeEventListener('ended', () => setIsPlaying(false));
+  //       }
+  //     };
+  //   }, []);
+
+  //   const togglePlay = async () => {
+  //     if (!audioRef.current) return;
+
+  //     try {
+  //       if (isPlaying) {
+  //         await audioRef.current.pause();
+  //       } else {
+  //         await audioRef.current.play();
+  //       }
+  //       setIsPlaying(!isPlaying);
+  //     } catch (error) {
+  //       console.error('Playback error:', error);
+  //     }
+  //   };
+
+
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-4 mx-auto animate-spin">
+              <div className="w-3 h-3 bg-white rounded-full"></div>
+            </div>
+            <p className="text-gray-600">Loading chat...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!match) return null;
+
+    const otherUser = match.user1_id === session?.user?.id ? match.user2 : match.user1;
 
 
 
-  if (loading) {
+
+
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-4 mx-auto animate-spin">
-            <div className="w-3 h-3 bg-white rounded-full"></div>
-          </div>
-          <p className="text-gray-600">Loading chat...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!match) return null;
-
-  const otherUser = match.user1_id === session?.user?.id ? match.user2 : match.user1;
-
-
-
-
-
-  return (
-    <div className="flex flex-col h-screen bg-white">
-      {/* Chat Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => router.push('/matches')}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-
+      <div className="flex flex-col h-screen  ">
+        {/* Chat Header with safe area support */}
+        <div className="bg-white border-b border-gray-200 dark:bg-black px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between fixed top-0 left-0 right-0 z-50">
           <div className="flex items-center space-x-3">
-            <div className="relative">
-              {bothRevealed && otherUserProfile?.profile_picture ? (
-                <img
-                  src={otherUserProfile.profile_picture}
-                  alt={otherUserProfile.username}
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
-                />
-              ) : (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex border border-red-500 items-center justify-center">
-                  <span className="text-white font-semibold text-sm sm:text-base">
-                    {bothRevealed && otherUserProfile?.username
-                      ? otherUserProfile.username[0].toUpperCase()
-                      : '?'}
-                  </span>
-                </div>
-              )}
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border border-white"></div>
-            </div>
+            <button
+              onClick={() => router.push('/matches')}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white rounded-full transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-600 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
 
-            <div className="min-w-0">
-              <h1 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                {bothRevealed && otherUserProfile?.username
-                  ? otherUserProfile.username
-                  : 'Anonymous Match'}
-              </h1>
-              <p className="text-xs text-gray-500">
-                {bothRevealed ? 'Online' : 'Identity hidden'}
-              </p>
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                {bothRevealed && otherUserProfile?.profile_picture ? (
+                  <img
+                    src={otherUserProfile.profile_picture}
+                    alt={otherUserProfile.username}
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
+                  />
+                ) : (
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex border dark:text-amber-50 border-red-500 items-center justify-center">
+                    <span className="text-white font-semibold text-sm sm:text-base">
+                      {bothRevealed && otherUserProfile?.username
+                        ? otherUserProfile.username[0].toUpperCase()
+                        : '?'}
+                    </span>
+                  </div>
+                )}
+                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border border-white"></div>
+              </div>
+
+              <div className="min-w-0">
+                <h1 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
+                  {bothRevealed && otherUserProfile?.username
+                    ? otherUserProfile.username
+                    : 'Anonymous Match'}
+                </h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {bothRevealed ? 'Online' : 'Identity hidden'}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center space-x-1 sm:space-x-2">
-          {!hasRevealed ? (
-            // < div className="inline-flex gap-2">
-               <div className="flex items-center space-x-2">
-              {/* Tooltip trigger */}
-              <div className="">
-                <button
-                  onClick={() => setShowTooltip(!showTooltip)}
-                  className="w-5 h-5 flex items-center justify-center rounded-full bg-yellow-300 text-black text-xs font-bold hover:bg-yellow-400 transition-colors">
-                  ?
-                </button>
-                {/* {showTooltip && (
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            {!hasRevealed ? (
+              // < div className="inline-flex gap-2">
+              <div className="flex items-center space-x-2">
+                {/* Tooltip trigger */}
+                <div className="">
+                  <button
+                    onClick={() => setShowTooltip(!showTooltip)}
+                    className="w-5 h-5 flex items-center justify-center rounded-full bg-yellow-300 text-black text-xs font-bold hover:bg-yellow-400 transition-colors">
+                    ?
+                  </button>
+                  {/* {showTooltip && (
                 <div className="absolute z-20 w-64 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                   You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>. <br />
                   <span className="italic text-gray-500">Both people must tap Reveal to see each other’s profiles.</span>
                 </div>
                  )} */}
-                
-                {showTooltip && (
-                  <div className="absolute top-15 z-20 w-64 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md left-1/2 transform -translate-x-1/2 mt-2">
-                    You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>.
-                    <br />
-                    <span className="italic text-gray-500">
-                      Both people must tap Reveal to see each other’s profiles.
-                    </span>
-                  </div>
-                )}
+
+                  {showTooltip && (
+                    <div className="absolute top-15 z-20 w-64 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md dark:bg-gray-800 dark:text-white left-1/2 transform -translate-x-1/2 mt-2">
+                      You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>.
+                      <br />
+                      <span className="italic text-gray-500 dark:text-gray-300">
+                        Both people must tap Reveal to see each other’s profiles.
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={handleReveal}
+                  className="bg-red-500 text-white   px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition-colors"
+                >
+                  Reveal
+                </button>
+
               </div>
+
+
+            ) : !bothRevealed ? (
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500 dark:text-white hidden sm:inline">Waiting...</span>
+                <span className="text-xs text-gray-500 dark:text-white sm:hidden">...</span>
+              </div>
+            ) : (
               <button
-                onClick={handleReveal}
-                className="bg-red-500 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition-colors"
+                onClick={() => setShowProfile(!showProfile)}
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${showProfile
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-lime-500 dark:text-white dark:hover:bg-gray-600'
+                  }`}
               >
-                Reveal
+                <span className="hidden sm:inline">{showProfile ? 'Hide Profile' : 'View Profile'}</span>
+                <span className="sm:hidden">{showProfile ? 'Hide' : 'View 👀' }</span>
               </button>
-
-            </div>
-            
-
-          ) : !bothRevealed ? (
-            <div className="flex items-center space-x-1 sm:space-x-2">
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-gray-500 hidden sm:inline">Waiting...</span>
-              <span className="text-xs text-gray-500 sm:hidden">...</span>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowProfile(!showProfile)}
-              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${showProfile
-                ? 'bg-red-500 text-white hover:bg-red-600'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <span className="hidden sm:inline">{showProfile ? 'Hide Profile' : 'View Profile'}</span>
-              <span className="sm:hidden">{showProfile ? 'Hide' : 'View'}</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Reveal Status Banner */}
-      {hasRevealed && !bothRevealed && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-            <p className="text-amber-700 text-sm font-medium">
-              You've revealed your identity. Waiting for your match to reveal theirs...
-            </p>
+            )}
           </div>
         </div>
-      )}
 
-      {bothRevealed && (
-        <div className="bg-green-50 border-b border-green-200 px-4 py-2">
-          <div className="flex items-center justify-center space-x-2">
-            <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <p className="text-green-700 text-sm font-medium">
-              Both identities revealed! You can now see each other's profiles.
-            </p>
+        {/* Reveal Status Banner */}
+        {hasRevealed && !bothRevealed && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+              <p className="text-amber-700 text-sm font-medium">
+                You've revealed your identity. Waiting for your match to reveal theirs...
+              </p>
+            </div>
           </div>
-        </div>
-      )}
-      {/* {!bothRevealed && (
+        )}
+
+        {bothRevealed && (
+          <div className="bg-green-50 border-b border-green-200 px-4 py-2">
+            <div className="flex items-center justify-center space-x-2">
+              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <p className="text-green-700 text-sm font-medium">
+                Both identities revealed! You can now see each other's profiles.
+              </p>
+            </div>
+          </div>
+        )}
+        {/* {!bothRevealed && (
         <div className="mx-4 mt-3 mb-2 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm text-sm text-yellow-800">
           <p className="font-semibold mb-1">🔓 Reveal Rule</p>
           <p>
@@ -562,376 +733,505 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
       )} */}
 
 
-      {/* Enhanced Profile Section */}
-      {bothRevealed && showProfile && otherUserProfile && (
-        <div className="bg-gray-50 border-b border-gray-200 max-h-200 sm:max-h-96 md:max-h-[32rem] lg:max-h-[40rem] xl:max-h-[44rem] overflow-y-auto">
-          <div className="p-4 sm:p-2 md:p-4 max-w-4xl mx-auto ">
-            <EnhancedProfileCard user={otherUserProfile} />
+        {/* Enhanced Profile Section */}
+        {bothRevealed && showProfile && otherUserProfile && (
+          <div className="bg-gray-50 border-b border-gray-200 dark:bg-black max-h-200 sm:max-h-96 md:max-h-[32rem] lg:max-h-[40rem] xl:max-h-[44rem] overflow-y-auto">
+            <div className="p-4 sm:p-2 md:p-4 max-w-4xl mx-auto ">
+              <EnhancedProfileCard user={otherUserProfile} />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 px-4 py-2">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            {/* <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4"> */}
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-black px-4 py-2">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              {/* <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4"> */}
 
-            {/* <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg> */}
-            <div className='inline-flex scale-75 items-center justify-center mb-4 gap-3'>
-              <div className='bg-amber-300 shadow-2xl  rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
-                {/* <span className='text-red-500 text-xl font-semibold '>
+              <div className='inline-flex scale-75 items-center justify-center mb-4 gap-3'>
+                <div className='bg-amber-300 shadow-2xl  rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
+                  {/* <span className='text-red-500 text-xl font-semibold '>
                   ( ˶°ㅁ°) !!
                 </span> */}
-                <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
-                  {boyFaces[faceIndex]}
-                </span>
-              </div>
-              <div className='bg-amber-300 shadow-2xl  rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
-                {/* <span className='text-red-500 text-xl font-semibold'>
+                  <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
+                    {boyFaces[faceIndex]}
+                  </span>
+                </div>
+                <div className='bg-amber-300 shadow-2xl  rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
+                  {/* <span className='text-red-500 text-xl font-semibold'>
                   (*ᴗ͈ˬᴗ͈)ꕤ*
                 </span> */}
-                <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
-                  {girlFaces[faceIndex]}
-                </span>
+                  <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
+                    {girlFaces[faceIndex]}
+                  </span>
+                </div>
+                <br />
               </div>
-              <br />
-            </div>
-            <h3 className="text-lg font-blindcharm-tech text-gray-900 mb-2">No messages yet</h3>
-            <p className="text-red-500 text-sm max-w-xs font-bold italic">
-              Your story hasn’t started yet...
-              <br />
-              <span className="font-semibold">Tip: </span>Say hey, share a thought — let the vibe flow ♡
+              <h3 className="text-lg font-blindcharm-tech text-gray-900 dark:text-amber-100 mb-2">No messages yet</h3>
+              <p className="text-red-500 text-sm max-w-xs font-bold italic">
+                Your story hasn’t started yet...
+                <br />
+                <span className="font-semibold">Tip: </span>Say hey, share a thought — let the vibe flow ♡
 
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3 py-2">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`max-w-[75%] ${message.sender_id === session?.user?.id ? 'order-2' : 'order-1'}`}>
-                  <div
-                    className={`px-4 py-2 rounded-2xl ${message.sender_id === session?.user?.id
-                      ? 'bg-red-500 text-white rounded-br-md'
-                      : 'bg-white text-gray-900 rounded-bl-md border border-gray-200'
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 py-2">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`max-w-[75%] ${message.sender_id === session?.user?.id ? 'order-2' : 'order-1'}`}>
+                    <div
+                      className={`px-4 py-2 rounded-2xl ${
+                        message.sender_id === session?.user?.id
+                          ? 'bg-red-500 text-white rounded-br-md'
+                          : 'bg-white text-gray-900 rounded-bl-md border border-gray-200'
                       }`}
-                  >
-                    <p className="text-sm leading-relaxed">{message.content}</p>
-                  </div>
-                  <div className={`flex items-center mt-1 space-x-1 ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'
-                    }`}>
-                    <span className="text-xs text-gray-400">
-                      {new Date(message.created_at).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                    {message.sender_id === session?.user?.id && (
-                      <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
+                    >
+                      {message.type === 'voice' && message.metadata?.audio_url ? (
+                        <VoiceMessage
+                          url={message.metadata.audio_url}
+                          duration={message.metadata.duration}
+                          isOwn={message.sender_id === session?.user?.id}
+                        />
+                      ) : (
+                        <p className="text-sm leading-relaxed">{message.content}</p>
+                      )}
+                    </div>
+                    <div className={`flex items-center mt-1 space-x-1 ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'
+                      }`}>
+                      <span className="text-xs text-gray-400">
+                        {new Date(message.created_at).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      {message.sender_id === session?.user?.id && (
+                        <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
 
-      {/* Message Input */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3 rounded-2xl ">
-        <form onSubmit={sendMessage} className="flex items-center space-x-3">
-          <div className="flex-1 relative ">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
-              className="w-full bg-gray-100 rounded-2xl px-4 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all "
-            />
+        {/* Message Input */}
+        <div className="bg-white border-t border-gray-200 dark:border-gray-100 dark:bg-black px-4 py-3 rounded-2xl">
+          <form onSubmit={sendMessage} className="flex items-center space-x-3">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="w-full bg-gray-100 dark:bg-gray-900 dark:text-amber-50 rounded-2xl px-4 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
+              />
+              {/* <button
+                type="button"
+                onMouseDown={startRecording}
+                onMouseUp={stopRecording}
+                onTouchStart={startRecording}
+                onTouchEnd={stopRecording}
+                className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 rounded-full transition-colors ${isRecording ? 'bg-red-500' : ''}`}
+              >
+                <Mic className={`w-4 h-4 ${isRecording ? 'text-white' : 'text-gray-500'}`} />
+              </button> */}
+            </div>
             <button
-              type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 rounded-full transition-colors"
+              type="submit"
+              disabled={!newMessage.trim()}
+              className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Enhanced Profile Card Component
+  function EnhancedProfileCard({ user }: { user: any }) {
+    if (!user) return null;
+
+    const calculateAge = (dob: string) => {
+      if (!dob) return null;
+      const birthDate = new Date(dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    };
+
+    const formatLocation = (location: any) => {
+      if (!location) return null;
+      if (typeof location === 'string') return location;
+      if (typeof location === 'object' && location.city && location.country) {
+        return `${location.city}, ${location.country}`;
+      }
+      return null;
+    };
+
+    const age = calculateAge(user.dob);
+    const locationStr = formatLocation(user.location);
+
+    return (
+      <div className="bg-gray-200 dark:bg-black border border-gray-200 dark:border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+        {/* Header with main photo - Responsive */}
+        <div className="relative h-100 sm:h-72 md:h-80 lg:h-96 xl:h-[28rem] bg-gradient-to-br from-red-400 to-pink-500 overflow-hidden">
+          {user.profile_picture ? (
+            <div
+              className="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-300 hover:scale-105"
+              style={{
+                backgroundImage: `url(${user.profile_picture})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center center'
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <span className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">
+                  {user.username?.[0]?.toUpperCase() || '?'}
+                </span>
+              </div>
+            </div>
+          )}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-5 md:p-6 xl:p-8">
+            <h1 className="text-white font-blindcharm-tech text-xl sm:text-2xl md:text-3xl xl:text-4xl  mb-1 leading-tight drop-shadow-lg">
+              {user.full_name || user.username}
+              {age && <span className="text-lg sm:text-xl md:text-2xl xl:text-3xl font-normal ml-2">{age}</span>}
+            </h1>
+            {locationStr && (
+              <div className="flex items-center text-white/90 text-xs sm:text-sm md:text-base font-blindcharm-logo">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+                <span className="truncate drop-shadow-sm">{locationStr}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5 md:p-6 xl:p-8 space-y-4 sm:space-y-5 md:space-y-6 xl:space-y-8">
+          {/* Bio */}
+          {user.bio && (
+            <div>
+              <h3 className="text-base sm:text-lg font-blindcharm-tech text-gray-900 dark:text-lime-300 mb-2">About</h3>
+              <p className="text-gray-700 dark:text-white leading-relaxed text-sm sm:text-base">{user.bio}</p>
+            </div>
+          )}
+
+          {/* Basic Info */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 xl:gap-6">
+            {user.height && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
+                  </svg>
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-500 dark:text-white">Height</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base truncate">{user.height} cm</p>
+                  </div>
+                </div>
+              </div>
+            )}
+       
+            {user.occupation && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 002 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2V8" />
+                  </svg>
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-500 dark:text-white">Work</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base truncate">{user.occupation}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {user.education && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                  </svg>
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-500 dark:text-white">Education</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base">{user.education}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          <button
-            type="submit"
-            disabled={!newMessage.trim()}
-            className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
-        </form>
+          {/* Interests */}
+          {user.interests && user.interests.length > 0 && (
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Interests</h3>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {user.interests.map((interest: string, index: number) => (
+                  <span
+                    key={index}
+                    className="bg-red-100 dark:bg-red-600 dark:text-white text-red-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+                  >
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Personality Tags */}
+          {user.personality_tags && user.personality_tags.length > 0 && (
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Personality</h3>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {user.personality_tags.map((tag: string, index: number) => (
+                  <span
+                    key={index}
+                    className="bg-blue-100 text-blue-700 dark:bg-blue-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Lifestyle Tags */}
+          {user.lifestyle_tags && user.lifestyle_tags.length > 0 && (
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Lifestyle</h3>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {user.lifestyle_tags.map((tag: string, index: number) => (
+                  <span
+                    key={index}
+                    className="bg-green-100 text-green-700 dark:bg-green-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Languages */}
+          {user.languages && user.languages.length > 0 && (
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 font-blindcharm-tech dark:text-lime-300 mb-2 sm:mb-3">Languages</h3>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {user.languages.map((language: string, index: number) => (
+                  <span
+                    key={index}
+                    className="bg-purple-100 text-purple-700 dark:bg-purple-700 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+                  >
+                    {language}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Hobbies */}
+          {user.hobbies && user.hobbies.length > 0 && (
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Hobbies</h3>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {user.hobbies.map((hobby: string, index: number) => (
+                  <span
+                    key={index}
+                    className="bg-yellow-100 text-yellow-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+                  >
+                    {hobby}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Looking For */}
+          {user.looking_for && user.looking_for.length > 0 && (
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Looking For</h3>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {user.looking_for.map((item: string, index: number) => (
+                  <span
+                    key={index}
+                    className="bg-pink-100 text-pink-700 dark:bg-pink-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // Add this at the bottom of your file
+  function ProfileCard({ user, bothRevealed }: { user: UserProfile & { bio?: string; interests?: string[]; age?: number; education?: string }, bothRevealed: boolean }) {
+    if (!user) return null;
+    return (
+      <div className="flex flex-col items-center bg-white rounded-lg shadow p-4 w-full max-w-xs">
+        <img
+          src={user.profile_picture || '/default-avatar.png'}
+          alt={user.username}
+          className={`w-20 h-20 rounded-full object-cover mb-2 transition-all duration-300 ${!bothRevealed ? 'blur-sm grayscale' : ''}`}
+        />
+        <h3 className="font-bold text-lg">{user.username}</h3>
+        {bothRevealed && (
+          <>
+            <p className="text-gray-500">{user.bio}</p>
+            <p className="text-gray-400 text-sm">Age: {user.age}</p>
+            <p className="text-gray-400 text-sm">Education: {user.education}</p>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {user.interests?.map((interest: string) => (
+                <span key={interest} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">{interest}</span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+
+// Helper function for formatting duration
+function formatDuration(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-// Enhanced Profile Card Component
-function EnhancedProfileCard({ user }: { user: any }) {
-  if (!user) return null;
+// VoiceMessage playback component
+// const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number, isOwn?: boolean }) => {
+//   const audioRef = useRef<HTMLAudioElement>(null);
+//   const [isPlaying, setIsPlaying] = useState(false);
 
-  const calculateAge = (dob: string) => {
-    if (!dob) return null;
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
+//   const togglePlay = () => {
+//     if (audioRef.current) {
+//       if (isPlaying) {
+//         audioRef.current.pause();
+//       } else {
+//         audioRef.current.play();
+//       }
+//       setIsPlaying(!isPlaying);
+//     }
+//   };
+
+//   return (
+//     <div className="flex items-center space-x-2">
+//       <button
+//         onClick={togglePlay}
+//         className={`p-2 rounded-full ${isPlaying ? 'bg-red-600' : 'bg-red-500'} text-white`}
+//       >
+//         {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+//       </button>
+//       <audio
+//         ref={audioRef}
+//         src={url}
+//         onEnded={() => setIsPlaying(false)}
+//         className="hidden"
+//       />
+//       <span className="text-xs text-gray-500">{duration ? `${Math.round(duration)}s` : ''}</span>
+//     </div>
+//   );
+// };
+
+// Create a separate VoiceMessage component at the bottom of the file
+const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number, isOwn?: boolean }) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.addEventListener('loadedmetadata', () => setIsLoaded(true));
+      audioRef.current.addEventListener('timeupdate', () => 
+        setCurrentTime(audioRef.current?.currentTime || 0)
+      );
+      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
     }
-    return age;
-  };
 
-  const formatLocation = (location: any) => {
-    if (!location) return null;
-    if (typeof location === 'string') return location;
-    if (typeof location === 'object' && location.city && location.country) {
-      return `${location.city}, ${location.country}`;
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.removeEventListener('loadedmetadata', () => setIsLoaded(true));
+        audioRef.current.removeEventListener('timeupdate', () => 
+          setCurrentTime(audioRef.current?.currentTime || 0)
+        );
+        audioRef.current.removeEventListener('ended', () => setIsPlaying(false));
+      }
+    };
+  }, []);
+
+  const togglePlay = async () => {
+    if (!audioRef.current) return;
+    
+    try {
+      if (isPlaying) {
+        await audioRef.current.pause();
+      } else {
+        await audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    } catch (error) {
+      console.error('Playback error:', error);
     }
-    return null;
   };
-
-  const age = calculateAge(user.dob);
-  const locationStr = formatLocation(user.location);
 
   return (
-    <div className="bg-amber-400 rounded-2xl shadow-lg overflow-hidden">
-      {/* Header with main photo - Responsive */}
-      <div className="relative h-100 sm:h-72 md:h-80 lg:h-96 xl:h-[28rem] bg-gradient-to-br from-red-400 to-pink-500 overflow-hidden">
-        {user.profile_picture ? (
+    <div className="flex items-center space-x-2 min-w-[120px]">
+      <button
+        onClick={togglePlay}
+        disabled={!isLoaded}
+        className={`p-2 rounded-full ${
+          isPlaying ? 'bg-red-600' : 'bg-red-500'
+        } text-white hover:opacity-90 transition-opacity ${
+          !isLoaded ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+      >
+        {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+      </button>
+      <audio
+        ref={audioRef}
+        src={url}
+        preload="metadata"
+      />
+      <div className="flex-1">
+        <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
           <div
-            className="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-300 hover:scale-105"
+            className="h-full bg-red-500 transition-all duration-100"
             style={{
-              backgroundImage: `url(${user.profile_picture})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center center'
+              width: `${(currentTime / (duration || 0)) * 100}%`
             }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">
-                {user.username?.[0]?.toUpperCase() || '?'}
-              </span>
-            </div>
-          </div>
-        )}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-5 md:p-6 xl:p-8">
-          <h1 className="text-white text-xl sm:text-2xl md:text-3xl xl:text-4xl font-bold mb-1 leading-tight drop-shadow-lg">
-            {user.full_name || user.username}
-            {age && <span className="text-lg sm:text-xl md:text-2xl xl:text-3xl font-normal ml-2">{age}</span>}
-          </h1>
-          {locationStr && (
-            <div className="flex items-center text-white/90 text-xs sm:text-sm md:text-base">
-              <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-              </svg>
-              <span className="truncate drop-shadow-sm">{locationStr}</span>
-            </div>
-          )}
         </div>
-      </div>
-
-      <div className="p-4 sm:p-5 md:p-6 xl:p-8 space-y-4 sm:space-y-5 md:space-y-6 xl:space-y-8">
-        {/* Bio */}
-        {user.bio && (
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">About</h3>
-            <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{user.bio}</p>
-          </div>
-        )}
-
-        {/* Basic Info */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 xl:gap-6">
-          {user.height && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
-                </svg>
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-500">Height</p>
-                  <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{user.height} cm</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {user.occupation && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 002 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2V8" />
-                </svg>
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-500">Work</p>
-                  <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{user.occupation}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {user.education && (
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                </svg>
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-500">Education</p>
-                  <p className="font-medium text-gray-900 text-sm sm:text-base">{user.education}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Interests */}
-        {user.interests && user.interests.length > 0 && (
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Interests</h3>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {user.interests.map((interest: string, index: number) => (
-                <span
-                  key={index}
-                  className="bg-red-100 text-red-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-                >
-                  {interest}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Personality Tags */}
-        {user.personality_tags && user.personality_tags.length > 0 && (
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Personality</h3>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {user.personality_tags.map((tag: string, index: number) => (
-                <span
-                  key={index}
-                  className="bg-blue-100 text-blue-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Lifestyle Tags */}
-        {user.lifestyle_tags && user.lifestyle_tags.length > 0 && (
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Lifestyle</h3>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {user.lifestyle_tags.map((tag: string, index: number) => (
-                <span
-                  key={index}
-                  className="bg-green-100 text-green-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Languages */}
-        {user.languages && user.languages.length > 0 && (
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Languages</h3>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {user.languages.map((language: string, index: number) => (
-                <span
-                  key={index}
-                  className="bg-purple-100 text-purple-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-                >
-                  {language}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Hobbies */}
-        {user.hobbies && user.hobbies.length > 0 && (
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Hobbies</h3>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {user.hobbies.map((hobby: string, index: number) => (
-                <span
-                  key={index}
-                  className="bg-yellow-100 text-yellow-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-                >
-                  {hobby}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Looking For */}
-        {user.looking_for && user.looking_for.length > 0 && (
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Looking For</h3>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {user.looking_for.map((item: string, index: number) => (
-                <span
-                  key={index}
-                  className="bg-pink-100 text-pink-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        <span className="text-xs text-gray-500 mt-1">
+          {formatDuration(currentTime)} / {formatDuration(duration || 0)}
+        </span>
       </div>
     </div>
   );
-}
-
-// Add this at the bottom of your file
-function ProfileCard({ user, bothRevealed }: { user: UserProfile & { bio?: string; interests?: string[]; age?: number; education?: string }, bothRevealed: boolean }) {
-  if (!user) return null;
-  return (
-    <div className="flex flex-col items-center bg-white rounded-lg shadow p-4 w-full max-w-xs">
-      <img
-        src={user.profile_picture || '/default-avatar.png'}
-        alt={user.username}
-        className={`w-20 h-20 rounded-full object-cover mb-2 transition-all duration-300 ${!bothRevealed ? 'blur-sm grayscale' : ''}`}
-      />
-      <h3 className="font-bold text-lg">{user.username}</h3>
-      {bothRevealed && (
-        <>
-          <p className="text-gray-500">{user.bio}</p>
-          <p className="text-gray-400 text-sm">Age: {user.age}</p>
-          <p className="text-gray-400 text-sm">Education: {user.education}</p>
-          <div className="flex flex-wrap gap-1 mt-2">
-            {user.interests?.map((interest: string) => (
-              <span key={interest} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">{interest}</span>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
+};

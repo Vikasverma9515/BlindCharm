@@ -217,7 +217,7 @@ export default function Home() {
 
           {/* <BackgroundPattern /> */}
           {/* Main Hero Section */}
-          <section className="relative min-h-screen rounded-2xl flex items-center justify-center px-4 md:px-8 bg-gradient-to-br from-[#8966f1] via-[#9c7ff2] to-[#b899f3] dark:from-gray-900/50 dark:to-gray-800/50 transition-colors duration-300 overflow-hidden">
+          <section className="relative min-h-screen rounded-2xl flex items-center justify-center px-4 md:px-8 bg-gradient-to-br from-[#8966f1] via-[#4718d5] to-[#4f09d3] dark:bg-gradient-to-br dark:from-[#661eee] dark:via-[#9c7ff2] dark:to-[#8966f1] transition-colors duration-300 overflow-hidden">
           
           
           

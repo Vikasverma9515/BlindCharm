@@ -32,6 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Whisper } from '@/types/whispers';
 
+
 interface WhisperDrawerProps {
   children: React.ReactNode;
   onSubmit: (whisper: Partial<Whisper>) => void;
@@ -161,10 +162,10 @@ export function WhisperDrawer({ children, onSubmit }: WhisperDrawerProps) {
             </DrawerDescription>
           </DrawerHeader>
           
-          <div className="px-4 space-y-4 max-h-[45vh] overflow-y-auto">
+          <div className="px-4 pb-5 space-y-4 max-h-[45vh] overflow-y-auto">
             {/* Content Input */}
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-amber-400 mb-2">
                 What&apos;s on your mind?
               </label>
               <textarea
@@ -177,14 +178,14 @@ export function WhisperDrawer({ children, onSubmit }: WhisperDrawerProps) {
                 style={{ fontSize: '16px' }}
               />
               <div className="flex justify-between items-center mt-2">
-                <span className="text-xs text-gray-500 dark:text-gray-400">{content.length}/500</span>
+                <span className="text-xs text-gray-400 dark:text-gray-400">{content.length}/500</span>
                 <button
                   type="button"
                   onClick={() => setIsAnonymous(!isAnonymous)}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                     isAnonymous
-                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      : 'bg-red-100 text-red-700 hover:bg-red-200'
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                      : 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-700 dark:text-red-300 dark:hover:bg-red-600'
                   }`}
                 >
                   {isAnonymous ? (
@@ -204,7 +205,7 @@ export function WhisperDrawer({ children, onSubmit }: WhisperDrawerProps) {
 
             {/* Mood Selection */}
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-3">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-amber-400 mb-3">
                 Choose your mood
               </label>
               <div className="grid grid-cols-3 gap-3">
@@ -213,22 +214,22 @@ export function WhisperDrawer({ children, onSubmit }: WhisperDrawerProps) {
                     key={mood.id}
                     type="button"
                     onClick={() => setSelectedMood(mood.id)}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all  ${
                       selectedMood === mood.id
-                        ? 'bg-red-50 border-red-400 text-red-700 shadow-sm'
-                        : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                        ? 'bg-red-50 border-red-400 text-red-700 shadow-sm dark:bg-red-900 dark:border-red-600 dark:text-red-300'
+                        : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:border-gray-500'
                     }`}
                   >
-                    <div className="text-gray-600">{getMoodIcon(mood.id)}</div>
-                    <span className="text-xs font-medium">{mood.label}</span>
+                    <div className="text-gray-600 dark:text-white">{getMoodIcon(mood.id)}</div>
+                    <span className="text-xs font-medium dark:text-white">{mood.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Category Selection */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-3">
+            <div className="pb-1">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-amber-400 mb-3">
                 Category
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -239,12 +240,12 @@ export function WhisperDrawer({ children, onSubmit }: WhisperDrawerProps) {
                     onClick={() => setSelectedCategory(category.id)}
                     className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
                       selectedCategory === category.id
-                        ? 'bg-red-50 border-red-400 text-red-700 shadow-sm'
-                        : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                        ? 'bg-red-50 border-red-400 text-red-700 shadow-sm dark:bg-red-800 dark:border-red-600 dark:text-red-300'
+                        : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:hover:border-gray-500'
                     }`}
                   >
-                    <div className="text-gray-600">{getCategoryIcon(category.id)}</div>
-                    <span className="text-sm font-medium">{category.label}</span>
+                    <div className="text-gray-600 dark:text-white">{getCategoryIcon(category.id)}</div>
+                    <span className="text-sm font-medium dark:text-white">{category.label}</span>
                   </button>
                 ))}
               </div>
@@ -253,10 +254,10 @@ export function WhisperDrawer({ children, onSubmit }: WhisperDrawerProps) {
             {/* Preview */}
             {content.trim() && (
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-3">
+                <label className="block text-sm font-semibold text-gray-900 dark:text-amber-400 mb-3">
                   Preview
                 </label>
-                <div className="p-4 rounded-xl bg-white border-2 border-gray-200 shadow-sm">
+                <div className="p-4 rounded-2xl bg-white border-2 border-gray-200 shadow-sm dark:bg-black dark:border-red-500">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                       {isAnonymous ? (
@@ -266,20 +267,20 @@ export function WhisperDrawer({ children, onSubmit }: WhisperDrawerProps) {
                       )}
                     </div>
                     <div>
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
                         {isAnonymous ? 'Anonymous' : session?.user?.name || 'You'}
                       </span>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                        <div className="text-gray-600">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-200 font-blindcharm-tech bg-indigo-400 rounded-full px-2 py-1">
+                        <div className="text-gray-600 dark:text-gray-200 font-blindcharm-tech ">
                           {getSmallMoodIcon(selectedMood)}
                         </div>
                         <span className="capitalize">{selectedMood}</span>
                       </div>
                     </div>
                   </div>
-                  <p className="text-sm leading-relaxed text-gray-800 mb-3">{content}</p>
+                  <p className="text-sm leading-relaxed text-gray-800 dark:text-white font-blindcharm-brand bg-red-500 rounded-2xl px-4 py-2 mb-3">{content}</p>
                   <div>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-800 text-amber-400 text-xs font-medium rounded-full">
                       {getCategoryIcon(selectedCategory)}
                       {selectedCategory.replace('-', ' ')}
                     </span>
@@ -289,7 +290,7 @@ export function WhisperDrawer({ children, onSubmit }: WhisperDrawerProps) {
             )}
           </div>
           
-          <DrawerFooter className="border-t border-gray-200 bg-white pt-4 pb-6">
+          <DrawerFooter className="border-t border-gray-200 bg-white pt-4 pb-6 dark:bg-gray-800 dark:border-gray-700">
             <Button
               onClick={handleSubmit}
               disabled={!content.trim() || isSubmitting}
