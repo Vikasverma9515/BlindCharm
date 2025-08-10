@@ -29,7 +29,7 @@ interface Announcement {
 const announcements: Announcement[] = [
     {
         id: 1,
-        message: "🚀 BlindCharm is here! Launching EXCLUSIVELY in Thapar University 🎉",
+        message: "🚀 BlindCharm is here! Launching EXCLUSIVELY in Thapar University ",
         icon: "🔥"
     },
     {
@@ -54,7 +54,7 @@ const AnnouncementBar = () => {
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setCurrentIndex((prevIndex) => 
+            setCurrentIndex((prevIndex) =>
                 prevIndex === announcements.length - 1 ? 0 : prevIndex + 1
             );
         }, 5000); // Change announcement every 5 seconds
@@ -75,19 +75,24 @@ const AnnouncementBar = () => {
                             transition={{ duration: 0.5 }}
                             className="absolute w-full"
                         >
-                            <div className="flex items-center justify-center font-blindcharm-logo text-black dark:text-white">
+                            <div className="flex  items-center justify-center font-blindcharm-logo text-black dark:text-white">
+                                <div className="flex items-center justify-center mb-1">
                                 <span className="text-2xl mr-2">
                                     {announcements[currentIndex].icon}
                                 </span>
+                                <div className='justify-center text-center'>
                                 <p className="text-sm sm:text-base font-medium">
                                     {announcements[currentIndex].message}
                                 </p>
+                                </div>
+                                </div>
                             </div>
+                          
                         </motion.div>
                     </AnimatePresence>
                 </div>
             </div>
-            
+
             {/* Optional Navigation Dots */}
             {/* <div className="flex justify-center mt-2">
                 {announcements.map((_, index) => (

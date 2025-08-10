@@ -2,7 +2,7 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, MessageCircle, Users, Sparkles, ArrowRight, Star, Zap, X, Coffee, Music, Book, Camera,Mic } from 'lucide-react'
+import { Heart, MessageCircle, Users, Sparkles, ArrowRight, Star, Zap, X, Coffee, Music, Book, Camera, Mic } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import SimpleTopNav from '@/components/shared/SimpleTopNav'
@@ -206,7 +206,7 @@ export default function Home() {
       <SimpleTopNav />
 
       <div className=" px-2 pt-2 pb-15 md:pt-4 md:pb-0 lg:pt-4 lg:pb-0 sm:pb-3">
-        <main className="relative ">
+        <main className="relative">
           {/* Hero Section */}
           {/* <Silk
           speed={5}
@@ -220,11 +220,11 @@ export default function Home() {
           {/* Main Hero Section */}
           <AnnouncementBar />
           <section className="relative min-h-screen rounded-2xl flex items-center justify-center px-4 md:px-8 bg-gradient-to-br from-[#8966f1] via-[#4718d5] to-[#4f09d3] dark:bg-gradient-to-br dark:from-[#661eee] dark:via-[#9c7ff2] dark:to-[#8966f1] transition-colors duration-300 overflow-hidden">
-          
-             
 
-            
-          
+
+
+
+
             {/* Enhanced Background Elements */}
             {/* Animated Gradient Orbs */}
             {/* <div className="absolute inset-0 overflow-hidden">
@@ -235,9 +235,9 @@ export default function Home() {
             </div>
 
             {/* Radial Gradient Overlay */}
-          
 
-            
+
+
             {/* Animated Connection Lines */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -381,14 +381,14 @@ export default function Home() {
               <div className="text-center lg:text-left relative">
                 {/* Glow effect behind text */}
                 <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent rounded-3xl blur-xl"></div>
-                
+
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8 }}
                   className="relative z-10"
                 >
-                  
+
                   <motion.div
                     className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-full px-6 py-2 mb-8"
                     animate={{
@@ -404,14 +404,14 @@ export default function Home() {
                       ease: "easeInOut"
                     }}
                   >
-                    
+
                     <motion.div
                       animate={{ rotate: [0, 360] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                     >
                       <Sparkles className="w-4 h-4" />
                     </motion.div>
-                    
+
                     <span className="text-sm font-bold tracking-wide">NEW WAY TO CONNECT</span>
                   </motion.div>
 
@@ -438,7 +438,7 @@ export default function Home() {
                     >
                       Find Love
                     </motion.span>
-                    
+
                     <motion.span
                       className="block bg-gradient-to-r from-pink-300 via-rose-300 to-red-300 bg-clip-text text-transparent"
                       initial={{ opacity: 0, x: -30 }}
@@ -448,7 +448,7 @@ export default function Home() {
                       Beyond Looks
                     </motion.span>
                   </motion.h1>
-{/* <div className="flex justify-center scale-75 lg:">
+                  {/* <div className="flex justify-center scale-75 lg:">
                                 <CuteFaceBubble2 size="md" />
                               </div> */}
                   <motion.p
@@ -554,7 +554,7 @@ export default function Home() {
                   /> */}
                 </div>
 
-               
+
 
                 {/* <div className="relative z-10">
                   <LobbyCardSwap />
@@ -571,8 +571,8 @@ export default function Home() {
 
           </section>
 
-          
-          
+
+
 
           {/* Why Choose BlindCharm Section */}
           <section className=" rounded-2xl py-20 px-4 md:px-8 bg-[#ffffff]  dark:bg-gray-800 transition-colors duration-300">
@@ -603,11 +603,11 @@ export default function Home() {
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-8 w-full">
                       <div className="bg-white dark:bg-gray-700 rounded-2xl p-4 sm:p-6 text-center shadow-lg border border-red-200 dark:border-red-800">
-                        <div className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1">Anonymous</div>
+                        <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1">Anonymous</div>
                         <div className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm font-semibold">Whispers</div>
                       </div>
                       <div className="bg-white dark:bg-gray-700 rounded-2xl p-4 sm:p-6 text-center shadow-lg border border-red-200 dark:border-red-800">
-                        <div className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1">Verified</div>
+                        <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1">Verified</div>
                         <div className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm font-semibold">Users</div>
                       </div>
                     </div>
@@ -764,155 +764,96 @@ export default function Home() {
           </section>
 
           {/* CTA Section - Ready to Find Your Perfect Match */}
-          <section className="relative rounded-t-2xl lg:rounded-t-2xl  lg:pb-5 py-32 px-4 md:px-8 bg-gradient-to-b from-black via-gray-900 to-black overflow-hidden ">
-            {/* Animated Background Grid */}
-            <div className="absolute inset-0 opacity-20">
-              <div className="absolute inset-0" style={{
-                backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)',
-                backgroundSize: '50px 50px'
-              }}></div>
-            </div>
+          <section className="relative overflow-hidden bg-gradient-to-b from-black via-gray-900 to-black py-24 px-4 md:px-8 rounded-t-3xl">
+            {/* Glow Orbs */}
+            {/* <div className="absolute -top-40 -left-40 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div> */}
 
-            {/* Floating Orbs */}
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
-              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
-            </div>
+            <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 place-items-center">
+              {/* Left: Text */}
+              <motion.div
+                initial={{ opacity: 0, x: -40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="text-center lg:text-left max-w-xl"
+              >
+                <div className="flex items-center justify-center font-blindcharm-tech lg:justify-start gap-2 text-pink-400 text-sm font-semibold uppercase tracking-widest mb-4">
+                   Find Love, Without the Swipe Fatigue
+                </div>
+                 
+                <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-white mb-6">
+                  Blind Dates, <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">Reimagined</span>
+                </h1>
 
-            <div className="relative max-w-7xl mx-auto">
-              <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-                {/* Left Content */}
-                <div className="text-center lg:text-left">
-                  <motion.div
-                    initial={{ opacity: 0, x: -50 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8 }}
-                    viewport={{ once: true }}
+                <p className="text-lg text-gray-300 mb-8">
+                  Meet someone amazing without the endless scrolling. BlindCharm connects you to real people who match your vibe — not just your profile picture.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                  {/* <button className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-medium rounded-full shadow-lg hover:scale-105 transition-transform">
+                    Start My Blind Date
+                  </button> */}
+                  <Link
+                    href="/register"
+                    className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 hover:from-pink-700 hover:via-purple-700 hover:to-blue-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden"
                   >
-                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-sm border border-pink-500/30 text-pink-300 rounded-full px-6 py-3 mb-8">
-                      <Sparkles className="w-5 h-5" />
-                      <span className="text-sm font-bold tracking-wide">DISCOVER YOUR SOULMATE</span>
-                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <Heart className="w-5 h-5 relative z-10" />
+                    <span className="relative z-10">Join BlindCharm</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
+                  </Link>
+                   <Link
+                    href="/about"
+                    className="group inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    Learn More
+                  </Link>
+                  {/* <button className="px-6 py-3 bg-white/10 text-white font-medium rounded-full border border-white/20 hover:bg-white/20 transition">
+                    How It Works
+                  </button> */}
+                </div>
+              </motion.div>
 
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-8 text-white leading-tight">
-                      Ready to Find Your
-                      <br />
-                      <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
-                        Perfect Match?
-                      </span>
-                    </h2>
+              {/* Right: Visual */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="relative w-full max-w-md"
+              >
+                {/* Glow Behind */}
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-500/30 to-purple-500/30 rounded-[2rem] blur-2xl scale-110"></div>
 
-                    <p className="text-lg md:text-xl text-gray-300 mb-12 leading-relaxed">
-                      Experience the future of dating where authentic connections bloom through
-                      <span className="text-pink-400 font-semibold"> genuine conversations</span> and
-                      <span className="text-purple-400 font-semibold"> shared interests</span>.
+                {/* Main Card */}
+                <div className="relative bg-black/40 backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden">
+                  <div className="p-8 text-center">
+                    <Sparkles className="w-10 h-10 text-pink-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">Your Match is Waiting</h3>
+                    <p className="text-gray-400 mb-6">
+                      We keep it mysterious — your profile is hidden until you both reveal. Experience the thrill of a blind date without the pressure of photos.
                     </p>
-
-                    {/* Call to Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-                      <Link
-                        href="/register"
-                        className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 hover:from-pink-700 hover:via-purple-700 hover:to-blue-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <Heart className="w-5 h-5 relative z-10" />
-                        <span className="relative z-10">Join BlindCharm</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
-                      </Link>
-
-                      <Link
-                        href="/about"
-                        className="group inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300"
-                      >
-                        <Sparkles className="w-5 h-5" />
-                        Learn More
-                      </Link>
-                    </div>
-
-                    {/* Status Indicators */}
-                    <div className="flex flex-wrap justify-center lg:justify-start items-center gap-6 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span className="text-green-400 font-semibold">Free to Join</span>
-                      </div>
-                      <div className="w-1 h-1 bg-gray-500 rounded-full hidden sm:block"></div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                        <span className="text-yellow-400 font-semibold">Easy to Use</span>
-                      </div>
-                      <div className="w-1 h-1 bg-gray-500 rounded-full hidden sm:block"></div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                        <span className="text-purple-400 font-semibold">Genuine</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-
-                {/* Right Content - PixelCard Showcase */}
-                <div className="flex justify-center lg:justify-end">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8, rotateY: 20 }}
-                    whileInView={{ opacity: 1, scale: 1, rotateY: 0 }}
-                    transition={{ duration: 1, delay: 0.3 }}
-                    viewport={{ once: true }}
-                    className="relative"
+                     {/* <Link
+                    href="/register"
+                    className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 hover:from-pink-700 hover:via-purple-700 hover:to-blue-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden"
                   >
-                    {/* Glow effect behind card */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-[30px] blur-2xl scale-110 animate-pulse"></div>
-
-                    <PixelCard
-                      variant="pink"
-                      className="relative z-10 h-[500px] w-[350px] bg-black/40 backdrop-blur-xl border-pink-500/30 shadow-2xl"
-                    >
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                        {/* Profile Card Content */}
-                        <div className="bg-black/60 backdrop-blur-sm rounded-2xl p-6 border border-pink-500/30 shadow-xl">
-                          <div className="w-20 h-20 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                            <Heart className="w-10 h-10 text-white" />
-                          </div>
-
-                          <h3 className="text-2xl font-bold text-white mb-2">
-                            Your Perfect Match
-                          </h3>
-
-                          <p className="text-pink-300 text-sm mb-4">
-                            Awaits in our lobby system
-                          </p>
-
-                          <div className="flex flex-wrap gap-2 justify-center mb-4">
-                            {["Genuine", "Authentic", "Real"].map((tag, index) => (
-                              <span
-                                key={tag}
-                                className={`px-3 py-1 rounded-full text-xs font-medium ${index === 0 ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' :
-                                  index === 1 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
-                                    'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                                  }`}
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-
-                          <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-                            <Users className="w-4 h-4" />
-                            <span>Join 1000+ members</span>
-                          </div>
-                        </div>
-
-                        {/* Interactive hint */}
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-sm text-pink-300 px-4 py-2 rounded-full border border-pink-500/30 text-xs">
-                          <span className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></span>
-                            Hover to see the magic
-                          </span>
-                        </div>
-                      </div>
-                    </PixelCard>
-                  </motion.div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <Heart className="w-5 h-5 relative z-10" />
+                    <span className="relative z-10">Join BlindCharm</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
+                  </Link> */}
+                  </div>
                 </div>
-              </div>
+
+                {/* Floating Element */}
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ repeat: Infinity, duration: 3 }}
+                  className="absolute -top-8 -right-8 w-20 h-20 bg-pink-400/40 rounded-full blur-xl"
+                ></motion.div>
+              </motion.div>
             </div>
           </section>
         </main>
@@ -921,7 +862,7 @@ export default function Home() {
       </div>
 
       <SimpleBottomNav />
-      
+
       {/* Notification Prompt */}
       <NotificationPrompt />
     </div>

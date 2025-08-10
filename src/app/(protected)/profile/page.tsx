@@ -196,9 +196,9 @@ export default function ProfilePage() {
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
   // Check if user is admin (same logic as lobby components)
-  const isAdmin = profile?.is_admin || 
-                  session?.user?.email === 'admin@blindcharm.com' || 
-                  session?.user?.email === 'Blindcharm@gmail.com';
+  const isAdmin = profile?.is_admin ||
+    session?.user?.email === 'admin@blindcharm.com' ||
+    session?.user?.email === 'Blindcharm@gmail.com';
 
   // Debug admin status
   console.log('🔍 Admin Debug:', {
@@ -482,7 +482,7 @@ export default function ProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             className="relative overflow-hidden"
           >
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-4xl p-4 md:p-6 ">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
@@ -528,152 +528,152 @@ export default function ProfilePage() {
             className="mb-8"
           >
             {/* Profile Info Card */}
-            <div className="w-full max-w-3xl mx-auto">
-  {/* Main Profile Card - Dark theme with glass effect */}
-  <div className="bg-gray-900/95 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl">
-    {/* Profile Header Section */}
-    <div className="relative">
-      {/* Large Profile Picture */}
-      <div className="w-full h-64 sm:h-80 relative">
-        {profile.profile_picture ? (
-          <img
-            src={profile.profile_picture}
-            alt={profile.full_name || 'Profile'}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-            <Camera size={48} className="text-gray-600" />
-          </div>
-        )}
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
-      </div>
+            <div className="w-full max-w-3xl mx-auto pb-4  dark:bg-gray-900/50 rounded-2xl ">
+              {/* Main Profile Card - Dark theme with glass effect */}
+              <div className= " bg-white/25 dark:bg-gray-900/50 border  dark:border-gray-700 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl">
+                {/* Profile Header Section */}
+                <div className="relative">
+                  {/* Large Profile Picture */}
+                  <div className="w-full h-64 sm:h-80 relative">
+                    {profile.profile_picture ? (
+                      <img
+                        src={profile.profile_picture}
+                        alt={profile.full_name || 'Profile'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                        <Camera size={48} className="text-gray-600" />
+                      </div>
+                    )}
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
+                  </div>
 
-      {/* Edit Photo Button - Floating */}
-      <div className="absolute top-4 right-4">
-        <ImageUpload
-          currentImage={profile.profile_picture}
-          onImageUpload={handleImageUpload}
-          loading={loading}
-          className="bg-gray-900/50 backdrop-blur-md hover:bg-gray-800/50 text-white rounded-full p-2"
-        />
-      </div>
-    </div>
+                  {/* Edit Photo Button - Floating */}
+                  <div className="absolute top-4 right-4">
+                    <ImageUpload
+                      currentImage={profile.profile_picture}
+                      onImageUpload={handleImageUpload}
+                      loading={loading}
+                      className="bg-gray-900/50 backdrop-blur-md hover:bg-gray-800/50 text-white rounded-full p-2"
+                    />
+                  </div>
+                </div>
 
-    {/* Profile Info Section */}
-    <div className="px-4 sm:px-6 pb-6">
-      {/* Name and Age */}
-      <div className="flex items-center justify-between -mt-8 relative z-10 mb-4">
-        <div className="flex items-baseline gap-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">
-            {profile.full_name || 'Your Name'}
-          </h1>
-          {profile.dob && (
-            <span className="text-xl text-gray-300">
-              {getAge(profile.dob)}
-            </span>
-          )}
-        </div>
-        {/* Admin Badge */}
-        {profile.is_admin && (
-          <div className="flex-shrink-0">
-            <AdminBadge size="sm" />
-          </div>
-        )}
-      </div>
+                {/* Profile Info Section */}
+                <div className="px-4 sm:px-6 pb-6">
+                  {/* Name and Age */}
+                  <div className="flex items-center justify-between -mt-8 relative z-10 mb-4">
+                    <div className="flex items-baseline gap-2">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                        {profile.full_name || 'Your Name'}
+                      </h1>
+                      {profile.dob && (
+                        <span className="text-xl text-gray-300">
+                          {getAge(profile.dob)}
+                        </span>
+                      )}
+                    </div>
+                    {/* Admin Badge */}
+                    {profile.is_admin && (
+                      <div className="flex-shrink-0">
+                        <AdminBadge size="sm" />
+                      </div>
+                    )}
+                  </div>
 
-      {/* Location */}
-      {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin className="w-5 h-5 text-gray-400" />
-          <span className="text-gray-300 text-sm">
-            {typeof profile.location === 'string'
-              ? profile.location
-              : profile.location && typeof profile.location === 'object'
-                ? `${profile.location.city}${profile.location.country ? `, ${profile.location.country}` : ''}`
-                : ''
-            }
-          </span>
-        </div>
-      )}
+                  {/* Location */}
+                  {(typeof profile.location === 'string' ? profile.location : (profile.location && typeof profile.location === 'object' ? profile.location.city : false)) && (
+                    <div className="flex items-center gap-2 mb-4">
+                      <MapPin className="w-5 h-5 dark:text-gray-400" />
+                      <span className="dark:text-gray-300 text-sm">
+                        {typeof profile.location === 'string'
+                          ? profile.location
+                          : profile.location && typeof profile.location === 'object'
+                            ? `${profile.location.city}${profile.location.country ? `, ${profile.location.country}` : ''}`
+                            : ''
+                        }
+                      </span>
+                    </div>
+                  )}
 
-      {/* Active Status */}
-      <div className="flex items-center gap-2 mb-6">
-        <div className="px-3 py-1.5 bg-green-500/10 rounded-full flex items-center gap-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-green-400 text-sm font-medium">Active</span>
-        </div>
-      </div>
+                  {/* Active Status */}
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="px-3 py-1.5 bg-green-500/10 rounded-full flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-green-400 text-sm font-medium">Active</span>
+                    </div>
+                  </div>
 
-      {/* Bio */}
-      {profile.bio && (
-        <div className="mb-6">
-          <h2 className="text-gray-400 text-sm font-medium mb-2">About</h2>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {profile.bio}
-          </p>
-        </div>
-      )}
+                  {/* Bio */}
+                  {profile.bio && (
+                    <div className="mb-6">
+                      <h2 className=" text-sm font-blindcharm-tech text-lime-600 dark:text-lime-300 mb-2">About</h2>
+                      <p className="dark:text-gray-300 text-sm font-medium leading-relaxed">
+                        {profile.bio}
+                      </p>
+                    </div>
+                  )}
 
-      {/* Basic Info Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-        {profile.height && (
-          <div className="bg-gray-800/50 rounded-xl p-3">
-            <p className="text-gray-400 text-xs mb-1">Height</p>
-            <p className="text-white font-medium">{profile.height} cm</p>
-          </div>
-        )}
-        {profile.occupation && (
-          <div className="bg-gray-800/50 rounded-xl p-3">
-            <p className="text-gray-400 text-xs mb-1">Work</p>
-            <p className="text-white font-medium">{profile.occupation}</p>
-          </div>
-        )}
-        {profile.education && (
-          <div className="bg-gray-800/50 rounded-xl p-3">
-            <p className="text-gray-400 text-xs mb-1">Education</p>
-            <p className="text-white font-medium">{profile.education}</p>
-          </div>
-        )}
-      </div>
+                  {/* Basic Info Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 ">
+                    {profile.height && (
+                      <div className="bg-amber-300 rounded-xl p-3">
+                        <p className="dark:text-gray-400 font-medium text-xs mb-1">Height</p>
+                        <p className="text-white font-medium">{profile.height} cm</p>
+                      </div>
+                    )}
+                    {profile.occupation && (
+                      <div className="bg-amber-300 rounded-xl p-3">
+                        <p className="dark:text-gray-400 font-medium text-xs mb-1">Work</p>
+                        <p className="text-white font-medium">{profile.occupation}</p>
+                      </div>
+                    )}
+                    {profile.education && (
+                      <div className="bg-amber-300 rounded-xl p-3">
+                        <p className="dark:text-gray-400 font-medium text-xs mb-1">Education</p>
+                        <p className="text-white font-medium">{profile.education}</p>
+                      </div>
+                    )}
+                  </div>
 
-      {/* Interests */}
-      {profile.interests && profile.interests.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-gray-400 text-sm font-medium mb-3">Interests</h2>
-          <div className="flex flex-wrap gap-2">
-            {profile.interests.map((interest, index) => (
-              <span
-                key={index}
-                className="px-3 py-1.5 bg-gray-800/50 rounded-full text-gray-300 text-sm"
-              >
-                {interest}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+                  {/* Interests */}
+                  {profile.interests && profile.interests.length > 0 && (
+                    <div className="mb-6">
+                      <h2 className=" text-sm font-blindcharm-tech dark:text-lime-300 text-lime-600 mb-3">Interests</h2>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.interests.map((interest, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1.5 bg-black rounded-full dark:text-gray-300 text-white  text-sm"
+                          >
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-      {/* Other Sections (Languages, Hobbies, etc.) */}
-      {profile.languages && profile.languages.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-gray-400 text-sm font-medium mb-3">Languages</h2>
-          <div className="flex flex-wrap gap-2">
-            {profile.languages.map((language, index) => (
-              <span
-                key={index}
-                className="px-3 py-1.5 bg-gray-800/50 rounded-full text-gray-300 text-sm"
-              >
-                {language}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+                  {/* Other Sections (Languages, Hobbies, etc.) */}
+                  {profile.languages && profile.languages.length > 0 && (
+                    <div className="mb-6">
+                      <h2 className="text-gray-400 text-sm font-medium mb-3">Languages</h2>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.languages.map((language, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1.5 bg-gray-800/50 rounded-full text-gray-300 text-sm"
+                          >
+                            {language}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-      {/* Additional Photos Grid */}
-      {/* {profile.photos && profile.photos.length > 0 && (
+                  {/* Additional Photos Grid */}
+                  {/* {profile.photos && profile.photos.length > 0 && (
         <div className="mb-6">
           <h2 className="text-gray-400 text-sm font-medium mb-3">Photos</h2>
           <div className="grid grid-cols-3 gap-2">
@@ -689,9 +689,9 @@ export default function ProfilePage() {
           </div>
         </div>
       )} */}
-    </div>
-  </div>
-</div>
+                </div>
+              </div>
+            </div>
 
             {/* Photo Gallery Section */}
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg mb-6">
@@ -873,7 +873,7 @@ export default function ProfilePage() {
               {editingSection === 'basic' ? (
                 <div className="space-y-4 ">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Full Name</label>
                     <input
                       type="text"
                       value={editForm.full_name || ''}
@@ -883,16 +883,16 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Date of Birth</label>
                     <input
                       type="date"
                       value={editForm.dob || ''}
                       onChange={(e) => setEditForm(prev => ({ ...prev, dob: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200  rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Gender</label>
                     <select
                       value={editForm.gender || ''}
                       onChange={(e) => setEditForm(prev => ({ ...prev, gender: e.target.value as 'male' | 'female' | 'other' }))}
@@ -927,7 +927,7 @@ export default function ProfilePage() {
             >
               {editingSection === 'about' ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Bio</label>
                   <textarea
                     value={editForm.bio || ''}
                     onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
@@ -937,7 +937,7 @@ export default function ProfilePage() {
                   />
                 </div>
               ) : (
-                <p className="text-gray-700 leading-relaxed">
+                <p className="text-gray-700 dark:text-white font-medium leading-relaxed">
                   {profile.bio || 'Add a bio to tell people about yourself'}
                 </p>
               )}
@@ -963,7 +963,7 @@ export default function ProfilePage() {
               {editingSection === 'work' ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Occupation</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Occupation</label>
                     <input
                       type="text"
                       value={editForm.occupation || ''}
@@ -973,7 +973,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Education</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Education</label>
                     <input
                       type="text"
                       value={editForm.education || ''}
@@ -983,7 +983,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Height (cm)</label>
                     <input
                       type="number"
                       value={editForm.height || ''}
@@ -1023,7 +1023,7 @@ export default function ProfilePage() {
               {editingSection === 'location' ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">City</label>
                     <input
                       type="text"
                       value={typeof editForm.location === 'object' && editForm.location ? editForm.location.city || '' : ''}
@@ -1039,7 +1039,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Country</label>
                     <input
                       type="text"
                       value={typeof editForm.location === 'object' && editForm.location ? editForm.location.country || '' : ''}
@@ -1083,7 +1083,7 @@ export default function ProfilePage() {
             >
               {editingSection === 'interests' ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Select your interests</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-3">Select your interests</label>
                   <div className="grid grid-cols-2 gap-2">
                     {INTERESTS_OPTIONS.map(interest => (
                       <button
@@ -1137,7 +1137,7 @@ export default function ProfilePage() {
               {editingSection === 'personality' ? (
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Personality traits</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-3">Personality traits</label>
                     <div className="grid grid-cols-2 gap-2">
                       {PERSONALITY_TAGS.map(tag => (
                         <button
@@ -1155,7 +1155,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Lifestyle</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-3">Lifestyle</label>
                     <div className="grid grid-cols-2 gap-2">
                       {LIFESTYLE_TAGS.map(tag => (
                         <button
@@ -1176,7 +1176,7 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Personality</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Personality</h4>
                     <div className="flex flex-wrap gap-2">
                       {profile.personality_tags?.length ? (
                         profile.personality_tags.map((tag, index) => (
@@ -1188,12 +1188,12 @@ export default function ProfilePage() {
                           </span>
                         ))
                       ) : (
-                        <p className="text-gray-500 text-sm">Add personality traits</p>
+                        <p className="text-gray-500 dark:text-gray-300 text-sm">Add personality traits</p>
                       )}
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Lifestyle</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lifestyle</h4>
                     <div className="flex flex-wrap gap-2">
                       {profile.lifestyle_tags?.length ? (
                         profile.lifestyle_tags.map((tag, index) => (
@@ -1232,7 +1232,7 @@ export default function ProfilePage() {
               {editingSection === 'looking_for' ? (
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">I'm looking for</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-3">I'm looking for</label>
                     <div className="space-y-2">
                       {LOOKING_FOR_OPTIONS.map(option => (
                         <button
@@ -1250,7 +1250,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Deal breakers</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-3">Deal breakers</label>
                     <div className="grid grid-cols-1 gap-2">
                       {DEALBREAKERS_OPTIONS.map(option => (
                         <button
@@ -1271,7 +1271,7 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Looking for</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Looking for</h4>
                     <div className="space-y-2">
                       {profile.looking_for?.length ? (
                         profile.looking_for.map((item, index) => (
@@ -1288,7 +1288,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Deal breakers</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deal breakers</h4>
                     <div className="flex flex-wrap gap-2">
                       {profile.dealbreakers?.length ? (
                         profile.dealbreakers.map((item, index) => (
@@ -1429,7 +1429,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
-               
+
                 {/* Debug Admin Status */}
                 {/* <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <h3 className="font-medium text-yellow-800 mb-2">🔍 Admin Debug Info</h3>
