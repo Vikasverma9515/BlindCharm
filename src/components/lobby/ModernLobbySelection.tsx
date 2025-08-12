@@ -2,16 +2,21 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Clock, Users, Heart, Coffee, Music, Book, Gamepad2, Camera, Palette, Dumbbell, Plus, ArrowRight, LogOut, Settings, User, HandMetal  } from 'lucide-react'
+import { Clock, Users, Heart, Coffee, Music, Book, Gamepad2, Camera, Palette, Dumbbell, Plus, ArrowRight, LogOut, Settings, User, HandMetal, HelpCircle } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import CreateLobbyModal from './CreateLobbyModal'
 import AdminBadge from '@/components/ui/AdminBadge'
 import { Roboto } from 'next/font/google'
 // import { openSans } from '@/app/fonts'
 import { boldonse } from '@/app/fonts'
-import {  righteous, specialGothic } from '@/app/fonts'
+import { righteous, specialGothic } from '@/app/fonts'
+import ScrollStack, { ScrollStackItem } from '@/blocks/Components/ScrollStack/ScrollStack'
+import Carousel from '@/blocks/Components/Carousel/Carousel'
+import OnboardingCards from './OnboardingCards'
+
 
 
 
@@ -75,10 +80,10 @@ interface LobbyParticipant {
 }
 
 // Modern Card Component
-const ModernCard = ({ children, className = '', hover = true }: { 
-  children: React.ReactNode; 
-  className?: string; 
-  hover?: boolean; 
+const ModernCard = ({ children, className = '', hover = true }: {
+  children: React.ReactNode;
+  className?: string;
+  hover?: boolean;
 }) => {
   return (
     <motion.div
@@ -96,11 +101,11 @@ const ModernCard = ({ children, className = '', hover = true }: {
 };
 
 // Modern Button Component
-const ModernButton = ({ 
-  children, 
-  variant = 'primary', 
-  size = 'md', 
-  className = '', 
+const ModernButton = ({
+  children,
+  variant = 'primary',
+  size = 'md',
+  className = '',
   onClick,
   disabled = false
 }: {
@@ -112,13 +117,13 @@ const ModernButton = ({
   disabled?: boolean;
 }) => {
   const baseStyles = 'inline-flex items-center justify-center rounded-full font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed';
-  
+
   const variants = {
     primary: 'bg-primary-500 text-white hover:bg-primary-600 shadow-soft',
     secondary: 'bg-secondary-100 text-primary-500 hover:bg-secondary-200',
     outline: 'border-2 border-primary-500 text-primary-500 hover:bg-primary-50'
   };
-  
+
   const sizes = {
     sm: 'px-4 py-2 text-sm',
     md: 'px-6 py-3 text-base',
@@ -146,50 +151,50 @@ const ModernButton = ({
 // Theme configuration for modern rose app design
 const getThemeConfig = (theme: string) => {
   const themeMap: Record<string, { icon: any; bgColor: string; iconColor: string }> = {
-    'Dating': { 
-      icon: Heart, 
+    'Dating': {
+      icon: Heart,
       bgColor: 'bg-rose-50 dark:bg-rose-900/20',
       iconColor: 'text-rose-500'
     },
-    'Coffee Chat': { 
-      icon: Coffee, 
+    'Coffee Chat': {
+      icon: Coffee,
       bgColor: 'bg-amber-50 dark:bg-amber-900/20',
       iconColor: 'text-amber-600'
     },
-    'Music Lovers': { 
-      icon: Music, 
+    'Music Lovers': {
+      icon: Music,
       bgColor: 'bg-purple-50 dark:bg-purple-900/20',
       iconColor: 'text-purple-500'
     },
-    'Book Club': { 
-      icon: Book, 
+    'Book Club': {
+      icon: Book,
       bgColor: 'bg-blue-50 dark:bg-blue-900/20',
       iconColor: 'text-blue-500'
     },
-    'Gaming': { 
-      icon: Gamepad2, 
+    'Gaming': {
+      icon: Gamepad2,
       bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
       iconColor: 'text-emerald-500'
     },
-    'Photography': { 
-      icon: Camera, 
+    'Photography': {
+      icon: Camera,
       bgColor: 'bg-cyan-50 dark:bg-cyan-900/20',
       iconColor: 'text-cyan-500'
     },
-    'Art & Design': { 
-      icon: Palette, 
+    'Art & Design': {
+      icon: Palette,
       bgColor: 'bg-pink-50 dark:bg-pink-900/20',
       iconColor: 'text-pink-500'
     },
-    'Fitness': { 
-      icon: Dumbbell, 
+    'Fitness': {
+      icon: Dumbbell,
       bgColor: 'bg-orange-50 dark:bg-orange-900/20',
       iconColor: 'text-orange-500'
     }
   }
-  
-  return themeMap[theme] || { 
-    icon: Users, 
+
+  return themeMap[theme] || {
+    icon: Users,
     bgColor: 'bg-slate-50 dark:bg-slate-900/20',
     iconColor: 'text-slate-500'
   }
@@ -202,6 +207,8 @@ export default function ModernLobbySelection() {
   const [userJoinedLobbyId, setUserJoinedLobbyId] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showWelcomeGuide, setShowWelcomeGuide] = useState(false)
+  const [isFirstTime, setIsFirstTime] = useState(false)
   const { data: session } = useSession()
   const router = useRouter()
   const [profile, setProfile] = useState<{ full_name?: string; username?: string; email?: string; gender?: string } | null>(null)
@@ -217,6 +224,15 @@ export default function ModernLobbySelection() {
       setProfile(data)
     }
     fetchProfile()
+
+    // Check if this is a first-time user
+    const hasSeenGuide = localStorage.getItem('blindcharm-seen-guide')
+    if (!hasSeenGuide && session?.user?.id) {
+      setShowWelcomeGuide(true)
+      setIsFirstTime(true)
+    } else {
+      setIsFirstTime(false)
+    }
   }, [session])
 
   useEffect(() => {
@@ -267,7 +283,7 @@ export default function ModernLobbySelection() {
 
   const checkUserLobbyStatus = async () => {
     if (!session?.user?.id) return
-    
+
     try {
       const { data, error } = await supabase
         .from('lobby_participants')
@@ -285,7 +301,7 @@ export default function ModernLobbySelection() {
 
   const checkAdminStatus = async () => {
     if (!session?.user?.id) return
-    
+
     try {
       const { data, error } = await supabase
         .from('users')
@@ -306,11 +322,11 @@ export default function ModernLobbySelection() {
       router.push('/login')
       return
     }
-    
+
     // Clear any previous errors
     setError(null)
     setLoading(lobbyId)
-    
+
     try {
       // First check if user is already in a lobby
       const { data: existingParticipation, error: checkError } = await supabase
@@ -340,7 +356,7 @@ export default function ModernLobbySelection() {
 
       if (error) {
         console.error('Database error:', error)
-        
+
         // Provide more specific error messages
         if (error.code === '23505') { // Unique constraint violation
           setError('You are already in this lobby')
@@ -356,10 +372,10 @@ export default function ModernLobbySelection() {
 
       setUserJoinedLobbyId(lobbyId)
       await fetchActiveLobbies()
-      
+
       // Success feedback
       console.log('Successfully joined lobby:', lobbyId)
-      
+
     } catch (error: any) {
       console.error('Error joining lobby:', error)
       setError(error.message || 'An unexpected error occurred while joining the lobby')
@@ -370,23 +386,23 @@ export default function ModernLobbySelection() {
 
   const handleLeaveLobby = async (lobbyId: string) => {
     if (!session?.user) return
-    
+
     // Clear any previous errors
     setError(null)
     setLoading(lobbyId)
-    
+
     try {
       const { error } = await supabase
         .from('lobby_participants')
         .delete()
-        .match({ 
-          user_id: session.user.id, 
-          lobby_id: lobbyId 
+        .match({
+          user_id: session.user.id,
+          lobby_id: lobbyId
         })
 
       if (error) {
         console.error('Database error:', error)
-        
+
         // Provide more specific error messages
         if (error.code === '42501') { // Insufficient privilege
           setError('Unable to leave lobby. Please check your permissions.')
@@ -400,10 +416,10 @@ export default function ModernLobbySelection() {
 
       setUserJoinedLobbyId(null)
       await fetchActiveLobbies()
-      
+
       // Success feedback
       console.log('Successfully left lobby:', lobbyId)
-      
+
     } catch (error: any) {
       console.error('Error leaving lobby:', error)
       setError(error.message || 'An unexpected error occurred while leaving the lobby')
@@ -411,7 +427,13 @@ export default function ModernLobbySelection() {
       setLoading(null)
     }
   }
-  
+
+  const handleDismissGuide = () => {
+    setShowWelcomeGuide(false)
+    setIsFirstTime(false)
+    localStorage.setItem('blindcharm-seen-guide', 'true')
+  }
+
 
   return (
     <div className="min-h-screen bg-gray-50  dark:from-indigo-900 dark:via-sky-900 dark:bg-gray-900 pb-20 md:pb-8 transition-colors duration-300">
@@ -423,12 +445,94 @@ export default function ModernLobbySelection() {
         <div className="space-y-4 md:space-y-6">
           {/* Error State */}
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-6 py-4 rounded-2xl"
             >
               {error}
+            </motion.div>
+          )}
+
+          {/* Welcome Guide Modal */}
+          {showWelcomeGuide && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={handleDismissGuide}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-2xl w-full shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    {/* <Heart size={32} className="text-white" /> */}
+                    <img
+                      src="/logo2.png"
+                      alt=""
+                      className='h-10 w-10'
+                    />
+                  </div>
+                  <h2 className="text-2xl font-bold text-neutral-850 dark:text-gray-100 mb-2">
+                    Welcome to BlindCharm! 👋
+                  </h2>
+                  <p className="text-neutral-700 dark:text-gray-300">
+                    Let's get you started with our unique blind dating experience
+                  </p>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">1</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Choose Your Lobby</h3>
+                      <p className="text-sm text-neutral-700 dark:text-gray-300">Pick a lobby that matches your interests - Dating, Coffee Chat, Gaming, and more!</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">2</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Chat Anonymously</h3>
+                      <p className="text-sm text-neutral-700 dark:text-gray-300">Connect with others without photos - focus on personality and conversation first!</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">3</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Make Real Connections</h3>
+                      <p className="text-sm text-neutral-700 dark:text-gray-300">When you click, reveal photos and take your connection to the next level!</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Link
+                    href="/how-it-works"
+                    className="flex-1 bg-primary-500 hover:bg-primary-600 text-white py-3 px-6 rounded-full font-medium transition-colors text-center"
+                    onClick={handleDismissGuide}
+                  >
+                    Learn More
+                  </Link>
+                  <button
+                    onClick={handleDismissGuide}
+                    className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-neutral-850 dark:text-gray-100 py-3 px-6 rounded-full font-medium transition-colors"
+                  >
+                    Got It!
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
           )}
 
@@ -438,11 +542,11 @@ export default function ModernLobbySelection() {
             <div className="hidden md:flex justify-between items-center">
               <div className="flex-1">
                 <h1 className="flex items-start text-2xl md:text-4xl lg:text-2xl font-blindcharm-brand tracking-tight text-neutral-850 dark:text-gray-100 mb-2 ">
-                   Hello, {profile?.full_name || profile?.username || profile?.email || 'BlindCharm User'} 
-                   <HandMetal size={24} className="ml-2" />
+                  Hello, {profile?.full_name || profile?.username || profile?.email || 'BlindCharm User'}
+                  <HandMetal size={24} className="ml-2" />
                 </h1>
                 <p className="text-neutral-750 dark:text-gray-400 text-sm md:text-base font-body">
-                 Choose a lobby and join the fun!
+                  Choose a lobby and join the fun!
                 </p>
               </div>
               <div className="flex items-center gap-10">
@@ -473,15 +577,15 @@ export default function ModernLobbySelection() {
             <div className="md:hidden space-y-2 ">
               <div className="">
                 <div className={roboto.className}>
-                <h1 className={`${specialGothic.className} text-3xl font-bold tracking-tight text-neutral-850 dark:text-gray-100 mb-1 blindcharm-heading flex items-center`} >
-                  Hello, {profile?.full_name || profile?.username || profile?.email ||  'Guest'}  
-                   <HandMetal size={24} className="ml-2" />
-                </h1>
+                  <h1 className={`${specialGothic.className} text-3xl font-bold tracking-tight text-neutral-850 dark:text-gray-100 mb-1 blindcharm-heading flex items-center`} >
+                    Hello, {profile?.full_name || profile?.username || profile?.email || 'Guest'}
+                    <HandMetal size={24} className="ml-2" />
+                  </h1>
                 </div>
                 <p className="text-neutral-750 dark:text-gray-400 text-sm font-elegant">
                   Choose a lobby and join the fun!
                 </p>
-                
+
                 {/* {isAdmin && (
                   <div className="flex justify-center mt-2">
                     <AdminBadge size="sm" />
@@ -489,44 +593,127 @@ export default function ModernLobbySelection() {
                 )} */}
               </div>
               {isAdmin && (
-              <div className="flex items-center justify-between gap-3">
-                {isAdmin && (
-                  <div className="flex justify-center mt-0">
-                    <AdminBadge size="sm" />
+                <div className="flex items-center justify-between gap-3 ">
+                  {isAdmin && (
+                    <div className="flex justify-center mt-0">
+                      <AdminBadge size="sm" />
+                    </div>
+                  )}
+                  {isAdmin && (
+                    <ModernButton
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setShowCreateModal(true)}
+                      className="flex-1 mr-4"
+                    >
+                      {/* <Plus size={16} className="mr-2" /> */}
+                      Create Lobby
+                    </ModernButton>
+                  )}
+                  <div className="flex items-center space-x-2 bg-lime-200 dark:bg-gray-800 px-4 py-2 rounded-full">
+                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
+                      {activeLobbies.length} active
+                    </span>
                   </div>
-                )}
-                {isAdmin && (
-                  <ModernButton
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setShowCreateModal(true)}
-                    className="flex-1 mr-3"
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Create Lobby
-                  </ModernButton>
-                )}
-                <div className="flex items-center space-x-2 bg-secondary-50 dark:bg-gray-800 px-4 py-2 rounded-full">
-                  <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
-                    {activeLobbies.length} active
-                  </span>
                 </div>
-              </div>
               )}
               {!isAdmin && (
-              <div className="flex items-end justify-between gap-3">
-                <div className="flex items-center space-x-2 bg-lime-50 dark:bg-gray-800 px-4 py-2 rounded-full">
-                  <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
-                    {activeLobbies.length} active
-                  </span>
+                <div className="flex items-end justify-between gap-3">
+                  <div className="flex items-center space-x-2 bg-lime-50 dark:bg-gray-800 px-4 py-2 rounded-full">
+                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
+                      {activeLobbies.length} active
+                    </span>
+                  </div>
                 </div>
-              </div>
               )}
             </div>
           </div>
-          
+
+          {/* Quick Guide Section */}
+          {/* <ModernCard className={`bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border-primary-200 dark:border-primary-700 ${isFirstTime ? 'ring-2 ring-primary-300 dark:ring-primary-600' : ''}`}>
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center">
+                  <HelpCircle size={24} className="text-white" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-neutral-850 dark:text-gray-100 mb-2">
+                  New to BlindCharm? Here's how it works:
+                </h3>
+                <div className="grid md:grid-cols-3 gap-4 text-sm text-neutral-700 dark:text-gray-300">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs">1</div>
+                    <span>Join a lobby that matches your interests</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs">2</div>
+                    <span>Chat anonymously with other members</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs">3</div>
+                    <span>Connect based on personality, not photos</span>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center gap-3">
+                  <Link 
+                    href="/how-it-works"
+                    className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium text-sm transition-colors"
+                  >
+                    <span>Learn more about BlindCharm</span>
+                    <ArrowRight size={16} />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </ModernCard> */}
+
+          {/* ScrollStack Section */}
+          {/* <div className="w-full max-w-3xl mx-auto my-8"> */}
+          {/* <ScrollStack>
+              <div className="flex space-x-6 overflow-x-auto pb-4">
+                <ScrollStackItem>
+                  <div className="min-w-[250px] bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-6">
+                    <h2 className="font-bold text-lg mb-2">Card 1</h2>
+                    <p>This is the first card in the stack</p>
+                  </div>
+                </ScrollStackItem>
+                <ScrollStackItem>
+                  <div className="min-w-[250px] bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-6">
+                    <h2 className="font-bold text-lg mb-2">Card 2</h2>
+                    <p>This is the second card in the stack</p>
+                  </div>
+                </ScrollStackItem>
+                <ScrollStackItem>
+                  <div className="min-w-[250px] bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-6">
+                    <h2 className="font-bold text-lg mb-2">Card 3</h2>
+                    <p>This is the third card in the stack</p>
+                  </div>
+                </ScrollStackItem>
+              </div>
+            </ScrollStack> */}
+          {/* </div> */}
+
+          <div className='flex justify-center md:hidden'>
+            <div style={{ height: '250px', position: 'relative' }}>
+              <Carousel
+                baseWidth={350}
+                autoplay={true}
+                autoplayDelay={5000}
+                pauseOnHover={true}
+                loop={true}
+                round={false}
+              />
+            </div>
+          </div>
+          <div className="w-full">
+  <OnboardingCards />
+</div>
+          {/* <div className="w-full">
+            <OnboardingCards />
+          </div> */}
 
           {/* Lobbies Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -542,7 +729,7 @@ export default function ModernLobbySelection() {
                 const isJoined = userJoinedLobbyId === lobby.id
                 const isLoading = loading === lobby.id
                 const canJoin = !isLoading && userJoinedLobbyId === null
-                
+
                 const handleCardClick = () => {
                   if (isJoined) {
                     router.push(`/lobby/${lobby.id}`)
@@ -550,7 +737,7 @@ export default function ModernLobbySelection() {
                     handleJoinLobby(lobby.id)
                   }
                 }
-                
+
                 return (
                   <motion.div
                     key={lobby.id}
@@ -560,7 +747,7 @@ export default function ModernLobbySelection() {
                     className="group"
                   >
                     {/* Modern Card with Floating Content */}
-                    <div 
+                    <div
                       className={`
                         relative group transition-all duration-300 cursor-pointer
                         ${canJoin || isJoined ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'}
@@ -584,17 +771,17 @@ export default function ModernLobbySelection() {
                             <IconComponent size={64} className={themeConfig.iconColor} />
                           </div>
                         )}
-                        
+
                         {/* Gradient Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                        
+
                         {/* Status Indicators */}
                         <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
                           {/* Theme Badge */}
                           <span className="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-gray-800 rounded-full text-xs font-semibold shadow-sm">
                             {lobby.theme}
                           </span>
-                          
+
                           {/* Joined Indicator */}
                           {isJoined && (
                             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 rounded-full shadow-sm">
@@ -668,9 +855,8 @@ export default function ModernLobbySelection() {
                           ) : (
                             <div className="flex items-center justify-between w-full">
                               <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ${
-                                  canJoin ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
-                                }`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ${canJoin ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
+                                  }`}>
                                   {isLoading ? (
                                     <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
                                   ) : (
@@ -678,9 +864,8 @@ export default function ModernLobbySelection() {
                                   )}
                                 </div>
                                 <div>
-                                  <span className={`font-bold text-base block transition-colors duration-200 ${
-                                    canJoin ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'
-                                  }`}>
+                                  <span className={`font-bold text-base block transition-colors duration-200 ${canJoin ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'
+                                    }`}>
                                     {isLoading ? 'Joining...' : 'Join Lobby'}
                                   </span>
                                   <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -700,7 +885,7 @@ export default function ModernLobbySelection() {
 
           {/* Empty State */}
           {activeLobbies.length === 0 && !error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-center py-20"
@@ -723,6 +908,22 @@ export default function ModernLobbySelection() {
         onClose={() => setShowCreateModal(false)}
         onLobbyCreated={fetchActiveLobbies}
       />
+
+      {/* Floating Help Button */}
+      <Link href="/how-it-works">
+        <motion.div
+          className="fixed bottom-20 right-4 md:bottom-8 md:right-8 z-40"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <div className="w-14 h-14 bg-primary-500 hover:bg-primary-600 rounded-full shadow-lg flex items-center justify-center text-white transition-colors duration-200">
+            <HelpCircle size={24} />
+          </div>
+          <div className="absolute -top-12 right-0 bg-gray-900 text-white text-xs px-3 py-1 rounded-lg opacity-0 hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+            How BlindCharm Works
+          </div>
+        </motion.div>
+      </Link>
     </div>
   )
 }

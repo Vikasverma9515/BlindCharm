@@ -142,7 +142,8 @@ import {
   ShieldUser,
   VenetianMask,
   MessageCircleHeart,
-  Mic
+  Mic,
+  HelpCircle
 } from 'lucide-react'
 // import { useNotifications } from '@/hooks/useNotifications'
 // import NotificationBadge from './NotificationBadge'
@@ -199,9 +200,9 @@ export default function SimpleBottomNav() {
       className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 md:hidden"
     >
       
-      <div className="bg-white/90 dark:bg-black backdrop-blur-xl rounded-[28px] shadow-soft border border-primary-100/50 dark:border-gray-200 border-t-2 p-4 w-[420px] rounded-b-none transition-colors duration-300  shadow-sm ">
+      <div className="bg-white/90 dark:bg-black backdrop-blur-xl rounded-[28px] shadow-soft border border-primary-100/50 dark:border-gray-200 border-t-2 p-4 w-[480px] rounded-b-none transition-colors duration-300  shadow-sm ">
       {/* backdrop-blur-md border-b border-gray-200 shadow-sm */}
-        <div className="flex justify-between items-center px-12">
+        <div className="flex justify-between items-center px-18">
           {session ? (
             <>
               <NavItem
@@ -225,6 +226,11 @@ export default function SimpleBottomNav() {
                 icon={<VenetianMask size={26} />}
                 isActive={isActive('/whispers')}
               />
+              {/* <NavItem
+                href="/how-it-works"
+                icon={<HelpCircle size={26} />}
+                isActive={isActive('/how-it-works')}
+              /> */}
               <NavItem
                 href="/profile"
                 icon={<ProfileAvatar userProfile={userProfile} />}
@@ -237,6 +243,11 @@ export default function SimpleBottomNav() {
                 href="/"
                 icon={<Home size={24} />}
                 isActive={isActive('/')}
+              />
+              <NavItem
+                href="/how-it-works"
+                icon={<HelpCircle size={24} />}
+                isActive={isActive('/how-it-works')}
               />
               <NavItem
                 href="/login"
