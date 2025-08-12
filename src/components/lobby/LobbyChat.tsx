@@ -20,6 +20,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
   const containerRef = useRef<HTMLDivElement>(null)
   const [showScrollToBottom, setShowScrollToBottom] = useState(false)
   const [showLoadMore, setShowLoadMore] = useState(false)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   const {
     messages,
@@ -50,8 +51,27 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
     return !!data;
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (force = false) => {
+    const doScroll = () => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ 
+          behavior: force ? 'auto' : 'smooth',
+          block: 'end'
+        });
+      } else if (containerRef.current) {
+        // Fallback: scroll container to bottom
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
+    };
+
+    if (force) {
+      // For initial load, use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        requestAnimationFrame(doScroll);
+      });
+    } else {
+      doScroll();
+    }
   };
 
   // Handle scroll events to show/hide scroll to bottom button and load more trigger
@@ -74,17 +94,42 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
     }
   }, [hasMoreMessages, loading, messages.length]);
 
-  // Auto-scroll to bottom when new messages arrive (only if user is near bottom)
+  // Ensure scroll to bottom on component mount with messages
   useEffect(() => {
-    if (!containerRef.current) return;
-    
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
-    
-    if (isNearBottom) {
-      scrollToBottom();
+    if (messages.length > 0 && isInitialLoad && !loading) {
+      // Use a longer timeout to ensure DOM is fully rendered
+      const timer = setTimeout(() => {
+        scrollToBottom(true); // Force immediate scroll for initial load
+        setIsInitialLoad(false);
+      }, 200);
+      
+      return () => clearTimeout(timer);
     }
-  }, [messages]);
+  }, [messages.length, isInitialLoad, loading]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (!containerRef.current || messages.length === 0) return;
+    
+    // Always scroll to bottom on initial load
+    if (isInitialLoad && !loading) {
+      setTimeout(() => {
+        scrollToBottom();
+        setIsInitialLoad(false);
+      }, 100);
+      return;
+    }
+    
+    // For subsequent messages, only scroll if user is near bottom
+    if (!isInitialLoad) {
+      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
+      
+      if (isNearBottom) {
+        scrollToBottom();
+      }
+    }
+  }, [messages, loading, isInitialLoad]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +143,11 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
 
       await sendChatMessage(newMessage.trim());
       setNewMessage('');
+      
+      // Always scroll to bottom when user sends a message
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
     } catch (err) {
       console.error('Failed to send message:', err);
     }

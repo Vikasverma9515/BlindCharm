@@ -1818,6 +1818,9 @@ export default function LobbyPage({ params }: PageProps) {
             }}
             otherUserName={matchSuccess.otherUser}
           />
+
+          {/* Cache Statistics (Debug) - Only show for admins */}
+          {isAdmin && <CacheStats />}
         </div>
         {/* <SimpleBottomNav /> */}
       </>
