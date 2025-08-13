@@ -77,9 +77,9 @@ const AnnouncementBar = () => {
                         >
                             <div className="flex  items-center justify-center font-blindcharm-logo text-black dark:text-white">
                                 <div className="flex items-center justify-center mb-1">
-                                <span className="text-2xl mr-2">
+                                {/* <span className="text-2xl mr-2">
                                     {announcements[currentIndex].icon}
-                                </span>
+                                </span> */}
                                 <div className='justify-center text-center'>
                                 <p className="text-sm sm:text-base font-medium">
                                     {announcements[currentIndex].message}

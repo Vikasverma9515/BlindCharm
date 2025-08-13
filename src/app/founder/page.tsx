@@ -17,7 +17,7 @@ export default function AboutMePage() {
               <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 About Me
               </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300">
+              <p className="text-xl text-red-500 dark:text-gray-300">
                 Hi, I'm Vikas Verma - the creator behind BlindCharm
               </p>
             </div>
@@ -42,6 +42,41 @@ export default function AboutMePage() {
                   </p>
                 </div>
               </section>
+
+              {/* My Team */}
+              <section className="mb-12">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                  My Team
+                </h2>
+                <div className="space-y-4">
+                  <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-lime-200 dark:bg-gray-800">
+                    <p className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 sm:flex-row flex-col justify-between">
+                      <div className='font-medium text-xl text-red-600 dark:text-red-400'>
+                      Devansh Verma
+                      </div>
+                       – Marketing & Outreach Lead
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      {/* The very first person to join BlindCharm and a driving force behind its growth,
+                      handling all marketing, outreach, and community engagement. */}
+                      Proud to have Devansh Verma as the first onboarded partner, leading marketing, outreach, and community growth strategies — ensuring the platform reaches the right audience and builds meaningful engagement.
+                    </p>
+                  </div>
+
+                  {/* Example future team member entry */}
+                  {/* 
+    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
+      <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
+        [Name] – [Role]
+      </p>
+      <p className="text-gray-600 dark:text-gray-400 text-sm">
+        Short description of their contribution to BlindCharm.
+      </p>
+    </div>
+    */}
+                </div>
+              </section>
+
 
               {/* The Idea Behind BlindCharm */}
               <section className="mb-12">
