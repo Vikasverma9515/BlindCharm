@@ -469,53 +469,63 @@ export default function ModernLobbySelection() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16  rounded-full flex items-center justify-center mx-auto mb-4">
                     {/* <Heart size={32} className="text-white" /> */}
                     <img
                       src="/logo2.png"
                       alt=""
-                      className='h-10 w-10'
+                      className='h-8 w-15'
                     />
                   </div>
-                  <h2 className="text-2xl font-bold text-neutral-850 dark:text-gray-100 mb-2">
+                  <h2 className="text-2xl font-blindcharm-logo text-neutral-850 dark:text-gray-100 mb-2">
                     Welcome to BlindCharm! 👋
                   </h2>
                   <p className="text-neutral-700 dark:text-gray-300">
                     Let's get you started with our unique blind dating experience
                   </p>
                 </div>
+<div className="space-y-4 mb-8">
+  {/* Step 1 */}
+  <div className="flex items-start gap-4">
+    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">1</span>
+    </div>
+    <div>
+      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Enter the Lobby</h3>
+      <p className="text-sm text-neutral-700 dark:text-gray-300">
+        Step into a vibe-driven space where everyone starts with just words—no photos, no pressure. 
+      </p>
+    </div>
+  </div>
 
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">1</span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Choose Your Lobby</h3>
-                      <p className="text-sm text-neutral-700 dark:text-gray-300">Pick a lobby that matches your interests - Dating, Coffee Chat, Gaming, and more!</p>
-                    </div>
-                  </div>
+  {/* Step 2 */}
+  <div className="flex items-start gap-4">
+    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">2</span>
+    </div>
+    <div>
+      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Chat & Connect</h3>
+      <p className="text-sm text-neutral-700 dark:text-gray-300">
+        Hang out in the lobby, share thoughts, and vibe with others. Blind matches happen daily at <strong>12:00 AM, 6:00 AM </strong> 
+      </p>
+    </div>
+  </div>
 
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">2</span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Chat Anonymously</h3>
-                      <p className="text-sm text-neutral-700 dark:text-gray-300">Connect with others without photos - focus on personality and conversation first!</p>
-                    </div>
-                  </div>
+  {/* Step 3 */}
+  <div className="flex items-start gap-4">
+    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">3</span>
+    </div>
+    <div>
+      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Reveal & Go Deeper</h3>
+      <p className="text-sm text-neutral-700 dark:text-gray-300">
+        Once matched, chat privately and when both agree, reveal your identities—turning conversations into real connections. 
+      </p>
+    </div>
+  </div>
+</div>
 
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">3</span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Make Real Connections</h3>
-                      <p className="text-sm text-neutral-700 dark:text-gray-300">When you click, reveal photos and take your connection to the next level!</p>
-                    </div>
-                  </div>
-                </div>
+                
 
                 <div className="flex gap-3">
                   <Link

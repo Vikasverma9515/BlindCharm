@@ -7,10 +7,13 @@ export async function uploadVoiceMessage(file: File, matchId: string) {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error('User not authenticated');
     
+    // Get file extension from the file name or type
+    const fileExtension = file.name.split('.').pop() || 'webm';
+    
     // Create a unique filename
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(7);
-    const filename = `${user.id}/${matchId}/${timestamp}-${randomString}.webm`;
+    const filename = `${user.id}/${matchId}/${timestamp}-${randomString}.${fileExtension}`;
 
     // Upload the file
     const { data, error } = await supabase.storage
@@ -18,7 +21,7 @@ export async function uploadVoiceMessage(file: File, matchId: string) {
       .upload(filename, file, {
         cacheControl: '3600',
         upsert: false,
-        contentType: 'audio/webm'
+        contentType: file.type || 'audio/webm'
       });
 
     if (error) {

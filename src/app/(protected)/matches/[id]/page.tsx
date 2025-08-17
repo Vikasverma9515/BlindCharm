@@ -94,6 +94,21 @@ interface UserProfile {
   education?: string;
 }
 
+interface ExtendedUserProfile extends UserProfile {
+  full_name?: string;
+  gender?: 'male' | 'female' | 'other';
+  height?: string;
+  occupation?: string;
+  languages?: string[];
+  hobbies?: string[];
+  looking_for?: string[];
+  personality_tags?: string[];
+  lifestyle_tags?: string[];
+  location?: string | { city: string; country: string };
+  photos?: string[];
+  dob?: string;
+}
+
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -112,8 +127,8 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(true);
   const [hasRevealed, setHasRevealed] = useState(false);
   const [bothRevealed, setBothRevealed] = useState(false);
-  const [myProfile, setMyProfile] = useState<any>(null);
-  const [otherUserProfile, setOtherUserProfile] = useState<any>(null);
+  const [myProfile, setMyProfile] = useState<ExtendedUserProfile | null>(null);
+  const [otherUserProfile, setOtherUserProfile] = useState<ExtendedUserProfile | null>(null);
   const [isUser1, setIsUser1] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -121,44 +136,93 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
+  const recordingStartTime = useRef<number>(0);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
   // Voice recording logic
   const startRecording = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const recorder = new MediaRecorder(stream, {
-      mimeType: 'audio/webm;codecs=opus'
-    });
-    
-    audioChunks.current = []; // Clear previous chunks
-
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
-        audioChunks.current.push(e.data);
+    try {
+      // Check if browser supports MediaRecorder
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Voice recording is not supported in your browser');
+        return;
       }
-    };
 
-    recorder.onstop = async () => {
-      try {
-        const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
-        setAudioBlob(audioBlob);
-        await handleVoiceMessage(audioBlob);
-      } catch (error) {
-        console.error('Error handling voice message:', error);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Check for supported MIME types
+      let mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/mp4';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = ''; // Let browser choose
+          }
+        }
       }
-    };
 
-    setMediaRecorder(recorder);
-    recorder.start();
-    setIsRecording(true);
-  } catch (error) {
-    console.error('Error accessing microphone:', error);
-  }
-};
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      
+      audioChunks.current = []; // Clear previous chunks
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunks.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        try {
+          const audioBlob = new Blob(audioChunks.current, { 
+            type: mimeType || 'audio/webm' 
+          });
+          setAudioBlob(audioBlob);
+          setIsProcessingVoice(true);
+          await handleVoiceMessage(audioBlob);
+        } catch (error) {
+          console.error('Error handling voice message:', error);
+          alert('Failed to send voice message. Please try again.');
+        } finally {
+          setIsProcessingVoice(false);
+        }
+      };
+
+      setMediaRecorder(recorder);
+      recorder.start();
+      setIsRecording(true);
+      recordingStartTime.current = Date.now();
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          alert('Microphone access denied. Please allow microphone access to send voice messages.');
+        } else if (error.name === 'NotFoundError') {
+          alert('No microphone found. Please connect a microphone to send voice messages.');
+        } else {
+          alert('Error accessing microphone. Please try again.');
+        }
+      } else {
+        alert('Error accessing microphone. Please try again.');
+      }
+    }
+  };
 
 const stopRecording = () => {
   if (mediaRecorder && isRecording) {
     try {
+      const recordingDuration = Date.now() - recordingStartTime.current;
+      
+      // Check minimum recording duration (500ms to prevent accidental taps)
+      if (recordingDuration < 500) {
+        // Cancel recording if too short
+        mediaRecorder.stop();
+        setIsRecording(false);
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        audioChunks.current = []; // Clear chunks
+        return;
+      }
+
       mediaRecorder.stop();
       setIsRecording(false);
       // Stop all audio tracks
@@ -188,52 +252,92 @@ const formatDuration = (seconds: number) => {
 
   // Upload and send voice message
   const handleVoiceMessage = async (blob: Blob) => {
-  if (!match?.id || !session?.user?.id) return;
+    if (!match?.id || !session?.user?.id) return;
 
-  try {
-    // Convert Blob to File
-    const file = new File([blob], `voice-${Date.now()}.webm`, {
-      type: 'audio/webm'
-    });
+    try {
+      // Determine file extension based on blob type
+      let extension = 'webm';
+      if (blob.type.includes('mp4')) extension = 'mp4';
+      else if (blob.type.includes('wav')) extension = 'wav';
+      else if (blob.type.includes('ogg')) extension = 'ogg';
 
-    // Get audio duration
-    const duration = await getAudioDuration(blob);
+      // Convert Blob to File
+      const file = new File([blob], `voice-${Date.now()}.${extension}`, {
+        type: blob.type
+      });
 
-    // Upload to Supabase storage
-    const uploadResult = await uploadVoiceMessage(file, match.id);
-    if (!uploadResult?.path) throw new Error('Upload failed');
+      // Get audio duration
+      const duration = await getAudioDuration(blob);
 
-    // Get the public URL
-    const audioUrl = getVoiceMessageUrl(uploadResult.path);
+      // Upload to Supabase storage
+      const uploadResult = await uploadVoiceMessage(file, match.id);
+      if (!uploadResult?.path) throw new Error('Upload failed');
 
-    // Create message in database
-    const { data: messageData, error: messageError } = await supabase
-      .from('match_messages')
-      .insert({
-        match_id: match.id,
-        sender_id: session.user.id,
-        content: '🎤 Voice message',
-        type: 'voice',
-        metadata: {
-          audio_url: audioUrl,
-          duration: duration
-        }
-      })
-      .select('*, sender:sender_id(*)')
-      .single();
+      // Get the public URL
+      const audioUrl = getVoiceMessageUrl(uploadResult.path);
 
-    if (messageError) throw messageError;
+      // Create message in database
+      const { data: messageData, error: messageError } = await supabase
+        .from('match_messages')
+        .insert({
+          match_id: match.id,
+          sender_id: session.user.id,
+          content: '🎤 Voice message',
+          type: 'voice',
+          metadata: {
+            audio_url: audioUrl,
+            duration: duration,
+            file_type: blob.type
+          }
+        })
+        .select('*, sender:sender_id(*)')
+        .single();
 
-    // Update messages state
-    if (messageData) {
-      setMessages(prev => [...prev, messageData]);
-      setTimeout(() => scrollToBottom(), 100);
+      if (messageError) throw messageError;
+
+      // Update messages state with proper sender info
+      if (messageData) {
+        const newVoiceMessage: Message = {
+          ...messageData,
+          sender: {
+            id: session.user.id,
+            username: session.user.name || 'You',
+            profile_picture: null
+          },
+          type: 'voice',
+          metadata: messageData.metadata ?? undefined
+        };
+        setMessages(prev => [...prev, newVoiceMessage]);
+        setTimeout(() => scrollToBottom(), 100);
+      }
+
+      // Send push notification to the other user
+      try {
+        const otherUserId = match.user1_id === session.user.id ? match.user2_id : match.user1_id;
+        const senderName = session.user.name || 'Someone';
+
+        await fetch('/api/notifications/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: otherUserId,
+            title: `🎤 ${senderName}`,
+            body: 'Sent you a voice message',
+            type: 'voice_message',
+            url: `/matches/${match.id}`,
+            matchId: match.id
+          })
+        });
+      } catch (notificationError) {
+        console.error('Failed to send push notification:', notificationError);
+        // Don't throw here - message was sent successfully
+      }
+
+    } catch (error) {
+      console.error('Error sending voice message:', error);
+      alert('Failed to send voice message. Please try again.');
     }
-
-  } catch (error) {
-    console.error('Error sending voice message:', error);
-  }
-};
+  };
 
   // All useRef hooks
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -329,8 +433,8 @@ const formatDuration = (seconds: number) => {
         const user1Data = userData.find(u => u.id === matchData.user1_id);
         const user2Data = userData.find(u => u.id === matchData.user2_id);
 
-        setMyProfile(isCurrentUser1 ? user1Data : user2Data);
-        setOtherUserProfile(isCurrentUser1 ? user2Data : user1Data);
+        setMyProfile((isCurrentUser1 ? user1Data : user2Data) || null);
+        setOtherUserProfile((isCurrentUser1 ? user2Data : user1Data) || null);
       } else {
         // Clear profiles if not both revealed
         setMyProfile(null);
@@ -590,283 +694,564 @@ const formatDuration = (seconds: number) => {
 
 
 
+    // return (
+    //   <div className="flex flex-col h-screen  ">
+    //     {/* Chat Header with safe area support */}
+    //     <div className="bg-white border-b border-gray-200 dark:bg-black px-4 py-3  flex items-center justify-between fixed top-0 left-0 right-0 z-50">
+    //       <div className="flex items-center space-x-3">
+    //         <button
+    //           onClick={() => router.push('/matches')}
+    //           className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white rounded-full transition-colors"
+    //         >
+    //           <svg className="w-5 h-5 text-gray-600 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    //           </svg>
+    //         </button>
+
+    //         <div className="flex items-center space-x-3">
+    //           <div className="relative">
+    //             {bothRevealed && otherUserProfile?.profile_picture ? (
+    //               <img
+    //                 src={otherUserProfile.profile_picture}
+    //                 alt={otherUserProfile.username}
+    //                 className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
+    //               />
+    //             ) : (
+    //               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex border dark:text-amber-50 border-red-500 items-center justify-center">
+    //                 <span className="text-white font-semibold text-sm sm:text-base">
+    //                   {bothRevealed && otherUserProfile?.username
+    //                     ? otherUserProfile.username[0].toUpperCase()
+    //                     : '?'}
+    //                 </span>
+    //               </div>
+    //             )}
+    //             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border border-white"></div>
+    //           </div>
+
+    //           <div className="min-w-0">
+    //             <h1 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
+    //               {bothRevealed && otherUserProfile?.username
+    //                 ? otherUserProfile.username
+    //                 : 'Anonymous Match'}
+    //             </h1>
+    //             <p className="text-xs text-gray-500 dark:text-gray-400">
+    //               {bothRevealed ? 'Online' : 'Identity hidden'}
+    //             </p>
+    //           </div>
+    //         </div>
+    //       </div>
+
+    //       <div className="flex items-center space-x-1 sm:space-x-2">
+    //         {!hasRevealed ? (
+    //           // < div className="inline-flex gap-2">
+    //           <div className="flex items-center space-x-2">
+    //             {/* Tooltip trigger */}
+    //             <div className="">
+    //               <button
+    //                 onClick={() => setShowTooltip(!showTooltip)}
+    //                 className="w-5 h-5 flex items-center justify-center rounded-full bg-yellow-300 text-black text-xs font-bold hover:bg-yellow-400 transition-colors">
+    //                 ?
+    //               </button>
+    //               {/* {showTooltip && (
+    //             <div className="absolute z-20 w-64 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+    //               You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>. <br />
+    //               <span className="italic text-gray-500">Both people must tap Reveal to see each other’s profiles.</span>
+    //             </div>
+    //              )} */}
+
+    //               {showTooltip && (
+    //                 <div className="absolute top-15 z-20 w-64 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md dark:bg-gray-800 dark:text-white left-1/2 transform -translate-x-1/2 mt-2">
+    //                   You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>.
+    //                   <br />
+    //                   <span className="italic text-gray-500 dark:text-gray-300">
+    //                     Both people must tap Reveal to see each other’s profiles.
+    //                   </span>
+    //                 </div>
+    //               )}
+    //             </div>
+    //             <button
+    //               onClick={handleReveal}
+    //               className="bg-red-500 text-white   px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition-colors"
+    //             >
+    //               Reveal
+    //             </button>
+
+    //           </div>
+
+
+    //         ) : !bothRevealed ? (
+    //           <div className="flex items-center space-x-1 sm:space-x-2">
+    //             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full animate-pulse"></div>
+    //             <span className="text-xs text-gray-500 dark:text-white hidden sm:inline">Waiting...</span>
+    //             <span className="text-xs text-gray-500 dark:text-white sm:hidden">...</span>
+    //           </div>
+    //         ) : (
+    //           <button
+    //             onClick={() => setShowProfile(!showProfile)}
+    //             className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${showProfile
+    //               ? 'bg-red-500 text-white hover:bg-red-600'
+    //               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-lime-500 dark:text-white dark:hover:bg-gray-600'
+    //               }`}
+    //           >
+    //             <span className="hidden sm:inline">{showProfile ? 'Hide Profile' : 'View Profile'}</span>
+    //             <span className="sm:hidden">{showProfile ? 'Hide' : 'View 👀' }</span>
+    //           </button>
+    //         )}
+    //       </div>
+    //     </div>
+
+    //     {/* Reveal Status Banner */}
+    //     {hasRevealed && !bothRevealed && (
+    //       <div className="bg-amber-50 border-b border-amber-200 px-4 py-2">
+    //         <div className="flex items-center justify-center space-x-2">
+    //           <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+    //           <p className="text-amber-700 text-sm font-medium">
+    //             You've revealed your identity. Waiting for your match to reveal theirs...
+    //           </p>
+    //         </div>
+    //       </div>
+    //     )}
+
+    //     {bothRevealed && (
+    //       <div className="bg-green-50 border-b border-green-200 px-4 py-2">
+    //         <div className="flex items-center justify-center space-x-2">
+    //           <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+    //             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+    //           </svg>
+    //           <p className="text-green-700 text-sm font-medium">
+    //             Both identities revealed! You can now see each other's profiles.
+    //           </p>
+    //         </div>
+    //       </div>
+    //     )}
+    //     {/* {!bothRevealed && (
+    //     <div className="mx-4 mt-3 mb-2 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm text-sm text-yellow-800">
+    //       <p className="font-semibold mb-1">🔓 Reveal Rule</p>
+    //       <p>
+    //         You can chat freely while anonymous. Once you vibe, tap <span className="text-red-500 font-semibold">Reveal</span> to unmask your identity.
+    //       </p>
+    //       <p className="text-xs text-gray-600 italic mt-1">
+    //         Both of you need to reveal to unlock each other's profiles 💫
+    //       </p>
+    //     </div>
+    //   )} */}
+
+
+    //     {/* Enhanced Profile Section */}
+    //     {bothRevealed && showProfile && otherUserProfile && (
+    //       <div className="bg-gray-50 border-b border-gray-200 dark:bg-black max-h-200 sm:max-h-96 md:max-h-[32rem] lg:max-h-[40rem] xl:max-h-[44rem] overflow-y-auto">
+    //         <div className="p-4 sm:p-2 md:p-4 max-w-4xl mx-auto ">
+    //           <EnhancedProfileCard user={otherUserProfile} />
+    //         </div>
+    //       </div>
+    //     )}
+
+    //     {/* Messages Area */}
+    //     <div className="pt-15 flex-1 overflow-y-auto bg-gray-50 dark:bg-black px-4 py-2">
+    //       {messages.length === 0 ? (
+    //         <div className="flex flex-col items-center justify-center h-full text-center">
+    //           {/* <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4"> */}
+
+    //           {/* <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    //           </svg> */}
+    //           <div className='inline-flex scale-75 items-center justify-center mb-4 gap-3'>
+    //             <div className='bg-amber-300 shadow-2xl  rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
+    //               {/* <span className='text-red-500 text-xl font-semibold '>
+    //               ( ˶°ㅁ°) !!
+    //             </span> */}
+    //               <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
+    //                 {boyFaces[faceIndex]}
+    //               </span>
+    //             </div>
+    //             <div className='bg-amber-300 shadow-2xl  rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
+    //               {/* <span className='text-red-500 text-xl font-semibold'>
+    //               (*ᴗ͈ˬᴗ͈)ꕤ*
+    //             </span> */}
+    //               <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
+    //                 {girlFaces[faceIndex]}
+    //               </span>
+    //             </div>
+    //             <br />
+    //           </div>
+    //           <h3 className="text-lg font-blindcharm-tech text-gray-900 dark:text-amber-100 mb-2">No messages yet</h3>
+    //           <p className="text-red-500 text-sm max-w-xs font-bold italic">
+    //             Your story hasn’t started yet...
+    //             <br />
+    //             <span className="font-semibold">Tip: </span>Say hey, share a thought — let the vibe flow ♡
+
+    //           </p>
+    //         </div>
+    //       ) : (
+    //         <div className="space-y-3 py-2">
+    //           {messages.map((message) => (
+    //             <div
+    //               key={message.id}
+    //               className={`flex ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'}`}
+    //             >
+    //               <div className={`max-w-[75%] ${message.sender_id === session?.user?.id ? 'order-2' : 'order-1'}`}>
+    //                 <div
+    //                   className={`px-4 py-2 rounded-2xl ${
+    //                     message.sender_id === session?.user?.id
+    //                       ? 'bg-red-500 text-white rounded-br-md'
+    //                       : 'bg-white text-gray-900 rounded-bl-md border border-gray-200'
+    //                   }`}
+    //                 >
+    //                   {message.type === 'voice' && message.metadata?.audio_url ? (
+    //                     <VoiceMessage
+    //                       url={message.metadata.audio_url}
+    //                       duration={message.metadata.duration}
+    //                       isOwn={message.sender_id === session?.user?.id}
+    //                     />
+    //                   ) : (
+    //                     <p className="text-sm leading-relaxed">{message.content}</p>
+    //                   )}
+    //                 </div>
+    //                 <div className={`flex items-center mt-1 space-x-1 ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'
+    //                   }`}>
+    //                   <span className="text-xs text-gray-400">
+    //                     {new Date(message.created_at).toLocaleTimeString([], {
+    //                       hour: '2-digit',
+    //                       minute: '2-digit'
+    //                     })}
+    //                   </span>
+    //                   {message.sender_id === session?.user?.id && (
+    //                     <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+    //                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    //                     </svg>
+    //                   )}
+    //                 </div>
+    //               </div>
+    //             </div>
+    //           ))}
+    //           <div ref={messagesEndRef} />
+    //         </div>
+    //       )}
+    //     </div>
+
+    //     {/* Message Input */}
+    //     <div className="bg-white border-t border-gray-200 dark:border-gray-100 dark:bg-black px-4 py-3 rounded-2xl">
+    //       <form onSubmit={sendMessage} className="flex items-center space-x-3">
+    //         <div className="flex-1 relative">
+    //           <input
+    //             type="text"
+    //             value={newMessage}
+    //             onChange={(e) => setNewMessage(e.target.value)}
+    //             placeholder="Type a message..."
+    //             className="w-full bg-gray-100 dark:bg-gray-900 dark:text-amber-50 rounded-2xl px-4 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
+    //           />
+    //           <button
+    //             type="button"
+    //             onMouseDown={startRecording}
+    //             onMouseUp={stopRecording}
+    //             onTouchStart={startRecording}
+    //             onTouchEnd={stopRecording}
+    //             className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 rounded-full transition-all duration-200 ${
+    //               isRecording 
+    //                 ? 'bg-red-500 text-white animate-pulse scale-110' 
+    //                 : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'
+    //             }`}
+    //             title={isRecording ? 'Release to send voice message' : 'Hold to record voice message'}
+    //           >
+    //             <Mic className={`w-4 h-4 ${isRecording ? 'text-white' : ''}`} />
+    //           </button>
+    //         </div>
+            
+    //         {/* Voice Recording/Processing Indicator */}
+    //         {isRecording && (
+    //           <div className="flex items-center space-x-2 text-red-500 animate-pulse">
+    //             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+    //             <span className="text-sm font-medium">Recording...</span>
+    //           </div>
+    //         )}
+            
+    //         {isProcessingVoice && (
+    //           <div className="flex items-center space-x-2 text-blue-500">
+    //             <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    //             <span className="text-sm font-medium">Sending...</span>
+    //           </div>
+    //         )}
+            
+    //         <button
+    //           type="submit"
+    //           disabled={!newMessage.trim()}
+    //           className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    //         >
+    //           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    //           </svg>
+    //         </button>
+    //       </form>
+    //     </div>
+    //   </div>
+    // );
     return (
-      <div className="flex flex-col h-screen  ">
-        {/* Chat Header with safe area support */}
-        <div className="bg-white border-b border-gray-200 dark:bg-black px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between fixed top-0 left-0 right-0 z-50">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => router.push('/matches')}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white rounded-full transition-colors"
-            >
-              <svg className="w-5 h-5 text-gray-600 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+  <div className="flex flex-col h-screen">
+    {/* Chat Header with safe area support */}
+    <div className="bg-white border-b border-gray-200 dark:bg-black px-4 py-3 flex items-center justify-between fixed top-0 left-0 right-0 z-50">
+      <div className="flex items-center space-x-3">
+        <button
+          onClick={() => router.push('/matches')}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white rounded-full transition-colors"
+        >
+          <svg className="w-5 h-5 text-gray-600 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
 
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                {bothRevealed && otherUserProfile?.profile_picture ? (
-                  <img
-                    src={otherUserProfile.profile_picture}
-                    alt={otherUserProfile.username}
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
-                  />
-                ) : (
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex border dark:text-amber-50 border-red-500 items-center justify-center">
-                    <span className="text-white font-semibold text-sm sm:text-base">
-                      {bothRevealed && otherUserProfile?.username
-                        ? otherUserProfile.username[0].toUpperCase()
-                        : '?'}
-                    </span>
-                  </div>
-                )}
-                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border border-white"></div>
-              </div>
-
-              <div className="min-w-0">
-                <h1 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
-                  {bothRevealed && otherUserProfile?.username
-                    ? otherUserProfile.username
-                    : 'Anonymous Match'}
-                </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {bothRevealed ? 'Online' : 'Identity hidden'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-1 sm:space-x-2">
-            {!hasRevealed ? (
-              // < div className="inline-flex gap-2">
-              <div className="flex items-center space-x-2">
-                {/* Tooltip trigger */}
-                <div className="">
-                  <button
-                    onClick={() => setShowTooltip(!showTooltip)}
-                    className="w-5 h-5 flex items-center justify-center rounded-full bg-yellow-300 text-black text-xs font-bold hover:bg-yellow-400 transition-colors">
-                    ?
-                  </button>
-                  {/* {showTooltip && (
-                <div className="absolute z-20 w-64 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                  You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>. <br />
-                  <span className="italic text-gray-500">Both people must tap Reveal to see each other’s profiles.</span>
-                </div>
-                 )} */}
-
-                  {showTooltip && (
-                    <div className="absolute top-15 z-20 w-64 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md dark:bg-gray-800 dark:text-white left-1/2 transform -translate-x-1/2 mt-2">
-                      You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>.
-                      <br />
-                      <span className="italic text-gray-500 dark:text-gray-300">
-                        Both people must tap Reveal to see each other’s profiles.
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={handleReveal}
-                  className="bg-red-500 text-white   px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition-colors"
-                >
-                  Reveal
-                </button>
-
-              </div>
-
-
-            ) : !bothRevealed ? (
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-gray-500 dark:text-white hidden sm:inline">Waiting...</span>
-                <span className="text-xs text-gray-500 dark:text-white sm:hidden">...</span>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowProfile(!showProfile)}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${showProfile
-                  ? 'bg-red-500 text-white hover:bg-red-600'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-lime-500 dark:text-white dark:hover:bg-gray-600'
-                  }`}
-              >
-                <span className="hidden sm:inline">{showProfile ? 'Hide Profile' : 'View Profile'}</span>
-                <span className="sm:hidden">{showProfile ? 'Hide' : 'View 👀' }</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Reveal Status Banner */}
-        {hasRevealed && !bothRevealed && (
-          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-              <p className="text-amber-700 text-sm font-medium">
-                You've revealed your identity. Waiting for your match to reveal theirs...
-              </p>
-            </div>
-          </div>
-        )}
-
-        {bothRevealed && (
-          <div className="bg-green-50 border-b border-green-200 px-4 py-2">
-            <div className="flex items-center justify-center space-x-2">
-              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <p className="text-green-700 text-sm font-medium">
-                Both identities revealed! You can now see each other's profiles.
-              </p>
-            </div>
-          </div>
-        )}
-        {/* {!bothRevealed && (
-        <div className="mx-4 mt-3 mb-2 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm text-sm text-yellow-800">
-          <p className="font-semibold mb-1">🔓 Reveal Rule</p>
-          <p>
-            You can chat freely while anonymous. Once you vibe, tap <span className="text-red-500 font-semibold">Reveal</span> to unmask your identity.
-          </p>
-          <p className="text-xs text-gray-600 italic mt-1">
-            Both of you need to reveal to unlock each other's profiles 💫
-          </p>
-        </div>
-      )} */}
-
-
-        {/* Enhanced Profile Section */}
-        {bothRevealed && showProfile && otherUserProfile && (
-          <div className="bg-gray-50 border-b border-gray-200 dark:bg-black max-h-200 sm:max-h-96 md:max-h-[32rem] lg:max-h-[40rem] xl:max-h-[44rem] overflow-y-auto">
-            <div className="p-4 sm:p-2 md:p-4 max-w-4xl mx-auto ">
-              <EnhancedProfileCard user={otherUserProfile} />
-            </div>
-          </div>
-        )}
-
-        {/* Messages Area */}
-        <div className="pt-15 flex-1 overflow-y-auto bg-gray-50 dark:bg-black px-4 py-2">
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              {/* <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4"> */}
-
-              {/* <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg> */}
-              <div className='inline-flex scale-75 items-center justify-center mb-4 gap-3'>
-                <div className='bg-amber-300 shadow-2xl  rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
-                  {/* <span className='text-red-500 text-xl font-semibold '>
-                  ( ˶°ㅁ°) !!
-                </span> */}
-                  <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
-                    {boyFaces[faceIndex]}
-                  </span>
-                </div>
-                <div className='bg-amber-300 shadow-2xl  rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
-                  {/* <span className='text-red-500 text-xl font-semibold'>
-                  (*ᴗ͈ˬᴗ͈)ꕤ*
-                </span> */}
-                  <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
-                    {girlFaces[faceIndex]}
-                  </span>
-                </div>
-                <br />
-              </div>
-              <h3 className="text-lg font-blindcharm-tech text-gray-900 dark:text-amber-100 mb-2">No messages yet</h3>
-              <p className="text-red-500 text-sm max-w-xs font-bold italic">
-                Your story hasn’t started yet...
-                <br />
-                <span className="font-semibold">Tip: </span>Say hey, share a thought — let the vibe flow ♡
-
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3 py-2">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`max-w-[75%] ${message.sender_id === session?.user?.id ? 'order-2' : 'order-1'}`}>
-                    <div
-                      className={`px-4 py-2 rounded-2xl ${
-                        message.sender_id === session?.user?.id
-                          ? 'bg-red-500 text-white rounded-br-md'
-                          : 'bg-white text-gray-900 rounded-bl-md border border-gray-200'
-                      }`}
-                    >
-                      {message.type === 'voice' && message.metadata?.audio_url ? (
-                        <VoiceMessage
-                          url={message.metadata.audio_url}
-                          duration={message.metadata.duration}
-                          isOwn={message.sender_id === session?.user?.id}
-                        />
-                      ) : (
-                        <p className="text-sm leading-relaxed">{message.content}</p>
-                      )}
-                    </div>
-                    <div className={`flex items-center mt-1 space-x-1 ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'
-                      }`}>
-                      <span className="text-xs text-gray-400">
-                        {new Date(message.created_at).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </span>
-                      {message.sender_id === session?.user?.id && (
-                        <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </div>
-
-        {/* Message Input */}
-        <div className="bg-white border-t border-gray-200 dark:border-gray-100 dark:bg-black px-4 py-3 rounded-2xl">
-          <form onSubmit={sendMessage} className="flex items-center space-x-3">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="w-full bg-gray-100 dark:bg-gray-900 dark:text-amber-50 rounded-2xl px-4 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            {bothRevealed && otherUserProfile?.profile_picture ? (
+              <img
+                src={otherUserProfile.profile_picture}
+                alt={otherUserProfile.username}
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
               />
-              {/* <button
-                type="button"
-                onMouseDown={startRecording}
-                onMouseUp={stopRecording}
-                onTouchStart={startRecording}
-                onTouchEnd={stopRecording}
-                className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 rounded-full transition-colors ${isRecording ? 'bg-red-500' : ''}`}
-              >
-                <Mic className={`w-4 h-4 ${isRecording ? 'text-white' : 'text-gray-500'}`} />
-              </button> */}
-            </div>
-            <button
-              type="submit"
-              disabled={!newMessage.trim()}
-              className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </form>
+            ) : (
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex border dark:text-amber-50 border-red-500 items-center justify-center">
+                <span className="text-white font-semibold text-sm sm:text-base">
+                  {bothRevealed && otherUserProfile?.username
+                    ? otherUserProfile.username[0].toUpperCase()
+                    : '?'}
+                </span>
+              </div>
+            )}
+            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border border-white"></div>
+          </div>
+
+          <div className="min-w-0">
+            <h1 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
+              {bothRevealed && otherUserProfile?.username
+                ? otherUserProfile.username
+                : 'Anonymous Match'}
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {bothRevealed ? 'Online' : 'Identity hidden'}
+            </p>
+          </div>
         </div>
       </div>
-    );
+
+      <div className="flex items-center space-x-1 sm:space-x-2">
+        {!hasRevealed ? (
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <button
+                onClick={() => setShowTooltip(!showTooltip)}
+                className="w-5 h-5 flex items-center justify-center rounded-full bg-yellow-300 text-black text-xs font-bold hover:bg-yellow-400 transition-colors">
+                ?
+              </button>
+
+              {showTooltip && (
+                <div className="absolute top-8 z-20 w-64 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md dark:bg-gray-800 dark:text-white left-1/2 transform -translate-x-1/2">
+                  You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>.
+                  <br />
+                  <span className="italic text-gray-500 dark:text-gray-300">
+                    Both people must tap Reveal to see each other's profiles.
+                  </span>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={handleReveal}
+              className="bg-red-500 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition-colors"
+            >
+              Reveal
+            </button>
+          </div>
+        ) : !bothRevealed ? (
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full animate-pulse"></div>
+            <span className="text-xs text-gray-500 dark:text-white hidden sm:inline">Waiting...</span>
+            <span className="text-xs text-gray-500 dark:text-white sm:hidden">...</span>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowProfile(!showProfile)}
+            className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${showProfile
+              ? 'bg-red-500 text-white hover:bg-red-600'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-lime-500 dark:text-white dark:hover:bg-gray-600'
+              }`}
+          >
+            <span className="hidden sm:inline">{showProfile ? 'Hide Profile' : 'View Profile'}</span>
+            <span className="sm:hidden">{showProfile ? 'Hide' : 'View 👀'}</span>
+          </button>
+        )}
+      </div>
+    </div>
+
+    {/* Main Content Area - Add top padding to account for fixed navbar */}
+    <div className="flex-1 flex flex-col pt-16"> {/* pt-16 accounts for navbar height */}
+      
+      {/* Reveal Status Banner */}
+      {hasRevealed && !bothRevealed && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+            <p className="text-amber-700 text-sm font-medium">
+              You've revealed your identity. Waiting for your match to reveal theirs...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {bothRevealed && (
+        <div className="bg-green-50 border-b border-green-200 px-4 py-2">
+          <div className="flex items-center justify-center space-x-2">
+            <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <p className="text-green-700 text-sm font-medium">
+              Both identities revealed! You can now see each other's profiles.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Profile Section */}
+      {bothRevealed && showProfile && otherUserProfile && (
+        <div className="bg-gray-50 border-b border-gray-200 dark:bg-black max-h-200 sm:max-h-96 md:max-h-[32rem] lg:max-h-[40rem] xl:max-h-[44rem] overflow-y-auto">
+          <div className="p-4 sm:p-2 md:p-4 max-w-4xl mx-auto">
+            <EnhancedProfileCard user={otherUserProfile} />
+          </div>
+        </div>
+      )}
+
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-black px-4 py-2">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className='inline-flex scale-75 items-center justify-center mb-4 gap-3'>
+              <div className='bg-amber-300 shadow-2xl rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
+                <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
+                  {boyFaces[faceIndex]}
+                </span>
+              </div>
+              <div className='bg-amber-300 shadow-2xl rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
+                <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
+                  {girlFaces[faceIndex]}
+                </span>
+              </div>
+              <br />
+            </div>
+            <h3 className="text-lg font-blindcharm-tech text-gray-900 dark:text-amber-100 mb-2">No messages yet</h3>
+            <p className="text-red-500 text-sm max-w-xs font-bold italic">
+              Your story hasn't started yet...
+              <br />
+              <span className="font-semibold">Tip: </span>Say hey, share a thought — let the vibe flow ♡
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3 py-2">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`max-w-[75%] ${message.sender_id === session?.user?.id ? 'order-2' : 'order-1'}`}>
+                  <div
+                    className={`px-4 py-2 rounded-2xl ${
+                      message.sender_id === session?.user?.id
+                        ? 'bg-red-500 text-white rounded-br-md'
+                        : 'bg-white text-gray-900 rounded-bl-md border border-gray-200'
+                    }`}
+                  >
+                    {message.type === 'voice' && message.metadata?.audio_url ? (
+                      <VoiceMessage
+                        url={message.metadata.audio_url}
+                        duration={message.metadata.duration}
+                        isOwn={message.sender_id === session?.user?.id}
+                      />
+                    ) : (
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                    )}
+                  </div>
+                  <div className={`flex items-center mt-1 space-x-1 ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'
+                    }`}>
+                    <span className="text-xs text-gray-400">
+                      {new Date(message.created_at).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                    {message.sender_id === session?.user?.id && (
+                      <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
+
+      {/* Message Input */}
+      <div className="bg-white border-t border-gray-200 dark:border-gray-100 dark:bg-black px-4 py-3 rounded-2xl">
+        <form onSubmit={sendMessage} className="flex items-center space-x-3">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="w-full bg-gray-100 dark:bg-gray-900 dark:text-amber-50 rounded-2xl px-4 py-2.5 pr-12 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all"
+            />
+            <button
+              type="button"
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
+              className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 rounded-full transition-all duration-200 ${
+                isRecording 
+                  ? 'bg-red-500 text-white animate-pulse scale-110' 
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'
+              }`}
+              title={isRecording ? 'Release to send voice message' : 'Hold to record voice message'}
+            >
+              <Mic className={`w-4 h-4 ${isRecording ? 'text-white' : ''}`} />
+            </button>
+          </div>
+          
+          {/* Voice Recording/Processing Indicator */}
+          {isRecording && (
+            <div className="flex items-center space-x-2 text-red-500 animate-pulse">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span className="text-sm font-medium">Recording...</span>
+            </div>
+          )}
+          
+          {isProcessingVoice && (
+            <div className="flex items-center space-x-2 text-blue-500">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm font-medium">Sending...</span>
+            </div>
+          )}
+          
+          <button
+            type="submit"
+            disabled={!newMessage.trim()}
+            className="bg-red-500 text-white p-2.5 rounded-full hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+);
   }
 
   // Enhanced Profile Card Component
-  function EnhancedProfileCard({ user }: { user: any }) {
+  function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
     if (!user) return null;
 
-    const calculateAge = (dob: string) => {
+    const calculateAge = (dob?: string): number | null => {
       if (!dob) return null;
       const birthDate = new Date(dob);
       const today = new Date();
@@ -878,7 +1263,7 @@ const formatDuration = (seconds: number) => {
       return age;
     };
 
-    const formatLocation = (location: any) => {
+    const formatLocation = (location?: string | { city: string; country: string }): string | null => {
       if (!location) return null;
       if (typeof location === 'string') return location;
       if (typeof location === 'object' && location.city && location.country) {
@@ -1165,72 +1550,122 @@ const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.addEventListener('loadedmetadata', () => setIsLoaded(true));
-      audioRef.current.addEventListener('timeupdate', () => 
-        setCurrentTime(audioRef.current?.currentTime || 0)
-      );
-      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
-    }
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleLoadedMetadata = () => {
+      setIsLoaded(true);
+      setHasError(false);
+    };
+    
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime || 0);
+    };
+    
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
+
+    const handleError = () => {
+      setHasError(true);
+      setIsLoaded(false);
+      setIsPlaying(false);
+    };
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.removeEventListener('loadedmetadata', () => setIsLoaded(true));
-        audioRef.current.removeEventListener('timeupdate', () => 
-          setCurrentTime(audioRef.current?.currentTime || 0)
-        );
-        audioRef.current.removeEventListener('ended', () => setIsPlaying(false));
-      }
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
     };
-  }, []);
+  }, [url]);
 
   const togglePlay = async () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || hasError) return;
     
     try {
       if (isPlaying) {
         await audioRef.current.pause();
+        setIsPlaying(false);
       } else {
         await audioRef.current.play();
+        setIsPlaying(true);
       }
-      setIsPlaying(!isPlaying);
     } catch (error) {
       console.error('Playback error:', error);
+      setHasError(true);
+      setIsPlaying(false);
     }
   };
 
+  if (hasError) {
+    return (
+      <div className="flex items-center space-x-2 min-w-[120px] text-gray-500">
+        <div className="p-2 rounded-full bg-gray-300">
+          <LucideVoicemail className="w-4 h-4" />
+        </div>
+        <span className="text-xs">Voice message unavailable</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center space-x-2 min-w-[120px]">
+    <div className="flex items-center space-x-3 min-w-[160px]">
       <button
         onClick={togglePlay}
         disabled={!isLoaded}
-        className={`p-2 rounded-full ${
-          isPlaying ? 'bg-red-600' : 'bg-red-500'
-        } text-white hover:opacity-90 transition-opacity ${
-          !isLoaded ? 'opacity-50 cursor-not-allowed' : ''
+        className={`p-2 rounded-full transition-all ${
+          isOwn 
+            ? (isPlaying ? 'bg-red-700' : 'bg-red-600') + ' text-white'
+            : (isPlaying ? 'bg-gray-700' : 'bg-gray-600') + ' text-white'
+        } hover:opacity-90 ${
+          !isLoaded ? 'opacity-50 cursor-not-allowed animate-pulse' : ''
         }`}
+        title={isPlaying ? 'Pause' : 'Play'}
       >
-        {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+        {!isLoaded ? (
+          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        ) : isPlaying ? (
+          <Pause className="w-4 h-4" />
+        ) : (
+          <Play className="w-4 h-4" />
+        )}
       </button>
+      
       <audio
         ref={audioRef}
         src={url}
         preload="metadata"
       />
-      <div className="flex-1">
-        <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+      
+      <div className="flex-1 min-w-0">
+        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mb-1">
           <div
-            className="h-full bg-red-500 transition-all duration-100"
+            className={`h-full transition-all duration-100 ${
+              isOwn ? 'bg-red-300' : 'bg-gray-400'
+            }`}
             style={{
-              width: `${(currentTime / (duration || 0)) * 100}%`
+              width: `${duration ? (currentTime / duration) * 100 : 0}%`
             }}
           />
         </div>
-        <span className="text-xs text-gray-500 mt-1">
-          {formatDuration(currentTime)} / {formatDuration(duration || 0)}
-        </span>
+        <div className="flex justify-between items-center">
+          <span className={`text-xs ${isOwn ? 'text-red-100' : 'text-gray-600'}`}>
+            {formatDuration(currentTime)}
+          </span>
+          <span className={`text-xs ${isOwn ? 'text-red-200' : 'text-gray-500'}`}>
+            {formatDuration(duration || 0)}
+          </span>
+        </div>
       </div>
     </div>
   );

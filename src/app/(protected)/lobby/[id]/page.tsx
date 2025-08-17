@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import LobbyChat from '@/components/lobby/LobbyChat'
-import { Loader2, Users, Clock, Heart, MessageCircle, Info, ArrowLeft, Weight, Settings } from 'lucide-react'
+import { Loader2, Users, Clock, Heart,BookHeart,MessagesSquare, MessageCircle, Info, ArrowLeft, Weight, Settings, LucideVolumeOff, LucideMove3D, HeartIcon } from 'lucide-react'
 import { Message, LobbyParticipant, User } from '@/types/lobby'
 import { MatchingService } from '@/lib/services/MatchingService'
 import ErrorBoundary from '@/components/ErrorBoundary'
@@ -33,6 +33,11 @@ import { Brain } from 'lucide-react'
 // import CompatibilityBoard from '@/components/lobby/CompatibilityBoard';
 import AdminBadge from '@/components/ui/AdminBadge'
 import CacheStats from '@/components/debug/CacheStats'
+import LobbyBanner from '@/components/announcement/LobbyBanner'
+import AnnouncementBar from '@/components/announcement/AnnouncementBar'
+import GirlQuestionSystem from '@/components/lobby/GirlQuestionSystem'
+import { Trophy, HelpCircle } from 'lucide-react'
+import { FlameKindling } from '@/blocks/Components/icons/flame'
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -78,7 +83,7 @@ export default function LobbyPage({ params }: PageProps) {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const [blurMyProfile, setBlurMyProfile] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'mindmatch' | 'vibeview' | 'leaderboard' | 'hotfeed'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'questions' | 'mindmatch' | 'vibeview' | 'leaderboard' | 'hotfeed'>('chat');
   const [vibeMatches, setVibeMatches] = useState<VibeMatch[]>([]);
   const [showMindMatchArena, setShowMindMatchArena] = useState(false);
   // const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion | null>(null);
@@ -1139,16 +1144,28 @@ export default function LobbyPage({ params }: PageProps) {
                     </div>
                     <div className=" absolute bottom-0 left-0 right-0 flex items-center justify-between gap-2 p-4 bg-white/20 backdrop-blur-md rounded-xl">
                       <p className="text-xs text-white/80">Get to know each other before matching!</p>
-                      <button
-                        onClick={() => setActiveTab('chat')}
-                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === 'chat'
-                          ? 'bg-primary-500 text-white shadow-md'
-                          : 'text-gray-600 hover:bg-gray-50'
-                          }`}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>Chat</span>
-                      </button>
+                      <div className="flex gap-2 flex-1">
+                        <button
+                          onClick={() => setActiveTab('chat')}
+                          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === 'chat'
+                            ? 'bg-primary-500 text-white shadow-md'
+                            : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>Chat</span>
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('questions')}
+                          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === 'questions'
+                            ? 'bg-primary-500 text-white shadow-md'
+                            : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                        >
+                          <Brain className="w-4 h-4" />
+                          <span>Q&A</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -1273,7 +1290,7 @@ export default function LobbyPage({ params }: PageProps) {
                             <Clock className="w-4 h-4" />
                             <span className="text-sm font-medium">Next: {nextMatchTime}</span>
                           </div>
-                           
+
                           {/* Current Time Pill */}
                           {/* <div className="px-4 py-2 bg-white rounded-full shadow-sm">
                             <span className="text-sm">Now: {currentTime}</span>
@@ -1303,42 +1320,78 @@ export default function LobbyPage({ params }: PageProps) {
           </div>
 
           {/* Main Content */}
-          <div className={`${isMobile ? 'pt-[80px] pb-[0px] h-[100dvh]' : 'pt-20 pb-8'} `}>
+          <div className={`${isMobile ? 'pt-[80px] pb-[50px] h-[100dvh]' : 'pt-20 pb-8'} `}>
             {isMobile ? (
               // Mobile Layout with Tabs
               <div className="h-full relative">
                 {/* Tab Navigation */}
-                <div className="mx-4 mb-1">
-                  <div className="bg-red-50 dark:bg-gray-800 rounded-2xl  p-3 ">
-                    <div className="flex gap-1">
+
+                <div className='p-0 px-0' >
+                  <div className='pt-1'>
+                  <LobbyBanner />
+                  </div>
+                  <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200/50 dark:border-gray-700/50">
+                    <div className="flex h-14 px-4">
+                      {/* Chat Tab */}
                       <button
                         onClick={() => setActiveTab('chat')}
-                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === 'chat'
-                          ? 'bg-primary-500 text-white shadow-md'
-                          : 'text-gray-600 hover:bg-gray-50'
-                          }`}
+                        className="relative flex-1 flex flex-col items-center justify-center py-2"
                       >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>Chat, Explore, Match!</span>
+                        {/* Badge positioned like your image */}
+                        <div className="absolute -top-0 left-1/2 transform translate-x-3 w-2 h-2 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold text-[10px]">
+                          
+                        </div>
 
+                        <div className={`p-1 rounded-lg transition-all duration-200 ${activeTab === 'chat'
+                            ? 'bg-purple-100 dark:bg-purple-900/50'
+                            : ''
+                          }`}>
+                          <MessagesSquare
+                            size={20}
+                            className={`transition-colors duration-200 ${activeTab === 'chat'
+                                ? 'text-purple-600 dark:text-purple-400'
+                                : 'text-gray-500 dark:text-gray-400'
+                              }`}
+                          />
+                        </div>
+                        <span className={`text-xs font-medium mt-0.5 transition-colors duration-200 ${activeTab === 'chat'
+                            ? 'text-purple-600 dark:text-purple-400'
+                            : 'text-gray-500 dark:text-gray-400'
+                          }`}>
+                          Chat
+                        </span>
                       </button>
 
-                      {/* <button
-                        onClick={() => setActiveTab('mindmatch')}
-                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${activeTab === 'mindmatch'
-                            ? 'bg-purple-500 text-white shadow-md'
-                            : 'text-gray-600 hover:bg-gray-50'
-                          }`}
+                      {/* Questions Tab */}
+                      <button
+                        onClick={() => setActiveTab('questions')}
+                        className="flex-1 flex flex-col items-center justify-center py-2"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                        <span>Arena</span>
-                      </button> */}
+                        <div className={`p-1 rounded-lg transition-all duration-200 ${activeTab === 'questions'
+                            ? 'bg-gray-100 dark:bg-gray-800'
+                            : ''
+                          }`}>
+                          <BookHeart
+                            size={20}
+                            className={`transition-colors duration-200 ${activeTab === 'questions'
+                                ? 'text-purple-600 dark:text-purple-400'
+                                : 'text-gray-500 dark:text-gray-400'
+                              }`}
+                          />
+                        </div>
+                        <span className={`text-xs font-medium mt-0.5 transition-colors duration-200 ${activeTab === 'questions'
+                            ? 'text-purple-600 dark:text-purple-400'
+                                : 'text-gray-500 dark:text-gray-400'
+                          }`}>
+                          Questions
+                        </span>
+                      </button>
                     </div>
+
+                    {/* Safe area for phones with home indicator */}
+                    <div className="h-1 sm:h-0" />
                   </div>
                 </div>
-
                 {/* Tab Content */}
                 <div className="h-[calc(100%-80px)] mx-4 ">
                   <AnimatePresence mode="wait">
@@ -1355,6 +1408,26 @@ export default function LobbyPage({ params }: PageProps) {
                             lobbyId={lobbyId}
                             currentUser={currentUser}
                             participants={participants}
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === 'questions' && (
+                      <motion.div
+                        key="questions"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="h-full"
+                      >
+                        <div className="bg-gray-100/20 rounded-2xl h-full overflow-hidden flex flex-col dark:bg-gray-800">
+                          <GirlQuestionSystem
+                            lobbyId={lobbyId}
+                            currentUser={currentUser}
+                            participants={participants}
+                            nextMatchTime={nextMatchTime}
+                            onMatchTriggered={triggerMatching}
                           />
                         </div>
                       </motion.div>
@@ -1595,7 +1668,9 @@ export default function LobbyPage({ params }: PageProps) {
                             </div>
                           </div>
                         </div>
+
                       </div>
+
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1676,6 +1751,7 @@ export default function LobbyPage({ params }: PageProps) {
                         </div>
                       </div>
 
+
                       {/* Fixed bottom section with settings and match info */}
                       <div className="flex-shrink-0 border-t border-gray-100 ">
                         {/* Privacy Settings */}
@@ -1747,8 +1823,10 @@ export default function LobbyPage({ params }: PageProps) {
                           </div>
                         </div>
                       </div>
+
                     </div>
                   </div>
+
 
                   {/* Chat Section - Center */}
                   <div className="flex-1 min-w-0">
@@ -1759,7 +1837,9 @@ export default function LobbyPage({ params }: PageProps) {
                         participants={participants}
                       />
                     </div>
+
                   </div>
+
 
                   {/* MindMatch Arena - Right side */}
                   {/* <div className="w-96 flex-shrink-0">
@@ -1820,7 +1900,7 @@ export default function LobbyPage({ params }: PageProps) {
           />
 
           {/* Cache Statistics (Debug) - Only show for admins */}
-          {isAdmin && <CacheStats />}
+          {/* {isAdmin && <CacheStats />} */}
         </div>
         {/* <SimpleBottomNav /> */}
       </>

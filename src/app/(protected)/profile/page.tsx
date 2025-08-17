@@ -619,19 +619,19 @@ export default function ProfilePage() {
                   {/* Basic Info Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 ">
                     {profile.height && (
-                      <div className="bg-amber-300 rounded-xl p-3">
+                      <div className="bg-amber-300 dark:bg-gray-700 rounded-xl p-3">
                         <p className="dark:text-gray-400 font-medium text-xs mb-1">Height</p>
                         <p className="text-white font-medium">{profile.height} cm</p>
                       </div>
                     )}
                     {profile.occupation && (
-                      <div className="bg-amber-300 rounded-xl p-3">
+                      <div className="bg-amber-300 dark:bg-gray-700 rounded-xl p-3">
                         <p className="dark:text-gray-400 font-medium text-xs mb-1">Work</p>
                         <p className="text-white font-medium">{profile.occupation}</p>
                       </div>
                     )}
                     {profile.education && (
-                      <div className="bg-amber-300 rounded-xl p-3">
+                      <div className="bg-amber-300 dark:bg-gray-700 rounded-xl p-3">
                         <p className="dark:text-gray-400 font-medium text-xs mb-1">Education</p>
                         <p className="text-white font-medium">{profile.education}</p>
                       </div>
@@ -1463,14 +1463,14 @@ export default function ProfilePage() {
                   </motion.div>
                 )}
 
-                {!isAdmin && (
+                {/* {!isAdmin && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                     <h3 className="font-medium text-red-800 mb-2">❌ Admin Panel Not Showing</h3>
                     <p className="text-sm text-red-700">
                       The admin panel is not showing because isAdmin = {String(isAdmin)}
                     </p>
                   </div>
-                )}
+                )} */}
 
               </div>
             </motion.div>

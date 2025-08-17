@@ -60,3 +60,29 @@ export interface Match {
   reveal_requested_by: string[];
   created_at: string;
 }
+
+export interface Question {
+  id: string;
+  girl_id: string;
+  lobby_id: string;
+  question_text: string;
+  question_type: 'mcq' | 'written';
+  options?: string[];
+  correct_answer?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Answer {
+  id: string;
+  question_id: string;
+  boy_id: string;
+  lobby_id: string;
+  answer_text: string;
+  option_index?: number;
+  points_awarded: number;
+  is_reviewed: boolean;
+  created_at: string;
+  updated_at: string;
+  boy: User;
+}

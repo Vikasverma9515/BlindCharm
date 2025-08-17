@@ -312,7 +312,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
       </div>
 
       {/* Message Input */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <div className="p-2 bg-gray-50 dark:bg-gray-900 border-t-0 border-gray-200 dark:border-gray-700 transition-colors duration-300">
         {error && (
           <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between">
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
@@ -325,7 +325,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
           </div>
         )}
         
-        <div className="flex items-center gap-2 mb-3">
+        {/* <div className="flex items-center gap-2 mb-3">
           <button
             onClick={refreshMessages}
             disabled={loading}
@@ -338,7 +338,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
             {messages.length} message{messages.length !== 1 ? 's' : ''}
             {hasMoreMessages && ' (more available)'}
           </span>
-        </div>
+        </div> */}
         
         <form onSubmit={handleSendMessage} className="flex gap-3">
           <div className="flex-1 relative">
@@ -370,10 +370,11 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
           </button>
         </form>
         
-        <p className="text-xs text-neutral-600 dark:text-gray-400 mt-2 text-center">
+        {/* <p className="text-xs text-neutral-600 dark:text-gray-400 mt-2 text-center">
           Be respectful and have fun! 💕
-        </p>
+        </p> */}
       </div>
+      
     </div>
   );
 }

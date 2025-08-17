@@ -16,10 +16,183 @@ import BackgroundPattern from '@/components/shared/BackgroundPattern'
 import CuteFaceBubble2 from '@/components/ui/CuteFaceBubble2'
 import NotificationPrompt from '@/components/notifications/NotificationPrompt'
 import AnnouncementBar from '@/components/announcement/AnnouncementBar'
+import HeroSection from '@/components/LandingPage/HeroSection'
 
+// const LobbyCardSwap = () => {
+//   return (
+
+//     <div className="w-full h-[600px] sm:h-[500px] lg:h-[600px] flex items-center justify-start -ml-20 sm:justify-center sm:ml-0">
+//       <CardSwap
+//         cardDistance={40}
+//         verticalDistance={50}
+//         delay={5000}
+//         pauseOnHover={true}
+//         width={280}
+//         height={380}
+//         easing="elastic"
+//       >
+//         <Card className="bg-gradient-to-br from-amber-400 to-orange-500 border-white/20 shadow-2xl">
+//           <div className="h-full p-4 sm:p-6 flex flex-col text-white">
+//             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+//               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+//                 <Coffee className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+//               </div>
+//               <div>
+//                 <h3 className="text-lg sm:text-xl font-bold">Though Roulette</h3>
+//                 <p className="text-white/80 text-xs sm:text-sm">Brainwaves & Banter</p>
+//               </div>
+//             </div>
+//             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
+//               Quick prompts. Savage takes. Get matched by mindset 🌀🧠
+//             </p>
+//             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
+//               {["Casual", "Morning", "Coffee"].map(tag => (
+//                 <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
+//                   {tag}
+//                 </span>
+//               ))}
+//             </div>
+//             <div className="flex items-center justify-between mb-3 sm:mb-4">
+//               <div className="flex items-center gap-2">
+//                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
+//                 <span className="text-white/80 text-xs sm:text-sm">25 members</span>
+//               </div>
+//               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
+//             </div>
+//             <motion.button
+//               whileHover={{ scale: 1.05 }}
+//               whileTap={{ scale: 0.95 }}
+//               className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+//             >
+
+//               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+//               Join Lobby
+//             </motion.button>
+//           </div>
+//         </Card>
+
+//         <Card className="bg-gradient-to-br from-purple-500 to-pink-500 border-white/20 shadow-2xl">
+//           <div className="h-full p-4 sm:p-6 flex flex-col text-white">
+//             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+//               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+//                 <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+//               </div>
+//               <div>
+//                 <h3 className="text-lg sm:text-xl font-bold">AfterGlow Talks</h3>
+//                 <p className="text-white/80 text-xs sm:text-sm">Midnight Cravings</p>
+//               </div>
+//             </div>
+//             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
+//               1 AM vibes, no small talk. Get deep, get dark, get real 🌒💬
+//             </p>
+//             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
+//               {["Music", "Creative", "Sharing"].map(tag => (
+//                 <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
+//                   {tag}
+//                 </span>
+//               ))}
+//             </div>
+//             <div className="flex items-center justify-between mb-3 sm:mb-4">
+//               <div className="flex items-center gap-2">
+//                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
+//                 <span className="text-white/80 text-xs sm:text-sm">21 members</span>
+//               </div>
+//               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
+//             </div>
+//             <motion.button
+//               whileHover={{ scale: 1.05 }}
+//               whileTap={{ scale: 0.95 }}
+//               className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+//             >
+//               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+//               Join Lobby
+//             </motion.button>
+//           </div>
+//         </Card>
+
+//         <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 border-white/20 shadow-2xl">
+//           <div className="h-full p-4 sm:p-6 flex flex-col text-white">
+//             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+//               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+//                 <Book className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+//               </div>
+//               <div>
+//                 <h3 className="text-lg sm:text-xl font-bold">Persona Pop</h3>
+//                 <p className="text-white/80 text-xs sm:text-sm">Flirt. Fake. Fantasize.</p>
+//               </div>
+//             </div>
+//             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
+//               Step into a new skin. Slide into character. Who do you wanna be tonight? 🎭✨
+//             </p>
+//             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
+//               {["Books", "Literature", "Deep"].map(tag => (
+//                 <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
+//                   {tag}
+//                 </span>
+//               ))}
+//             </div>
+//             <div className="flex items-center justify-between mb-3 sm:mb-4">
+//               <div className="flex items-center gap-2">
+//                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
+//                 <span className="text-white/80 text-xs sm:text-sm">24 members</span>
+//               </div>
+//               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
+//             </div>
+//             <motion.button
+//               whileHover={{ scale: 1.05 }}
+//               whileTap={{ scale: 0.95 }}
+//               className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+//             >
+//               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+//               Join Lobby
+//             </motion.button>
+//           </div>
+//         </Card>
+
+//         <Card className="bg-gradient-to-br from-cyan-400 to-teal-500 border-white/20 shadow-2xl">
+//           <div className="h-full p-4 sm:p-6 flex flex-col text-white">
+//             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+//               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+//                 <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+//               </div>
+//               <div>
+//                 <h3 className="text-lg sm:text-xl font-bold">Chill & Spill</h3>
+//                 <p className="text-white/80 text-xs sm:text-sm">Low-Key Energy</p>
+//               </div>
+//             </div>
+//             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
+//               Come as you are. Mood swings welcome. Let it out 💭🌫️
+//             </p>
+//             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
+//               {["Art", "Visual", "Creative"].map(tag => (
+//                 <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
+//                   {tag}
+//                 </span>
+//               ))}
+//             </div>
+//             <div className="flex items-center justify-between mb-3 sm:mb-4">
+//               <div className="flex items-center gap-2">
+//                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
+//                 <span className="text-white/80 text-xs sm:text-sm">10 members</span>
+//               </div>
+//               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
+//             </div>
+//             <motion.button
+//               whileHover={{ scale: 1.05 }}
+//               whileTap={{ scale: 0.95 }}
+//               className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+//             >
+//               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+//               Join Lobby
+//             </motion.button>
+//           </div>
+//         </Card>
+//       </CardSwap>
+//     </div>
+//   );
+// };
 const LobbyCardSwap = () => {
   return (
-
     <div className="w-full h-[600px] sm:h-[500px] lg:h-[600px] flex items-center justify-start -ml-20 sm:justify-center sm:ml-0">
       <CardSwap
         cardDistance={40}
@@ -30,168 +203,237 @@ const LobbyCardSwap = () => {
         height={380}
         easing="elastic"
       >
-        <Card className="bg-gradient-to-br from-amber-400 to-orange-500 border-white/20 shadow-2xl">
-          <div className="h-full p-4 sm:p-6 flex flex-col text-white">
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <Coffee className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold">Though Roulette</h3>
-                <p className="text-white/80 text-xs sm:text-sm">Brainwaves & Banter</p>
+        {/* Card 1 - Fitness */}
+        <Card className="bg-black border-2 border-gray-800 shadow-2xl overflow-hidden rounded-3xl">
+          {/* Background Image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-30"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=600&fit=crop&crop=center')`
+            }}
+          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30" />
+
+          <div className="h-full p-4 sm:p-6 flex flex-col text-white relative z-10">
+            {/* Category Badge & Live Status */}
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <span className="bg-green-500 text-black px-3 py-1 rounded-full text-xs font-bold">
+                Fitness
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-white/60 text-xs">Live</span>
               </div>
             </div>
+
+            {/* Title */}
+            <div className="mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-black text-white mb-1 tracking-tight drop-shadow-lg">BLIND CHARM</h3>
+              <p className="text-green-400/90 text-xs sm:text-sm font-medium">Talk first 💬 reveal later</p>
+            </div>
+
+            {/* Description */}
             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Quick prompts. Savage takes. Get matched by mindset 🌀🧠
+              Connect through personality first, looks later
             </p>
-            <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
-              {["Casual", "Morning", "Coffee"].map(tag => (
-                <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
-                  {tag}
-                </span>
-              ))}
-            </div>
+
+            {/* Members & Status */}
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm">25 members</span>
+                <span className="text-white/80 text-xs sm:text-sm font-medium">3 members</span>
               </div>
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-white/60 text-xs">Launching soon...</span>
             </div>
+
+            {/* Join Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg"
             >
-
-              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-red-500 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">+</span>
               Join Lobby
             </motion.button>
+            <p className="text-center text-white/60 text-xs mt-2">Tap anywhere to join</p>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-pink-500 border-white/20 shadow-2xl">
-          <div className="h-full p-4 sm:p-6 flex flex-col text-white">
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold">AfterGlow Talks</h3>
-                <p className="text-white/80 text-xs sm:text-sm">Midnight Cravings</p>
+        {/* Card 2 - Dating */}
+        <Card className="bg-black border-2 border-gray-800 shadow-2xl overflow-hidden rounded-3xl">
+          {/* Background Image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-40"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=600&fit=crop&crop=center')`
+            }}
+          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/40" />
+
+          <div className="h-full p-4 sm:p-6 flex flex-col text-white relative z-10">
+            {/* Category Badge & Live Status */}
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">
+                Dating
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-white/60 text-xs">Live</span>
               </div>
             </div>
+
+            {/* Title */}
+            <div className="mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-black text-white mb-1 tracking-tight drop-shadow-lg">SURPRISE LOBBY</h3>
+              <p className="text-yellow-400/90 text-xs sm:text-sm font-medium">Surprise Lobby</p>
+            </div>
+
+            {/* Description */}
             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              1 AM vibes, no small talk. Get deep, get dark, get real 🌒💬
+              Get ready to be surprised..
             </p>
-            <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
-              {["Music", "Creative", "Sharing"].map(tag => (
-                <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
-                  {tag}
-                </span>
-              ))}
-            </div>
+
+            {/* Members & Status */}
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm">21 members</span>
+                <span className="text-white/80 text-xs sm:text-sm font-medium">4 members</span>
               </div>
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
             </div>
+
+            {/* Join Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg"
             >
-              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-red-500 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">+</span>
               Join Lobby
             </motion.button>
+            <p className="text-center text-white/60 text-xs mt-2">Tap anywhere to join</p>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 border-white/20 shadow-2xl">
-          <div className="h-full p-4 sm:p-6 flex flex-col text-white">
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <Book className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold">Persona Pop</h3>
-                <p className="text-white/80 text-xs sm:text-sm">Flirt. Fake. Fantasize.</p>
+        {/* Card 3 - Friends */}
+        <Card className="bg-black border-2 border-gray-800 shadow-2xl overflow-hidden rounded-3xl">
+          {/* Background Image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-35"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=600&fit=crop&crop=center')`
+            }}
+          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30" />
+
+          <div className="h-full p-4 sm:p-6 flex flex-col text-white relative z-10">
+            {/* Category Badge & Live Status */}
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                Dating
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-white/60 text-xs">Live</span>
               </div>
             </div>
+
+            {/* Title */}
+            <div className="mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-black text-white mb-1 tracking-tight drop-shadow-lg">MY FRIEND CIRCLE</h3>
+              <p className="text-blue-400/90 text-xs sm:text-sm font-medium">Friends</p>
+            </div>
+
+            {/* Description */}
             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Step into a new skin. Slide into character. Who do you wanna be tonight? 🎭✨
+              My cute friend circle...
             </p>
-            <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
-              {["Books", "Literature", "Deep"].map(tag => (
-                <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
-                  {tag}
-                </span>
-              ))}
-            </div>
+
+            {/* Members & Status */}
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm">24 members</span>
+                <span className="text-white/80 text-xs sm:text-sm font-medium">0 members</span>
               </div>
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
             </div>
+
+            {/* Join Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg"
             >
-              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-red-500 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">+</span>
               Join Lobby
             </motion.button>
+            <p className="text-center text-white/60 text-xs mt-2">Tap anywhere to join</p>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-cyan-400 to-teal-500 border-white/20 shadow-2xl">
-          <div className="h-full p-4 sm:p-6 flex flex-col text-white">
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold">Chill & Spill</h3>
-                <p className="text-white/80 text-xs sm:text-sm">Low-Key Energy</p>
+        {/* Card 4 - Study Group */}
+        <Card className="bg-black border-2 border-gray-800 shadow-2xl overflow-hidden rounded-3xl">
+          {/* Background Image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-30"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=600&fit=crop&crop=center')`
+            }}
+          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/40" />
+
+          <div className="h-full p-4 sm:p-6 flex flex-col text-white relative z-10">
+            {/* Category Badge & Live Status */}
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <span className="bg-emerald-500 text-black px-3 py-1 rounded-full text-xs font-bold">
+                Coffee Chat
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-white/60 text-xs">Live</span>
               </div>
             </div>
+
+            {/* Title */}
+            <div className="mb-3 sm:mb-4">
+              <h3 className="text-sm sm:text-lg font-black text-white mb-1 tracking-tight leading-tight drop-shadow-lg">
+                GROUP STUDY MAI PADHAI NAHI HOTI HAI
+              </h3>
+              <p className="text-emerald-400/90 text-xs sm:text-sm font-medium">Group Study</p>
+            </div>
+
+            {/* Description */}
             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Come as you are. Mood swings welcome. Let it out 💭🌫️
+              Jisko bhi lagta hia group study mai padhai hoti hai.....
             </p>
-            <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
-              {["Art", "Visual", "Creative"].map(tag => (
-                <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
-                  {tag}
-                </span>
-              ))}
-            </div>
+
+            {/* Members & Status */}
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm">10 members</span>
+                <span className="text-white/80 text-xs sm:text-sm font-medium">0 members</span>
               </div>
-              <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
             </div>
+
+            {/* Join Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg"
             >
-              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-red-500 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">+</span>
               Join Lobby
             </motion.button>
+            <p className="text-center text-white/60 text-xs mt-2">Tap anywhere to join</p>
           </div>
         </Card>
+
       </CardSwap>
     </div>
   );
 };
-
-
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false)
@@ -219,26 +461,10 @@ export default function Home() {
           {/* <BackgroundPattern /> */}
           {/* Main Hero Section */}
           <AnnouncementBar />
+
           <section className="relative min-h-screen rounded-2xl flex items-center justify-center px-4 md:px-8 bg-gradient-to-br from-[#8966f1] via-[#4718d5] to-[#4f09d3] dark:bg-gradient-to-br dark:from-[#661eee] dark:via-[#9c7ff2] dark:to-[#8966f1] transition-colors duration-300 overflow-hidden">
 
-
-
-
-
-            {/* Enhanced Background Elements */}
-            {/* Animated Gradient Orbs */}
-            {/* <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-r from-pink-400/30 to-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-              <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-              <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-yellow-400/15 to-orange-500/15 rounded-full blur-3xl animate-pulse delay-500"></div>
-              <div className="absolute bottom-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-green-400/15 to-teal-500/15 rounded-full blur-3xl animate-pulse delay-700"></div>
-            </div>
-
-            {/* Radial Gradient Overlay */}
-
-
-
-            {/* Animated Connection Lines */}
+            {/* Animated Connection Lines - Only performance optimizations */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <motion.path
@@ -255,8 +481,9 @@ export default function Home() {
                   transition={{
                     duration: 8,
                     repeat: Infinity,
-                    ease: "easeInOut"
+                    ease: "linear" // Changed from easeInOut to linear for smoothness
                   }}
+                  style={{ willChange: 'stroke-dashoffset, opacity' }} // Added for GPU acceleration
                 />
                 <motion.path
                   d="M200,400 Q400,200 600,500 T1000,300"
@@ -272,14 +499,15 @@ export default function Home() {
                   transition={{
                     duration: 10,
                     repeat: Infinity,
-                    ease: "easeInOut",
+                    ease: "linear", // Changed from easeInOut to linear for smoothness
                     delay: 3
                   }}
+                  style={{ willChange: 'stroke-dashoffset, opacity' }} // Added for GPU acceleration
                 />
               </svg>
             </div>
 
-            {/* Floating Particles */}
+            {/* Floating Particles - Only performance optimizations */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               {[...Array(20)].map((_, i) => (
                 <motion.div
@@ -288,6 +516,7 @@ export default function Home() {
                   style={{
                     left: `${Math.random() * 100}%`,
                     top: `${Math.random() * 100}%`,
+                    willChange: 'transform, opacity' // Added for GPU acceleration
                   }}
                   animate={{
                     y: [0, -100, 0],
@@ -299,17 +528,18 @@ export default function Home() {
                     duration: 8 + Math.random() * 4,
                     repeat: Infinity,
                     delay: Math.random() * 8,
-                    ease: "easeInOut"
+                    ease: "linear" // Changed from easeInOut to linear for smoothness
                   }}
                 />
               ))}
             </div>
 
-            {/* Floating Message Bubbles */}
+            {/* Floating Message Bubbles - Only performance optimizations */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               {/* Chat Bubble 1 */}
               <motion.div
-                className="absolute scale-70 lg:scale-100 lg:top-20 lg:left-10 top-2 left-5 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30 "
+                className="absolute scale-70 lg:scale-100 lg:top-20 lg:left-10 top-2 left-5 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30"
+                style={{ willChange: 'transform, opacity' }} // Added for GPU acceleration
                 initial={{ opacity: 0, y: 20, x: -20 }}
                 animate={{
                   opacity: [0, 1, 1, 0],
@@ -319,10 +549,11 @@ export default function Home() {
                 transition={{
                   duration: 6,
                   repeat: Infinity,
-                  delay: 1
+                  delay: 1,
+                  ease: "linear" // Changed for smoothness
                 }}
               >
-                <div className="flex items-center gap-2 ">
+                <div className="flex items-center gap-2">
                   <div className="w-6 h-6 bg-pink-400 rounded-full flex items-center justify-center">
                     <Heart className="w-3 h-3 text-white" />
                   </div>
@@ -333,6 +564,7 @@ export default function Home() {
               {/* Chat Bubble 2 */}
               <motion.div
                 className="absolute scale-70 lg:scale-100 lg:top-32 lg:right-16 top-3 right-8 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30"
+                style={{ willChange: 'transform, opacity' }} // Added for GPU acceleration
                 initial={{ opacity: 0, y: -20, x: 20 }}
                 animate={{
                   opacity: [0, 1, 1, 0],
@@ -342,7 +574,8 @@ export default function Home() {
                 transition={{
                   duration: 6,
                   repeat: Infinity,
-                  delay: 3
+                  delay: 3,
+                  ease: "linear" // Changed for smoothness
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -356,6 +589,7 @@ export default function Home() {
               {/* Chat Bubble 3 */}
               <motion.div
                 className="absolute bottom-20 left-200 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30"
+                style={{ willChange: 'transform, opacity' }} // Added for GPU acceleration
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{
                   opacity: [0, 1, 1, 0],
@@ -365,7 +599,8 @@ export default function Home() {
                 transition={{
                   duration: 5,
                   repeat: Infinity,
-                  delay: 5
+                  delay: 5,
+                  ease: "linear" // Changed for smoothness
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -387,10 +622,12 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8 }}
                   className="relative z-10"
+                  style={{ willChange: 'transform, opacity' }} // Added for GPU acceleration
                 >
 
                   <motion.div
                     className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-full px-6 py-2 mb-8"
+                    style={{ willChange: 'box-shadow' }} // Added for GPU acceleration
                     animate={{
                       boxShadow: [
                         '0 0 20px rgba(255,255,255,0.1)',
@@ -401,11 +638,12 @@ export default function Home() {
                     transition={{
                       duration: 3,
                       repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: "linear" // Changed from easeInOut for smoothness
                     }}
                   >
 
                     <motion.div
+                      style={{ willChange: 'transform' }} // Added for GPU acceleration
                       animate={{ rotate: [0, 360] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                     >
@@ -423,6 +661,7 @@ export default function Home() {
                   >
                     <motion.span
                       className="block"
+                      style={{ willChange: 'text-shadow' }} // Added for GPU acceleration
                       animate={{
                         textShadow: [
                           '0 0 20px rgba(255,255,255,0.5)',
@@ -433,7 +672,7 @@ export default function Home() {
                       transition={{
                         duration: 4,
                         repeat: Infinity,
-                        ease: "easeInOut"
+                        ease: "linear" // Changed from easeInOut for smoothness
                       }}
                     >
                       Find Love
@@ -448,9 +687,7 @@ export default function Home() {
                       Beyond Looks
                     </motion.span>
                   </motion.h1>
-                  {/* <div className="flex justify-center scale-75 lg:">
-                                <CuteFaceBubble2 size="md" />
-                              </div> */}
+
                   <motion.p
                     className="text-xl text-white/90 mb-8 leading-relaxed"
                     initial={{ opacity: 0, y: 20 }}
@@ -460,13 +697,14 @@ export default function Home() {
                     Join our innovative lobby system where personalities match first. Experience dating that starts with
                     <motion.span
                       className="text-pink-300 font-semibold"
+                      style={{ willChange: 'color' }} // Added for GPU acceleration
                       animate={{
                         color: ['#f9a8d4', '#fbbf24', '#34d399', '#60a5fa', '#f9a8d4']
                       }}
                       transition={{
                         duration: 5,
                         repeat: Infinity,
-                        ease: "easeInOut"
+                        ease: "linear" // Changed from easeInOut for smoothness
                       }}
                     >
                       {' '}genuine connections
@@ -479,16 +717,18 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.9 }}
                   >
-                    <motion.div
+                    {/* <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      transition={{ duration: 0.15 }} // Reduced from 0.3 for smoother interaction
                     >
                       <Link
                         href="/register"
-                        className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 via-red-500 to-rose-500 hover:from-pink-600 hover:via-red-600 hover:to-rose-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transition-all duration-300 overflow-hidden"
+                        className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 via-red-500 to-rose-500 hover:from-pink-600 hover:via-red-600 hover:to-rose-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transition-all duration-200 overflow-hidden"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                         <motion.div
+                          style={{ willChange: 'transform' }} // Added for GPU acceleration
                           animate={{ scale: [1, 1.2, 1] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         >
@@ -497,6 +737,7 @@ export default function Home() {
                         <span className="relative z-10">Join the Lobby</span>
                         <motion.div
                           className="relative z-10"
+                          style={{ willChange: 'transform' }} // Added for GPU acceleration
                           animate={{ x: [0, 5, 0] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         >
@@ -508,12 +749,14 @@ export default function Home() {
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      transition={{ duration: 0.15 }} // Reduced from 0.3 for smoother interaction
                     >
                       <Link
                         href="/how-it-works"
-                        className="group inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300"
+                        className="group inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-200"
                       >
                         <motion.div
+                          style={{ willChange: 'transform' }} // Added for GPU acceleration
                           animate={{ rotate: [0, 360] }}
                           transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                         >
@@ -521,11 +764,85 @@ export default function Home() {
                         </motion.div>
                         How it Works
                       </Link>
+                    </motion.div> */}
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    >
+                      <Link
+                        href="/register"
+                        className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 text-white px-10 py-4 rounded-3xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
+                      >
+                        {/* Animated gradient background */}
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-pink-400/20 to-purple-400/20"
+                          animate={{
+                            x: ["-100%", "100%"],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        />
+
+                        {/* Pulsing glow */}
+                        <div className="absolute inset-0 bg-white/10 rounded-3xl group-hover:bg-white/20 transition-all duration-300" />
+
+                        <div className="relative z-10 flex items-center gap-3">
+                          <motion.div
+                            className="relative"
+                            whileHover={{ rotate: [0, -10, 10, 0] }}
+                            transition={{ duration: 0.5 }}
+                          >
+                            <Heart className="w-6 h-6 fill-current" />
+                            <motion.div
+                              className="absolute -inset-2 bg-pink-300 rounded-full"
+                              animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0, 0.3] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            />
+                          </motion.div>
+                          <span className="font-black tracking-wide">Join the Magic</span>
+                          <motion.div
+                            animate={{ x: [0, 3, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            <ArrowRight className="w-5 h-5" />
+                          </motion.div>
+                        </div>
+                      </Link>
+                    </motion.div>
+
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    >
+                      <Link
+                        href="/how-it-works"
+                        className="group relative inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white px-10 py-4 rounded-3xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                      >
+                        <motion.div
+                          animate={{
+                            rotate: [0, 360],
+                            scale: [1, 1.2, 1]
+                          }}
+                          transition={{
+                            rotate: { duration: 8, repeat: Infinity, ease: "linear" },
+                            scale: { duration: 2, repeat: Infinity }
+                          }}
+                        >
+                          <Sparkles className="w-5 h-5" />
+                        </motion.div>
+                        <span className="font-black tracking-wide">Discover How</span>
+                      </Link>
                     </motion.div>
                   </motion.div>
                 </motion.div>
               </div>
 
+              {/* EXACT ORIGINAL CARD SECTION - ZERO CHANGES TO POSITIONING */}
               <div className="relative flex justify-center lg:justify-end sm:mt-8 lg:mt-0">
                 {/* Enhanced Card Area Background */}
                 <div className="absolute inset-0 -m-8 pointer-events-none">
@@ -533,7 +850,8 @@ export default function Home() {
                   <motion.div
                     className="absolute inset-0 rounded-full opacity-30"
                     style={{
-                      background: 'conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent, rgba(255,255,255,0.1), transparent)'
+                      background: 'conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent, rgba(255,255,255,0.1), transparent)',
+                      willChange: 'transform' // Added for GPU acceleration
                     }}
                     animate={{ rotate: 360 }}
                     transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -541,37 +859,31 @@ export default function Home() {
 
                   {/* Pulsing glow effect */}
                   {/* <motion.div
-                    className="absolute inset-4 bg-gradient-to-r from-pink-500/5 via-purple-500/5 to-blue-500/5 rounded-full blur-2xl"
-                    animate={{
-                      scale: [1, 1.2, 1],
-                      opacity: [0.2, 0.4, 0.2]
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  /> */}
+          className="absolute inset-4 bg-gradient-to-r from-pink-500/5 via-purple-500/5 to-blue-500/5 rounded-full blur-2xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        /> */}
                 </div>
 
-
-
-                {/* <div className="relative z-10">
-                  <LobbyCardSwap />
-                </div> */}
+                {/* EXACT ORIGINAL CARD POSITIONING - ABSOLUTELY NO CHANGES */}
                 <div className="relative z-10 scale-90 lg:scale-100 lg:mt-[-1rem] 
-                sm: ml-20            
-                md:mr-70                    
-                lg:ml-[px] lg:mr-auto       
-               ">
+      sm: ml-20            
+      md:mr-70                    
+      lg:ml-[px] lg:mr-auto       
+     ">
                   <LobbyCardSwap />
                 </div>
               </div>
             </div>
 
           </section>
-
-
 
 
           {/* Why Choose BlindCharm Section */}
@@ -779,9 +1091,9 @@ export default function Home() {
                 className="text-center lg:text-left max-w-xl"
               >
                 <div className="flex items-center justify-center font-blindcharm-tech lg:justify-start gap-2 text-pink-400 text-sm font-semibold uppercase tracking-widest mb-4">
-                   Find Love, Without the Swipe Fatigue
+                  Find Love, Without the Swipe Fatigue
                 </div>
-                 
+
                 <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-white mb-6">
                   Blind Dates, <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">Reimagined</span>
                 </h1>
@@ -803,7 +1115,7 @@ export default function Home() {
                     <span className="relative z-10">Join BlindCharm</span>
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
                   </Link>
-                   <Link
+                  <Link
                     href="/about"
                     className="group inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300"
                   >
@@ -835,7 +1147,7 @@ export default function Home() {
                     <p className="text-gray-400 mb-6">
                       We keep it mysterious — your profile is hidden until you both reveal. Experience the thrill of a blind date without the pressure of photos.
                     </p>
-                     {/* <Link
+                    {/* <Link
                     href="/register"
                     className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 hover:from-pink-700 hover:via-purple-700 hover:to-blue-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden"
                   >
