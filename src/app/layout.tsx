@@ -104,6 +104,7 @@ import {
 } from './fonts'
 import { Toaster } from 'sonner';
 import { NotificationProvider } from '@/components/notifications/NotificationProvider';
+import { FirebaseAuthProvider } from '@/providers/FirebaseAuthProvider'
 export default function RootLayout({
   children,
 }: {
@@ -188,6 +189,7 @@ export default function RootLayout({
       <body className={fontClasses}>
         <ThemeProvider >
           <AuthProvider>
+            <FirebaseAuthProvider>
             <NotificationProvider>
               {/* <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" > */}
               <div  className="light">
@@ -202,6 +204,7 @@ export default function RootLayout({
                 <PWAInstallPrompt />
               </div>
             </NotificationProvider>
+            </FirebaseAuthProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

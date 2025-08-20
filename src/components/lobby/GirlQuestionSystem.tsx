@@ -19,7 +19,8 @@ import {
   Crown,
   Sparkles,
   Timer,
-  Award
+  Award,
+  RefreshCw
 } from 'lucide-react'
 import { User, LobbyParticipant, Question, Answer } from '@/types/lobby'
 import { supabase } from '@/lib/supabase'
@@ -52,6 +53,7 @@ export default function GirlQuestionSystem({
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [activeTab, setActiveTab] = useState<'create' | 'review' | 'leaderboard'>('create')
   const [loading, setLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [userGender, setUserGender] = useState<string>('');
   
   // Question creation state
@@ -107,7 +109,7 @@ export default function GirlQuestionSystem({
       fetchQuestions()
       fetchAnswers()
       
-      // Set up real-time subscriptions
+      // Set up real-time subscriptions with more specific event handling
       const questionsSubscription = supabase
         .channel(`questions-${lobbyId}`)
         .on('postgres_changes', {
@@ -115,7 +117,8 @@ export default function GirlQuestionSystem({
           schema: 'public',
           table: 'girl_questions',
           filter: `lobby_id=eq.${lobbyId}`
-        }, () => {
+        }, (payload) => {
+          console.log('Questions change detected:', payload)
           fetchQuestions()
         })
         .subscribe()
@@ -127,7 +130,25 @@ export default function GirlQuestionSystem({
           schema: 'public',
           table: 'question_answers',
           filter: `lobby_id=eq.${lobbyId}`
-        }, () => {
+        }, (payload) => {
+          console.log('Answers change detected:', payload)
+          fetchAnswers()
+        })
+        .subscribe()
+
+      // Listen for lobby reset events (after matching)
+      const resetSubscription = supabase
+        .channel(`lobby_reset_${lobbyId}`)
+        .on('broadcast', {
+          event: 'questions_reset'
+        }, (payload) => {
+          console.log('🔄 Questions reset detected, refreshing data...')
+          // Reset local state
+          setQuestions([])
+          setAnswers([])
+          setLeaderboard([])
+          // Fetch fresh data
+          fetchQuestions()
           fetchAnswers()
         })
         .subscribe()
@@ -135,6 +156,7 @@ export default function GirlQuestionSystem({
       return () => {
         questionsSubscription.unsubscribe()
         answersSubscription.unsubscribe()
+        resetSubscription.unsubscribe()
       }
     }
   }, [lobbyId])
@@ -183,17 +205,33 @@ export default function GirlQuestionSystem({
   }
 
   const updateLeaderboard = () => {
+    console.log('🔄 Updating leaderboard with', answers.length, 'answers and', participants.length, 'participants')
     const boys = participants.filter(p => p.user.gender?.toLowerCase() === 'male')
+    console.log('👨 Boys found:', boys.length, boys.map(b => b.user.username))
+    
     const leaderboardData: LeaderboardEntry[] = boys.map(participant => {
       const boyAnswers = answers.filter(a => a.boy_id === participant.user_id)
       const totalPoints = boyAnswers.reduce((sum, answer) => sum + answer.points_awarded, 0)
+      
+      console.log(`📊 ${participant.user.username}: ${totalPoints} points from ${boyAnswers.length} answers`)
       
       return {
         boy: participant.user,
         totalPoints,
         answeredQuestions: boyAnswers.length
       }
-    }).sort((a, b) => b.totalPoints - a.totalPoints)
+    }).sort((a, b) => {
+      if (b.totalPoints !== a.totalPoints) {
+        return b.totalPoints - a.totalPoints
+      }
+      return b.answeredQuestions - a.answeredQuestions
+    })
+
+    console.log('🏆 Final leaderboard:', leaderboardData.map(l => ({ 
+      username: l.boy.username, 
+      points: l.totalPoints,
+      questions: l.answeredQuestions 
+    })))
 
     setLeaderboard(leaderboardData)
   }
@@ -320,6 +358,25 @@ export default function GirlQuestionSystem({
     return leaderboard.length > 0 ? leaderboard[0] : null
   }
 
+  const refreshData = async () => {
+    setRefreshing(true)
+    try {
+      await Promise.all([fetchQuestions(), fetchAnswers()])
+      // Add haptic feedback
+      if (navigator.vibrate) {
+        navigator.vibrate(50)
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error)
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
+  const reloadPage = () => {
+    window.location.reload()
+  }
+
   const renderQuestionCreation = () => (
     <div className="space-y-6">
       <div className="text-center">
@@ -419,7 +476,7 @@ export default function GirlQuestionSystem({
           <button
             onClick={createQuestion}
             disabled={loading || !newQuestion.text.trim() || (newQuestion.type === 'mcq' && !newQuestion.correctAnswer)}
-            className="w-full py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-3 bg-indigo-500 text-white rounded-xl font-medium hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">
@@ -474,6 +531,11 @@ export default function GirlQuestionSystem({
       !answers.some(a => a.question_id === q.id && a.boy_id === currentUser?.id)
     )
 
+    // Get current user's stats
+    const myAnswers = answers.filter(a => a.boy_id === currentUser?.id)
+    const myTotalPoints = myAnswers.reduce((sum, answer) => sum + answer.points_awarded, 0)
+    const myRank = leaderboard.findIndex(entry => entry.boy.id === currentUser?.id) + 1
+
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -485,12 +547,52 @@ export default function GirlQuestionSystem({
           </p>
         </div>
 
+        {/* My Score Card */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-bold text-lg">Your Score</h4>
+              <div className="flex items-center gap-2 mt-1">
+                <Star className="w-4 h-4" />
+                <span className="font-semibold">{myTotalPoints} points</span>
+              </div>
+              <p className="text-white/90 text-sm">{myAnswers.length} questions answered</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-1">
+                <span className="font-bold text-lg">#{myRank || '-'}</span>
+              </div>
+              <p className="text-xs text-white/90">Rank</p>
+            </div>
+          </div>
+        </div>
+
         {availableQuestions.length === 0 ? (
           <div className="text-center py-8">
             <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500 dark:text-gray-400">
-              No new questions available. Check back soon!
+              {questions.length === 0 
+                ? "No questions available yet. Girls are creating questions!"
+                : "You've answered all available questions! Great job!"
+              }
             </p>
+            <button
+              onClick={refreshData}
+              disabled={refreshing}
+              className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition-colors"
+            >
+              {refreshing ? (
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Checking...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4" />
+                  Check for New Questions
+                </div>
+              )}
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -517,6 +619,13 @@ export default function GirlQuestionSystem({
       questions.find(q => q.id === a.question_id)?.question_type === 'written'
     )
 
+    // Get stats for reviewed answers
+    const reviewedAnswers = answers.filter(a => 
+      myQuestions.some(q => q.id === a.question_id) && 
+      a.is_reviewed &&
+      questions.find(q => q.id === a.question_id)?.question_type === 'written'
+    )
+
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -524,16 +633,49 @@ export default function GirlQuestionSystem({
             Review Answers
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Review written answers and award points (0-10 points each)
+            Review written answers and award Charms (0-10 Charms each)
           </p>
         </div>
+
+        {/* Review Stats */}
+        {reviewedAnswers.length > 0 && (
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <h4 className="font-semibold text-green-800 dark:text-green-200">Review Progress</h4>
+            </div>
+            <p className="text-sm text-green-700 dark:text-green-300">
+              You've reviewed {reviewedAnswers.length} answers. Great job helping boys improve their scores!
+            </p>
+          </div>
+        )}
 
         {writtenAnswers.length === 0 ? (
           <div className="text-center py-8">
             <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500 dark:text-gray-400">
-              No answers to review right now
+              {reviewedAnswers.length > 0 
+                ? "All caught up! No new answers to review right now."
+                : "No answers to review yet. Boys will start answering your questions soon!"
+              }
             </p>
+            <button
+              onClick={refreshData}
+              disabled={refreshing}
+              className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition-colors"
+            >
+              {refreshing ? (
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Checking...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4" />
+                  Check for New Answers
+                </div>
+              )}
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -571,20 +713,23 @@ export default function GirlQuestionSystem({
 
         {/* Top Performer Highlight */}
         {topPerformer && topPerformer.totalPoints > 0 && (
-          <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 text-white">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                <Crown className="w-8 h-8" />
-              </div>
-              <div className="flex-1">
+          <div className=" rounded-2xl p-0 text-white">
+             {/* <div className=" w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mb-4">
+                <Crown className="w-6 h-6 mx-auto mb-1 " />
+              </div> */}
+            <div className="flex items-center gap-4 bg-purple-500 rounded-2xl p-4">
+              {/* <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <Crown className="w-6 h-6 mx-auto mb-1" />
+              </div> */}
+              <div className="flex-1 ">
                 <h4 className="font-bold text-lg">Current Leader</h4>
-                <p className="text-white/90">@{topPerformer.boy.username}</p>
+                <p className="text-amber-400 font-blindcharm-logo text-xl">@{topPerformer.boy.username}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <Star className="w-4 h-4" />
-                  <span className="font-semibold">{topPerformer.totalPoints} points</span>
+                  <Star className="w-4 h-4 text-amber-400 fill-secondary-200" />
+                  <span className="font-semibold">{topPerformer.totalPoints} charms</span>
                 </div>
               </div>
-              <div className="text-center">
+              <div className="text-center bg-purple-700 rounded-2xl p-2">
                 <Timer className="w-6 h-6 mx-auto mb-1" />
                 <p className="text-sm text-white/90">Next match</p>
                 <p className="font-bold">{nextMatchTime}</p>
@@ -662,11 +807,38 @@ export default function GirlQuestionSystem({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Tab Navigation */}
-      <div className="flex-shrink-0 p-4">
+      {/* Header with Refresh Button */}
+      <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-0">
+          <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">
+            Charm Questions
+          </h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={refreshData}
+              disabled={refreshing}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Refresh data"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+            {/* <button
+              onClick={reloadPage}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Reload page"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button> */}
+            
+          </div>
+          
+        </div>
+        <h6 className="text-sm font-blindcharm-logo text-purple-500 dark:text-gray-400 mb-2">
+           Answer to earn charm and unlock deeper bonds.
+          </h6>
+        {/* Tab Navigation */}
         <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
           {isGirl && (
-          
             <>
               <button
                 onClick={() => setActiveTab('create')}
@@ -708,7 +880,7 @@ export default function GirlQuestionSystem({
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
         <AnimatePresence mode="wait">
           {activeTab === 'create' && isGirl && (
           
@@ -777,14 +949,20 @@ function QuestionCard({
 }) {
   const [answer, setAnswer] = useState('')
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = () => {
-    if (question.question_type === 'mcq' && selectedOption !== null) {
-      const selectedAnswer = question.options?.[selectedOption] || ''
-      onSubmitAnswer(question.id, selectedAnswer, selectedOption)
-    } else if (question.question_type === 'written' && answer.trim()) {
-      onSubmitAnswer(question.id, answer)
-      setAnswer('')
+  const handleSubmit = async () => {
+    setIsSubmitting(true)
+    try {
+      if (question.question_type === 'mcq' && selectedOption !== null) {
+        const selectedAnswer = question.options?.[selectedOption] || ''
+        await onSubmitAnswer(question.id, selectedAnswer, selectedOption)
+      } else if (question.question_type === 'written' && answer.trim()) {
+        await onSubmitAnswer(question.id, answer)
+        setAnswer('')
+      }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -837,10 +1015,10 @@ function QuestionCard({
           
           <button
             onClick={handleSubmit}
-            disabled={loading || selectedOption === null}
+            disabled={loading || isSubmitting || selectedOption === null}
             className="w-full py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Submitting...' : 'Submit Answer'}
+            {loading || isSubmitting ? 'Submitting...' : 'Submit Answer'}
           </button>
         </div>
       ) : (
@@ -855,10 +1033,10 @@ function QuestionCard({
           
           <button
             onClick={handleSubmit}
-            disabled={loading || !answer.trim()}
+            disabled={loading || isSubmitting || !answer.trim()}
             className="w-full py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Submitting...' : 'Submit Answer'}
+            {loading || isSubmitting ? 'Submitting...' : 'Submit Answer'}
           </button>
         </div>
       )}
@@ -879,12 +1057,18 @@ function AnswerReviewCard({
   loading: boolean
 }) {
   const [selectedPoints, setSelectedPoints] = useState<number | null>(null)
+  const [isReviewing, setIsReviewing] = useState(false)
 
   const pointOptions = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-  const handleReview = () => {
+  const handleReview = async () => {
     if (selectedPoints !== null) {
-      onReview(answer.id, selectedPoints)
+      setIsReviewing(true)
+      try {
+        await onReview(answer.id, selectedPoints)
+      } finally {
+        setIsReviewing(false)
+      }
     }
   }
 
@@ -931,10 +1115,10 @@ function AnswerReviewCard({
 
         <button
           onClick={handleReview}
-          disabled={loading || selectedPoints === null}
+          disabled={loading || isReviewing || selectedPoints === null}
           className="w-full py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? 'Reviewing...' : `Award ${selectedPoints} Points`}
+          {loading || isReviewing ? 'Reviewing...' : `Award ${selectedPoints} Points`}
         </button>
       </div>
     </div>

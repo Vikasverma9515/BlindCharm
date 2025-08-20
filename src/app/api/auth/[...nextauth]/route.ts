@@ -81,8 +81,10 @@ const supabase = createClient(
 
 export const authOptions = {
   providers: [
+    // Email/Password Authentication
     CredentialsProvider({
-      name: 'Credentials',
+      id: 'credentials',
+      name: 'Email & Password',
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
@@ -101,29 +103,75 @@ export const authOptions = {
           if (data.user) {
             return {
               id: data.user.id,
-              email: data.user.email || '', // Ensure email is always a string
+              email: data.user.email || '',
               name: data.user.user_metadata?.full_name,
             }
           }
           return null
         } catch (error) {
-          console.error('Auth error:', error)
+          console.error('Email auth error:', error)
+          return null
+        }
+      }
+    }),
+    
+    // Phone Authentication
+    CredentialsProvider({
+      id: 'phone',
+      name: 'Phone Number',
+      credentials: {
+        phone: { label: "Phone", type: "text" },
+        firebaseUid: { label: "Firebase UID", type: "text" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.phone || !credentials?.firebaseUid) return null
+        
+        try {
+          // Find user by phone number in Supabase
+          const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('phone_number', credentials.phone)
+            .eq('firebase_uid', credentials.firebaseUid)
+            .single()
+
+          if (error) {
+            console.error('Phone auth error:', error)
+            return null
+          }
+
+          if (user) {
+            return {
+              id: user.id,
+              email: user.email || `${user.firebase_uid}@phone.blindcharm.com`,
+              name: user.full_name || user.username,
+              phone: user.phone_number,
+              isPhoneVerified: user.is_phone_verified
+            }
+          }
+          return null
+        } catch (error) {
+          console.error('Phone auth error:', error)
           return null
         }
       }
     })
   ],
   callbacks: {
-    async jwt({ token, user }: { token: any; user?: { id: string; email: string } }) {
+    async jwt({ token, user }: { token: any; user?: any }) {
       if (user) {
         token.id = user.id
         token.email = user.email
+        token.phone = user.phone
+        token.isPhoneVerified = user.isPhoneVerified
       }
       return token
     },
     async session({ session, token }: { session: any; token: any }) {
       if (session.user) {
         session.user.id = token.id
+        session.user.phone = token.phone
+        session.user.isPhoneVerified = token.isPhoneVerified
       }
       return session
     }

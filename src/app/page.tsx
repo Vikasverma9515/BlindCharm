@@ -17,6 +17,7 @@ import CuteFaceBubble2 from '@/components/ui/CuteFaceBubble2'
 import NotificationPrompt from '@/components/notifications/NotificationPrompt'
 import AnnouncementBar from '@/components/announcement/AnnouncementBar'
 import HeroSection from '@/components/LandingPage/HeroSection'
+import HeroInstallButton from '@/components/HeroInstallButton'
 
 // const LobbyCardSwap = () => {
 //   return (
@@ -837,7 +838,12 @@ export default function Home() {
                         </motion.div>
                         <span className="font-black tracking-wide">Discover How</span>
                       </Link>
+                      {/* <HeroInstallButton className="w-full sm:w-auto" /> */}
+                      
                     </motion.div>
+                    {/* <div className="mt-4">
+                      <HeroInstallButton />
+                      </div> */}
                   </motion.div>
                 </motion.div>
               </div>
@@ -884,7 +890,7 @@ export default function Home() {
             </div>
 
           </section>
-
+ 
 
           {/* Why Choose BlindCharm Section */}
           <section className=" rounded-2xl py-20 px-4 md:px-8 bg-[#ffffff]  dark:bg-gray-800 transition-colors duration-300">

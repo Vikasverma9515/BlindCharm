@@ -363,13 +363,50 @@ export class MatchingService {
         gender: p.user.gender 
       })));
 
-      // Separate and shuffle participants
+      // Separate participants
       const males = typedParticipants.filter(p => p.user.gender === 'male');
       const females = typedParticipants.filter(p => p.user.gender === 'female');
 
       console.log('👨 Males found:', males.length, males.map(m => m.user.username));
       console.log('👩 Females found:', females.length, females.map(f => f.user.username));
 
+      // Get question scores for boys to prioritize high scorers
+      // Include both reviewed written answers and auto-scored MCQ answers
+      const { data: questionScores, error: scoresError } = await supabase
+        .from('question_answers')
+        .select('boy_id, points_awarded, is_reviewed')
+        .eq('lobby_id', lobbyId);
+
+      if (scoresError) {
+        console.error('Error fetching question scores:', scoresError);
+      }
+
+      // Calculate total scores for each boy
+      const boyScores = new Map<string, number>();
+      if (questionScores) {
+        console.log('📊 All question scores found:', questionScores);
+        questionScores.forEach(score => {
+          const currentScore = boyScores.get(score.boy_id) || 0;
+          boyScores.set(score.boy_id, currentScore + score.points_awarded);
+        });
+        console.log('💯 Final boy scores:', Array.from(boyScores.entries()));
+      } else {
+        console.log('⚠️ No question scores found for lobby:', lobbyId);
+      }
+
+      // Sort males by their question scores (highest first)
+      males.sort((a, b) => {
+        const scoreA = boyScores.get(a.user_id) || 0;
+        const scoreB = boyScores.get(b.user_id) || 0;
+        return scoreB - scoreA; // Descending order (highest score first)
+      });
+
+      console.log('🏆 Males sorted by score:', males.map(m => ({
+        username: m.user.username,
+        score: boyScores.get(m.user_id) || 0
+      })));
+
+      // Shuffle females for fairness
       const shuffle = (array: any[]) => {
         for (let i = array.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -377,7 +414,6 @@ export class MatchingService {
         }
       };
 
-      shuffle(males);
       shuffle(females);
 
       // Check if we have at least one male and one female
@@ -563,6 +599,9 @@ export class MatchingService {
 
         console.log('Participants removed successfully');
 
+        // Reset questions and answers for the next round
+        await this.resetQuestionsAndAnswers(lobbyId);
+
         return {
           success: true,
           matches: matchData
@@ -573,6 +612,54 @@ export class MatchingService {
     } catch (error) {
       console.error('Error in matching process:', error);
       return { success: false, error };
+    }
+  }
+
+  // Reset questions and answers after matching for a fresh start
+  static async resetQuestionsAndAnswers(lobbyId: string) {
+    try {
+      console.log('🔄 Resetting questions and answers for lobby:', lobbyId);
+
+      // Delete all answers for this lobby
+      const { error: answersError } = await supabase
+        .from('question_answers')
+        .delete()
+        .eq('lobby_id', lobbyId);
+
+      if (answersError) {
+        console.error('❌ Error deleting answers:', answersError);
+        throw answersError;
+      }
+
+      // Delete all questions for this lobby
+      const { error: questionsError } = await supabase
+        .from('girl_questions')
+        .delete()
+        .eq('lobby_id', lobbyId);
+
+      if (questionsError) {
+        console.error('❌ Error deleting questions:', questionsError);
+        throw questionsError;
+      }
+
+      console.log('✅ Questions and answers reset successfully for lobby:', lobbyId);
+      
+      // Send broadcast notification to refresh the Q&A system
+      const resetChannel = supabase.channel(`lobby_reset_${lobbyId}`);
+      await resetChannel.send({
+        type: 'broadcast',
+        event: 'questions_reset',
+        payload: { lobbyId }
+      });
+
+      // Clean up channel
+      setTimeout(() => {
+        resetChannel.unsubscribe();
+      }, 1000);
+
+    } catch (error) {
+      console.error('❌ Error resetting questions and answers:', error);
+      // Don't throw error here as it shouldn't block the matching process
     }
   }
 }

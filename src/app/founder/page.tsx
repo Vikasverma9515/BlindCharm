@@ -1,6 +1,6 @@
 // src/app/about-me/page.tsx
 import Link from 'next/link'
-import { Heart, Mail, Github, Linkedin } from 'lucide-react'
+import { Heart, Mail, Github, Linkedin, Instagram } from 'lucide-react'
 import SimpleTopNav from '@/components/shared/SimpleTopNav'
 import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
 import Footer from '@/components/shared/Footer'
@@ -17,8 +17,9 @@ export default function AboutMePage() {
               <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 About Me
               </h1>
-              <p className="text-xl text-red-500 dark:text-gray-300">
-                Hi, I'm Vikas Verma - the creator behind BlindCharm
+              <p className="text-xl font-blindcharm-italic text-black dark:text-gray-300">
+                Hi, I'm <span className='font-blindcharm-brand text-sm text-red-500'>Vikas Verma</span>  - the creator behind <span className='font-blindcharm-brand text-sm text-red-500'>BlindCharm</span>
+                {/* <span><img src="/logo2.png" alt="" className='flex items-center mr-2 h-6 w-auto'/></span> */}
               </p>
             </div>
 
@@ -52,9 +53,9 @@ export default function AboutMePage() {
                   <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-lime-200 dark:bg-gray-800">
                     <p className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 sm:flex-row flex-col justify-between">
                       <div className='font-medium text-xl text-red-600 dark:text-red-400'>
-                      Devansh Verma
+                        Devansh Verma
                       </div>
-                       – Marketing & Outreach Lead
+                      – Marketing & Outreach Lead
                     </p>
                     <p className="text-gray-600 dark:text-gray-400 text-sm">
                       {/* The very first person to join BlindCharm and a driving force behind its growth,
@@ -178,6 +179,18 @@ export default function AboutMePage() {
                     <div>
                       <p className="font-medium text-gray-900 dark:text-gray-100">LinkedIn</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Connect with me</p>
+                    </div>
+                  </a>
+                  <a
+                    href="https://www.instagram.com/bbaking_brain/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-red-300 dark:hover:border-red-600 transition-colors"
+                  >
+                    <Instagram className="w-5 h-5 text-red-500" />
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">Instagram</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">@bbaking_brain</p>
                     </div>
                   </a>
                 </div>

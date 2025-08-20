@@ -135,6 +135,35 @@ const LoginForm: FC = () => { // Use FC type instead of JSX.Element
           </button>
         </div>
 
+        {/* Alternative Login Options */}
+        <div className="space-y-4">
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/20 dark:border-gray-600"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-indigo-500 dark:bg-gray-800 text-white dark:text-gray-300">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          {/* Phone Authentication Button */}
+          <Link
+            href="/phone-login"
+            className="w-full flex items-center justify-center px-4 py-3 border border-white/20 dark:border-gray-600 rounded-2xl shadow-sm bg-white/10 dark:bg-gray-700/50 text-white dark:text-gray-200 hover:bg-white/20 dark:hover:bg-gray-700 transition-all duration-300 backdrop-blur-sm"
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            <span className="font-medium">Sign in with Phone</span>
+            <div className="ml-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full">
+              FREE
+            </div>
+          </Link>
+        </div>
+
         {/* Forgot Password Link */}
         <div className="text-center">
           <Link 

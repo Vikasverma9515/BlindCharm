@@ -96,7 +96,7 @@ const NotificationPrompt: React.FC<NotificationPromptProps> = ({
           >
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               {/* Header */}
-              <div className="relative p-6 bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+              <div className="relative p-6 bg-black text-white">
                 <button
                   onClick={handleDismiss}
                   className="absolute top-4 right-4 p-1 text-white/80 hover:text-white transition-colors"
@@ -130,7 +130,7 @@ const NotificationPrompt: React.FC<NotificationPromptProps> = ({
                         New Matches
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Be the first to know when someone likes you back
+                        Be the first to know when you get a new match!
                       </p>
                     </div>
                   </div>
@@ -165,7 +165,7 @@ const NotificationPrompt: React.FC<NotificationPromptProps> = ({
                     whileTap={{ scale: 0.98 }}
                     onClick={handleEnable}
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full bg-black hover:bg-gray-800 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {isLoading ? (
                       <>

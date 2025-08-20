@@ -36,7 +36,7 @@ import CacheStats from '@/components/debug/CacheStats'
 import LobbyBanner from '@/components/announcement/LobbyBanner'
 import AnnouncementBar from '@/components/announcement/AnnouncementBar'
 import GirlQuestionSystem from '@/components/lobby/GirlQuestionSystem'
-import { Trophy, HelpCircle } from 'lucide-react'
+import { Trophy, HelpCircle, RefreshCw } from 'lucide-react'
 import { FlameKindling } from '@/blocks/Components/icons/flame'
 
 interface PageProps {
@@ -1131,15 +1131,22 @@ export default function LobbyPage({ params }: PageProps) {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => setShowInfo(!showInfo)}
-                        // className={`p-2 rounded-full transition-colors ${showInfo ? 'bg-primary-100 text-primary-600' : 'hover:bg-gray-100 text-white'
-                        //   }`}
-                        className={`p-2 rounded-full transition-all duration-200 ease-in-out ${showInfo ? 'bg-lime-600 text-primary-600' : 'hover:bg-gray-100 text-white '
-                          }`}
-                      >
-                        <Settings className="w-5 h-5 dark:text-white " />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => window.location.reload()}
+                          className="p-2 rounded-full transition-all duration-200 ease-in-out hover:bg-gray-100 text-white"
+                          title="Reload page"
+                        >
+                          <RefreshCw className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setShowInfo(!showInfo)}
+                          className={`p-2 rounded-full transition-all duration-200 ease-in-out ${showInfo ? 'bg-lime-600 text-primary-600' : 'hover:bg-gray-100 text-white '
+                            }`}
+                        >
+                          <Settings className="w-5 h-5 dark:text-white " />
+                        </button>
+                      </div>
 
                     </div>
                     <div className=" absolute bottom-0 left-0 right-0 flex items-center justify-between gap-2 p-4 bg-white/20 backdrop-blur-md rounded-xl">
@@ -1295,6 +1302,18 @@ export default function LobbyPage({ params }: PageProps) {
                           {/* <div className="px-4 py-2 bg-white rounded-full shadow-sm">
                             <span className="text-sm">Now: {currentTime}</span>
                           </div> */}
+
+                          {/* Refresh Button */}
+                          <button
+                            onClick={() => window.location.reload()}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200
+                     bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
+                     rounded-full transition-colors shadow-sm border border-gray-200 dark:border-gray-600"
+                            title="Reload page"
+                          >
+                            <RefreshCw className="w-4 h-4 inline mr-2" />
+                            Refresh
+                          </button>
 
                           {/* Test Match Button */}
                           {(process.env.NODE_ENV === 'development' ||
@@ -1677,8 +1696,12 @@ export default function LobbyPage({ params }: PageProps) {
               </div>
             ) : (
               // Desktop Layout
+              
               // <div className="max-w-[1600px] mx-auto px-4  lg:pt-4 lg:pb-0  ">
-              <div className="max-w-[1600px] mx-auto px-10 h-[calc(90vh-40px)] pt-10 pb-0">
+              <div className="max-w-[1600px] mx-auto px-10 h-[calc(85vh-40px)] pt-1 pb-0">
+                <div className='pt-0'>
+                  <LobbyBanner />
+                  </div>
                 {/* <div className="flex gap-6 h-[calc(90vh-40px)] bg-blue-600"> */}
                 <div className="flex gap-6 h-full">
                   {/* Information Section - Left side */}
@@ -1690,8 +1713,11 @@ export default function LobbyPage({ params }: PageProps) {
                           <Users className="w-6 h-6 text-primary-500" />
                           <h2 className="text-xl font-semibold text-neutral-850 dark:text-white">Participants ({participants.length})</h2>
                         </div>
+                        
                       </div>
-
+                      {/* <div className='pt-1'>
+                  <LobbyBanner />
+                  </div> */}
                       {/* Scrollable participants list */}
                       <div className="flex-1 overflow-y-auto min-h-0 ">
                         <div className="p-6 space-y-3">
@@ -1734,7 +1760,7 @@ export default function LobbyPage({ params }: PageProps) {
                                   )}
                                 </div>
                                 <p className="text-sm text-neutral-750 dark:text-amber-200">
-                                  {participant.user?.gender === 'male' ? '♂️ Male' : participant.user?.gender === 'female' ? '♀️ Female' : '⚧️ Other'}
+                                  {/* {participant.user?.gender === 'male' ? '♂️ Male' : participant.user?.gender === 'female' ? '♀️ Female' : '⚧️ Other'} */}
                                   {' • '}Waiting for match...
                                 </p>
                               </div>
@@ -1793,13 +1819,13 @@ export default function LobbyPage({ params }: PageProps) {
 
                         {/* Next Match Info */}
                         <div className="px-6 pb-6">
-                          <div className="text-center bg-lime-300 rounded-2xl p-4">
+                          <div className="text-center bg-purple-500 rounded-2xl p-4">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                              <Clock className="w-5 h-5 text-black" />
-                              <span className="text-sm font-medium text-black">Next Match</span>
+                              <Clock className="w-5 h-5 text-white" />
+                              <span className="text-sm font-medium text-white">Next Match</span>
                             </div>
-                            <p className="text-2xl font-bold text-primary-600">{nextMatchTime}</p>
-                            <p className="text-xs text-black mt-1">
+                            <p className="text-2xl font-bold text-amber-300">{nextMatchTime}</p>
+                            <p className="text-xs text-white mt-1">
                               Matches happen every few hours
                             </p>
 
@@ -1826,7 +1852,7 @@ export default function LobbyPage({ params }: PageProps) {
 
                     </div>
                   </div>
-
+                  
 
                   {/* Chat Section - Center */}
                   <div className="flex-1 min-w-0">
@@ -1839,6 +1865,26 @@ export default function LobbyPage({ params }: PageProps) {
                     </div>
 
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-white rounded-3xl shadow-soft border border-gray-100 h-full overflow-hidden flex flex-col dark:bg-gray-800">
+                      {/* <LobbyChat
+                        lobbyId={lobbyId}
+                        currentUser={currentUser}
+                        participants={participants}
+                      /> */}
+                      <GirlQuestionSystem
+                        lobbyId={lobbyId}
+                        currentUser={currentUser}
+                        participants={participants}
+                        nextMatchTime={nextMatchTime}
+                        onMatchTriggered={triggerMatching}
+                      />
+                    </div>
+
+                  </div>
+
+                   
+                      
 
 
                   {/* MindMatch Arena - Right side */}

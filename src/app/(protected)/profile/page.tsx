@@ -39,10 +39,12 @@ import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 import AdminBadge from '@/components/ui/AdminBadge'
 import { signOut } from 'next-auth/react'
-import FaceVerification from '@/components/profile/FaceVerification'
+
 import BroadcastNotifications from '@/components/admin/BroadcastNotifications'
 import AdminNotificationPanel from '@/components/admin/AdminNotificationPanel'
 import { useRouter } from 'next/navigation'
+import BlindCharmVerification from '@/components/verification/BlindCharmVerification'
+import FaceVerification from '@/components/verification/FaceVerification'
 
 interface UserProfile {
   id: string;
@@ -461,6 +463,7 @@ export default function ProfilePage() {
   return (
     <>
       <SimpleTopNav pageName="My Profile" />
+       {/* <BlindCharmVerification /> */}
 
       <main className="min-h-screen pt-0 pb-4 md:pt-0 md:pb-8 bg-gray-50 dark:bg-gray-900 transition-all duration-500">
         <div className="max-w-md mx-auto px-4 py-6 md:max-w-2xl md:pt-8 space-y-6">
@@ -619,21 +622,21 @@ export default function ProfilePage() {
                   {/* Basic Info Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 ">
                     {profile.height && (
-                      <div className="bg-amber-300 dark:bg-gray-700 rounded-xl p-3">
+                      <div className="bg-gray-200 dark:bg-gray-700 rounded-xl p-3">
                         <p className="dark:text-gray-400 font-medium text-xs mb-1">Height</p>
-                        <p className="text-white font-medium">{profile.height} cm</p>
+                        <p className="text-black font-medium">{profile.height} cm</p>
                       </div>
                     )}
                     {profile.occupation && (
-                      <div className="bg-amber-300 dark:bg-gray-700 rounded-xl p-3">
+                      <div className="bg-gray-200 dark:bg-gray-700 rounded-xl p-3">
                         <p className="dark:text-gray-400 font-medium text-xs mb-1">Work</p>
-                        <p className="text-white font-medium">{profile.occupation}</p>
+                        <p className="text-black font-medium">{profile.occupation}</p>
                       </div>
                     )}
                     {profile.education && (
-                      <div className="bg-amber-300 dark:bg-gray-700 rounded-xl p-3">
+                      <div className="bg-gray-200 dark:bg-gray-700 rounded-xl p-3">
                         <p className="dark:text-gray-400 font-medium text-xs mb-1">Education</p>
-                        <p className="text-white font-medium">{profile.education}</p>
+                        <p className="text-black font-medium">{profile.education}</p>
                       </div>
                     )}
                   </div>
