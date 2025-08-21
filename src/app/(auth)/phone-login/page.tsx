@@ -13,7 +13,7 @@ export default function PhoneLoginPage() {
 
   const handleAuthSuccess = (phoneNumber: string) => {
     setAuthSuccess(true)
-    
+
     // Redirect after a short delay to show success message
     setTimeout(() => {
       router.push('/profile/setup')
@@ -53,7 +53,7 @@ export default function PhoneLoginPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="flex items-center mb-6">
-            <Link 
+            <Link
               href="/login"
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
@@ -80,16 +80,24 @@ export default function PhoneLoginPage() {
           </div>
 
           {/* Firebase Configuration Test */}
-          <FirebaseTest />
+          {/* <FirebaseTest /> */}
 
           {/* Phone Auth Component */}
-          <PhoneAuth 
+          <PhoneAuth
             onSuccess={handleAuthSuccess}
             onError={handleAuthError}
           />
+          {/* <div>
+            <small>
+              This site is protected by reCAPTCHA and the Google
+              <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+              <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+            </small>
+
+          </div> */}
 
           {/* Alternative Login */}
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          {/* <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <div className="text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 Prefer email login?
@@ -101,10 +109,18 @@ export default function PhoneLoginPage() {
                 Sign in with Email & Password
               </Link>
             </div>
+          </div> */}
+          <div className="mt-6 space-y-2">
+            <small className="  text-gray-900 dark:text-white">
+              This site is protected by reCAPTCHA and the Google
+              <a className='text-primary-600' href="https://policies.google.com/privacy">Privacy Policy</a> and
+              <a className='text-primary-600' href="https://policies.google.com/terms">Terms of Service</a> apply.
+            </small>
+
           </div>
 
           {/* Benefits */}
-          <div className="mt-6 space-y-2">
+          {/* <div className="mt-6 space-y-2">
             <h4 className="text-sm font-medium text-gray-900 dark:text-white">
               Why phone verification?
             </h4>
@@ -114,7 +130,7 @@ export default function PhoneLoginPage() {
               <li>• More secure than email verification</li>
               <li>• Better user experience</li>
             </ul>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

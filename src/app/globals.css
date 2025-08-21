@@ -903,3 +903,6 @@ select:focus {
 
 
 
+.grecaptcha-badge { 
+  visibility: hidden; /* allowed if you show your own notice */
+}

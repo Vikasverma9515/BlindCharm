@@ -254,11 +254,11 @@ export default function SimpleBottomNav() {
                 icon={<LogIn size={24} />}
                 isActive={isActive('/login')}
               />
-              <NavItem
+              {/* <NavItem
                 href="/register"
                 icon={<UserPlus size={24} />}
                 isActive={isActive('/register')}
-              />
+              /> */}
             </>
           )}
         </div>

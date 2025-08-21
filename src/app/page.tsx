@@ -772,7 +772,7 @@ export default function Home() {
                       transition={{ type: "spring", stiffness: 400, damping: 17 }}
                     >
                       <Link
-                        href="/register"
+                        href="/login"
                         className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 text-white px-10 py-4 rounded-3xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
                       >
                         {/* Animated gradient background */}
@@ -931,7 +931,7 @@ export default function Home() {
                     </div>
 
                     <Link
-                      href="/register"
+                      href="/login"
                       className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                     >
                       <Heart className="w-5 h-5" />
@@ -1113,7 +1113,7 @@ export default function Home() {
                     Start My Blind Date
                   </button> */}
                   <Link
-                    href="/register"
+                    href="/login"
                     className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 hover:from-pink-700 hover:via-purple-700 hover:to-blue-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

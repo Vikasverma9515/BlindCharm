@@ -139,6 +139,26 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   const recordingStartTime = useRef<number>(0);
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
+  // Cleanup effect for voice recording
+  useEffect(() => {
+    return () => {
+      // Cleanup on unmount
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        try {
+          mediaRecorder.stop();
+          if (mediaRecorder.stream) {
+            mediaRecorder.stream.getTracks().forEach(track => {
+              track.stop();
+              track.enabled = false;
+            });
+          }
+        } catch (error) {
+          console.error('Error cleaning up media recorder:', error);
+        }
+      }
+    };
+  }, [mediaRecorder]);
+
   // Voice recording logic
   const startRecording = async () => {
     try {
@@ -185,6 +205,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
           alert('Failed to send voice message. Please try again.');
         } finally {
           setIsProcessingVoice(false);
+          setMediaRecorder(null); // Clear recorder reference
         }
       };
 
@@ -218,17 +239,31 @@ const stopRecording = () => {
         // Cancel recording if too short
         mediaRecorder.stop();
         setIsRecording(false);
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        // Stop all audio tracks properly
+        if (mediaRecorder.stream) {
+          mediaRecorder.stream.getTracks().forEach(track => {
+            track.stop();
+            track.enabled = false;
+          });
+        }
         audioChunks.current = []; // Clear chunks
+        setMediaRecorder(null); // Clear recorder reference
         return;
       }
 
       mediaRecorder.stop();
       setIsRecording(false);
-      // Stop all audio tracks
-      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      // Stop all audio tracks properly
+      if (mediaRecorder.stream) {
+        mediaRecorder.stream.getTracks().forEach(track => {
+          track.stop();
+          track.enabled = false;
+        });
+      }
     } catch (error) {
       console.error('Error stopping recording:', error);
+      setIsRecording(false);
+      setMediaRecorder(null);
     }
   }
 };
@@ -240,13 +275,36 @@ const formatDuration = (seconds: number) => {
 
   // Helper to get audio duration
   const getAudioDuration = (blob: Blob): Promise<number> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const audio = new Audio();
-      audio.src = URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(blob);
+      
       audio.onloadedmetadata = () => {
-        URL.revokeObjectURL(audio.src);
-        resolve(audio.duration);
+        URL.revokeObjectURL(objectUrl);
+        const duration = audio.duration;
+        if (isNaN(duration) || duration === 0) {
+          console.warn('Invalid audio duration, using default');
+          resolve(1); // Default to 1 second if duration can't be determined
+        } else {
+          resolve(duration);
+        }
       };
+      
+      audio.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        console.warn('Error loading audio metadata, using default duration');
+        resolve(1); // Default to 1 second on error
+      };
+      
+      // Set timeout to prevent hanging
+      setTimeout(() => {
+        URL.revokeObjectURL(objectUrl);
+        console.warn('Audio duration timeout, using default');
+        resolve(1);
+      }, 5000);
+      
+      audio.src = objectUrl;
+      audio.load(); // Explicitly load the audio
     });
   };
 
@@ -1551,14 +1609,24 @@ const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number
   const [currentTime, setCurrentTime] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [actualDuration, setActualDuration] = useState(duration || 0);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !url) return;
 
     const handleLoadedMetadata = () => {
       setIsLoaded(true);
       setHasError(false);
+      // Use the actual audio duration if available, fallback to provided duration
+      const audioDuration = audio.duration;
+      if (!isNaN(audioDuration) && audioDuration > 0) {
+        setActualDuration(audioDuration);
+      } else if (duration && duration > 0) {
+        setActualDuration(duration);
+      } else {
+        setActualDuration(1); // Default fallback
+      }
     };
     
     const handleTimeUpdate = () => {
@@ -1570,24 +1638,35 @@ const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number
       setCurrentTime(0);
     };
 
-    const handleError = () => {
+    const handleError = (e: Event) => {
+      console.error('Audio error:', e);
       setHasError(true);
       setIsLoaded(false);
       setIsPlaying(false);
+    };
+
+    const handleCanPlay = () => {
+      setIsLoaded(true);
+      setHasError(false);
     };
 
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('error', handleError);
+    audio.addEventListener('canplay', handleCanPlay);
+
+    // Force load the audio
+    audio.load();
 
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
+      audio.removeEventListener('canplay', handleCanPlay);
     };
-  }, [url]);
+  }, [url, duration]);
 
   const togglePlay = async () => {
     if (!audioRef.current || hasError) return;
@@ -1613,7 +1692,12 @@ const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number
         <div className="p-2 rounded-full bg-gray-300">
           <LucideVoicemail className="w-4 h-4" />
         </div>
-        <span className="text-xs">Voice message unavailable</span>
+        <div className="flex flex-col">
+          <span className="text-xs">Voice message unavailable</span>
+          {process.env.NODE_ENV === 'development' && (
+            <span className="text-xs text-red-500">URL: {url}</span>
+          )}
+        </div>
       </div>
     );
   }
@@ -1645,6 +1729,7 @@ const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number
         ref={audioRef}
         src={url}
         preload="metadata"
+        crossOrigin="anonymous"
       />
       
       <div className="flex-1 min-w-0">
@@ -1654,7 +1739,7 @@ const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number
               isOwn ? 'bg-red-300' : 'bg-gray-400'
             }`}
             style={{
-              width: `${duration ? (currentTime / duration) * 100 : 0}%`
+              width: `${actualDuration > 0 ? (currentTime / actualDuration) * 100 : 0}%`
             }}
           />
         </div>
@@ -1663,7 +1748,7 @@ const VoiceMessage = ({ url, duration, isOwn }: { url: string, duration?: number
             {formatDuration(currentTime)}
           </span>
           <span className={`text-xs ${isOwn ? 'text-red-200' : 'text-gray-500'}`}>
-            {formatDuration(duration || 0)}
+            {formatDuration(actualDuration)}
           </span>
         </div>
       </div>

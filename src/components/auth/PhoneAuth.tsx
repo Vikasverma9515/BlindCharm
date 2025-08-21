@@ -40,7 +40,7 @@ export default function PhoneAuth({ onSuccess, onError }: PhoneAuthProps) {
 
     try {
       // Initialize reCAPTCHA
-      PhoneAuthService.initRecaptcha()
+      // PhoneAuthService.initRecaptcha()
       
       const result = await PhoneAuthService.sendOTP(phoneNumber)
       
@@ -141,87 +141,61 @@ export default function PhoneAuth({ onSuccess, onError }: PhoneAuthProps) {
     }
   }
 
-  // const createOrUpdateSupabaseUser = async (phoneNumber: string, firebaseUid: string) => {
-  //   try {
-  //     // Check if user already exists
-  //     const { data: existingUser, error: fetchError } = await supabase
-  //       .from('users')
-  //       .select('*')
-  //       .eq('phone_number', phoneNumber)
-  //       .single()
-
-  //     if (fetchError && fetchError.code !== 'PGRST116') {
-  //       throw fetchError
-  //     }
-
-  //     if (existingUser) {
-  //       // User exists, update Firebase UID if needed
-  //       if (existingUser.firebase_uid !== firebaseUid) {
-  //         const { error: updateError } = await supabase
-  //           .from('users')
-  //           .update({ firebase_uid: firebaseUid })
-  //           .eq('id', existingUser.id)
-
-  //         if (updateError) throw updateError
-  //       }
-        
-  //       // Sign in with existing user
-  //       await signIn('credentials', {
-  //         phone: phoneNumber,
-  //         firebaseUid,
-  //         redirect: false
-  //       })
-  //     } else {
-  //       // Create new user
-  //       const { data: newUser, error: createError } = await supabase
-  //         .from('users')
-  //         .insert([{
-  //           phone_number: phoneNumber,
-  //           firebase_uid: firebaseUid,
-  //           username: `user_${phoneNumber.slice(-4)}`, // Temporary username
-  //           email: `${firebaseUid}@phone.blindcharm.com`, // Temporary email
-  //           is_phone_verified: true,
-  //           created_at: new Date().toISOString()
-  //         }])
-  //         .select()
-  //         .single()
-
-  //       if (createError) throw createError
-
-  //       // Sign in with new user
-  //       await signIn('credentials', {
-  //         phone: phoneNumber,
-  //         firebaseUid,
-  //         redirect: false
-  //       })
-  //     }
-  //   } catch (error) {
-  //     console.error('Error creating/updating Supabase user:', error)
-  //     throw error
-  //   }
-  // }
   const createOrUpdateSupabaseUser = async (phoneNumber: string, firebaseUid: string) => {
   try {
     console.log('Creating/updating user:', { phoneNumber, firebaseUid })
     
-    // Try to find existing user by firebase_uid
-    const { data: existingUser, error: fetchError } = await supabase
+    // First check if user exists by phone number
+    const { data: existingUserByPhone, error: phoneError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('phone_number', phoneNumber)
+      .maybeSingle()
+
+    if (phoneError) {
+      console.error('Phone fetch error:', phoneError)
+    }
+
+    if (existingUserByPhone) {
+      console.log('User exists by phone, updating Firebase UID:', existingUserByPhone.id)
+      // Update existing user with Firebase UID
+      const { data: updatedUser, error: updateError } = await supabase
+        .from('users')
+        .update({ 
+          firebase_uid: firebaseUid,
+          is_phone_verified: true,
+          phone_verified_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('phone_number', phoneNumber)
+        .select()
+        .single()
+
+      if (updateError) {
+        console.error('Update error:', updateError)
+        throw updateError
+      }
+      console.log('User updated successfully:', updatedUser)
+      return updatedUser
+    }
+
+    // Check if user exists by firebase_uid
+    const { data: existingUserByFirebase, error: fetchError } = await supabase
       .from('users')
       .select('*')
       .eq('firebase_uid', firebaseUid)
       .maybeSingle()
 
     if (fetchError) {
-      console.error('Fetch error:', fetchError)
+      console.error('Firebase UID fetch error:', fetchError)
     }
 
-    if (existingUser) {
-      console.log('User exists, updating:', existingUser.id)
+    if (existingUserByFirebase) {
+      console.log('User exists by Firebase UID, updating phone:', existingUserByFirebase.id)
       // Update existing user
       const { data: updatedUser, error: updateError } = await supabase
         .from('users')
         .update({ 
-          // Update phone-related fields
           phone_number: phoneNumber,
           is_phone_verified: true,
           phone_verified_at: new Date().toISOString(),
@@ -237,37 +211,126 @@ export default function PhoneAuth({ onSuccess, onError }: PhoneAuthProps) {
       }
       console.log('User updated successfully:', updatedUser)
       return updatedUser
-    } else {
-      console.log('Creating new user...')
-      // Create new user with only the required fields
-      const { data: newUser, error: createError } = await supabase
-        .from('users')
-        .insert({
-          // id will be auto-generated now
-          firebase_uid: firebaseUid,
-          phone_number: phoneNumber,
-          username: `user_${phoneNumber.slice(-4)}`,
-          email: `${firebaseUid}@phone.blindcharm.com`,
-          is_phone_verified: true,
-          phone_verified_at: new Date().toISOString(),
-          // created_at has default NOW() so it's automatic
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single()
-
-      if (createError) {
-        console.error('Create error:', createError)
-        throw createError
-      }
-      console.log('User created successfully:', newUser)
-      return newUser
     }
+
+    // No existing user found, create new one
+    console.log('Creating new user...')
+    
+    // Generate unique username
+    const baseUsername = `user_${phoneNumber.slice(-4)}`
+    let username = baseUsername
+    let counter = 1
+    
+    // Check if username exists and generate a unique one
+    while (true) {
+      const { data: existingUsername } = await supabase
+        .from('users')
+        .select('username')
+        .eq('username', username)
+        .maybeSingle()
+      
+      if (!existingUsername) {
+        break // Username is available
+      }
+      
+      username = `${baseUsername}_${counter}`
+      counter++
+    }
+
+    const { data: newUser, error: createError } = await supabase
+      .from('users')
+      .insert({
+        firebase_uid: firebaseUid,
+        phone_number: phoneNumber,
+        username: username,
+        email: `${firebaseUid}@phone.blindcharm.com`,
+        is_phone_verified: true,
+        phone_verified_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (createError) {
+      console.error('Create error:', createError)
+      throw createError
+    }
+    console.log('User created successfully:', newUser)
+    return newUser
+
   } catch (error) {
     console.error('Error in createOrUpdateSupabaseUser:', error)
     throw error
   }
 }
+//   const createOrUpdateSupabaseUser = async (phoneNumber: string, firebaseUid: string) => {
+//   try {
+//     console.log('Creating/updating user:', { phoneNumber, firebaseUid })
+    
+//     // Try to find existing user by firebase_uid
+//     const { data: existingUser, error: fetchError } = await supabase
+//       .from('users')
+//       .select('*')
+//       .eq('firebase_uid', firebaseUid)
+//       .maybeSingle()
+
+//     if (fetchError) {
+//       console.error('Fetch error:', fetchError)
+//     }
+
+//     if (existingUser) {
+//       console.log('User exists, updating:', existingUser.id)
+//       // Update existing user
+//       const { data: updatedUser, error: updateError } = await supabase
+//         .from('users')
+//         .update({ 
+//           // Update phone-related fields
+//           phone_number: phoneNumber,
+//           is_phone_verified: true,
+//           phone_verified_at: new Date().toISOString(),
+//           updated_at: new Date().toISOString()
+//         })
+//         .eq('firebase_uid', firebaseUid)
+//         .select()
+//         .single()
+
+//       if (updateError) {
+//         console.error('Update error:', updateError)
+//         throw updateError
+//       }
+//       console.log('User updated successfully:', updatedUser)
+//       return updatedUser
+//     } else {
+//       console.log('Creating new user...')
+//       // Create new user with only the required fields
+//       const { data: newUser, error: createError } = await supabase
+//         .from('users')
+//         .insert({
+//           // id will be auto-generated now
+//           firebase_uid: firebaseUid,
+//           phone_number: phoneNumber,
+//           username: `user_${phoneNumber.slice(-4)}`,
+//           email: `${firebaseUid}@phone.blindcharm.com`,
+//           is_phone_verified: true,
+//           phone_verified_at: new Date().toISOString(),
+//           // created_at has default NOW() so it's automatic
+//           updated_at: new Date().toISOString()
+//         })
+//         .select()
+//         .single()
+
+//       if (createError) {
+//         console.error('Create error:', createError)
+//         throw createError
+//       }
+//       console.log('User created successfully:', newUser)
+//       return newUser
+//     }
+//   } catch (error) {
+//     console.error('Error in createOrUpdateSupabaseUser:', error)
+//     throw error
+//   }
+// }
 
   const handleBack = () => {
     setStep('phone')
@@ -290,33 +353,33 @@ export default function PhoneAuth({ onSuccess, onError }: PhoneAuthProps) {
   return (
     <div className="w-full max-w-md mx-auto">
       {/* reCAPTCHA container */}
-      <div id="recaptcha-container"></div>
+      {/* <div id="recaptcha-container"></div> */}
       
       {step === 'phone' ? (
         <div className="space-y-6">
           <div className="text-center">
-            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Phone className="w-8 h-8 text-primary-600" />
+            <div className="w-16 h-16 bg-primary-100 dark:bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Phone className="w-8 h-8 text-black dark:text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-bold dark:text-white text-white">
               Verify Your Phone
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="dark:text-gray-100 text-gray-300 mt-2">
               We'll send you a verification code to confirm your number
             </p>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium dark:text-white text-white mb-2">
                 Phone Number
               </label>
               <input
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
-                placeholder="+91 9876543210"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                placeholder="+91 XXXXXXXXXX"
+                className="w-full px-4 py-3 border text-white border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 disabled={loading}
               />
             </div>
@@ -342,6 +405,7 @@ export default function PhoneAuth({ onSuccess, onError }: PhoneAuthProps) {
               )}
             </button>
           </div>
+          <div id="recaptcha-container"></div>
         </div>
       ) : (
         <div className="space-y-6">
@@ -349,17 +413,17 @@ export default function PhoneAuth({ onSuccess, onError }: PhoneAuthProps) {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-bold text-white dark:text-white">
               Enter Verification Code
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-gray-200 dark:text-gray-400 mt-2">
               We sent a 6-digit code to {phoneNumber}
             </p>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-200 dark:text-gray-300 mb-2">
                 Verification Code
               </label>
               <input
@@ -406,6 +470,18 @@ export default function PhoneAuth({ onSuccess, onError }: PhoneAuthProps) {
           </div>
         </div>
       )}
+      <div className="w-full max-w-md mx-auto mt-4 text-center">
+          <p className="text-xs text-white dark:text-gray-200">
+            By creating an account, you agree to our{' '}
+            <a href="/terms" className="text-lime-400 dark:text-red-400 hover:underline">
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href="/privacy" className="text-lime-400 dark:text-red-400 hover:underline">
+              Privacy Policy
+            </a>
+          </p>
+        </div>
     </div>
   )
 }

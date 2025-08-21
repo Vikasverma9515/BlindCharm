@@ -235,12 +235,12 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                   >
                     Login
                   </Link>
-                  <Link
+                  {/* <Link
                     href="/register"
                     className="px-6 py-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 font-medium transition-colors shadow-soft"
                   >
                     Sign Up
-                  </Link>
+                  </Link> */}
                 </div>
               )}
             </div>
