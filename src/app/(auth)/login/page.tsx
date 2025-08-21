@@ -166,25 +166,27 @@ export default function LoginPage() {
               <PhoneAuth
                 onSuccess={handleAuthSuccess}
                 onError={handleAuthError}
+
               />
+              <div className="scale-80  flex  bg-white rounded-xl p-3  items-center justify-center mt-0">
+                <div className="flex items-center gap-3">
+                  <Shield className="w-5 h-5 text-blue-600  mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="flex font-medium text-blue-900  mb-1">
+                      Secure Phone Verification
+                    </h3>
+                    <p className="text-sm text-blue-700 ">
+                      We use Firebase for secure phone verification. Your number is encrypted and never shared.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
 
         </div>
-        <div className="scale-80  flex  bg-white rounded-xl p-3  items-center justify-center mt-6">
-          <div className="flex items-center gap-3">
-            <Shield className="w-5 h-5 text-blue-600  mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="flex font-medium text-blue-900  mb-1">
-                Secure Phone Verification
-              </h3>
-              <p className="text-sm text-blue-700 ">
-                We use Firebase for secure phone verification. Your number is encrypted and never shared.
-              </p>
-            </div>
-          </div>
-        </div>
+
 
 
 
@@ -194,6 +196,7 @@ export default function LoginPage() {
             Secure login protected by industry-standard encryption
           </p> */}
 
+
           <p className="text-xs text-gray-800 dark:text-black mt-2">
             This site is protected by reCAPTCHA and the Google
 
@@ -202,7 +205,9 @@ export default function LoginPage() {
             <a className='text-primary-600 p-1' href="https://policies.google.com/terms">Terms of Service</a> apply.
           </p>
         </div>
+
       </div>
+
     </div>
   )
 }
