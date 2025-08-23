@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { User, LobbyParticipant, Question, Answer } from '@/types/lobby'
 import { supabase } from '@/lib/supabase'
+import { useFirebaseAuth } from '@/providers/FirebaseAuthProvider'
 
 interface GirlQuestionSystemProps {
   lobbyId: string
@@ -55,6 +56,7 @@ export default function GirlQuestionSystem({
   const [loading, setLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [userGender, setUserGender] = useState<string>('');
+  const { user: firebaseUser, loading: authLoading } = useFirebaseAuth()
   
   // Question creation state
   const [newQuestion, setNewQuestion] = useState({
@@ -63,28 +65,62 @@ export default function GirlQuestionSystem({
     options: ['', '', '', ''],
     correctAnswer: ''
   })
+  // useEffect(() => {
+  //   const fetchGender = async () => {
+  //     const {
+  //       data: { user },
+  //     } = await supabase.auth.getUser();
+
+  //     if (user) {
+  //       const { data, error } = await supabase
+  //         .from("users")
+  //         .select("gender")
+  //         .eq("id", user.id) // assumes your users table has same id as auth
+  //         .single();
+
+  //       if (!error && data) {
+  //         setUserGender(data.gender?.toLowerCase());
+  //       }
+  //     }
+  //   };
+
+  //   fetchGender();
+  // }, []);
   useEffect(() => {
-    const fetchGender = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  const fetchGender = async () => {
+    if (!firebaseUser?.uid) {
+      console.log("No Firebase user found");
+      return;
+    }
+    
+    try {
+      console.log("Fetching gender for Firebase UID:", firebaseUser.uid);
+      
+      const { data, error } = await supabase
+        .from("users")
+        .select("gender, id, firebase_uid")
+        .eq("firebase_uid", firebaseUser.uid)
+        .single();
 
-      if (user) {
-        const { data, error } = await supabase
-          .from("users")
-          .select("gender")
-          .eq("id", user.id) // assumes your users table has same id as auth
-          .single();
-
-        if (!error && data) {
-          setUserGender(data.gender?.toLowerCase());
-        }
+      if (error) {
+        console.error("Supabase error:", error);
+        return;
       }
-    };
 
-    fetchGender();
-  }, []);
+      if (data) {
+        console.log("User data found:", data);
+        setUserGender(data.gender?.toLowerCase() || '');
+      } else {
+        console.log("No user data found");
+      }
+    } catch (error) {
+      console.error('Error fetching gender:', error);
+    }
+  };
 
+  fetchGender();
+}, [firebaseUser]);
+  
   const isGirl = userGender === "female";
   const isBoy = userGender === "male";
 

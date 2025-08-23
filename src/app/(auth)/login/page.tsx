@@ -11,13 +11,22 @@ import { ArrowLeft, CheckCircle, Shield } from 'lucide-react'
 export default function LoginPage() {
   const router = useRouter()
   const [authSuccess, setAuthSuccess] = useState(false)
-  const handleAuthSuccess = (phoneNumber: string) => {
+  const handleAuthSuccess = async (phoneNumber: string) => {
     setAuthSuccess(true)
 
-    // Redirect after a short delay to show success message
-    setTimeout(() => {
-      router.push('/profile/setup')
-    }, 2000)
+    // Wait until NextAuth session is established to avoid redirect race
+    try {
+      const { getSession } = await import('next-auth/react')
+      const start = Date.now()
+      let session = await getSession()
+      while (!session && Date.now() - start < 7000) { // wait up to 7s
+        await new Promise(r => setTimeout(r, 300))
+        session = await getSession()
+      }
+    } catch {}
+
+    // Once session exists, navigate (lobby will route to setup if needed)
+    router.replace('/lobby')
   }
   const handleAuthError = (error: string) => {
     console.error('Phone auth error:', error)
@@ -182,9 +191,7 @@ export default function LoginPage() {
                 </div>
               </div>
             </div>
-
           </div>
-
         </div>
 
 
@@ -205,9 +212,7 @@ export default function LoginPage() {
             <a className='text-primary-600 p-1' href="https://policies.google.com/terms">Terms of Service</a> apply.
           </p>
         </div>
-
       </div>
-
     </div>
   )
 }

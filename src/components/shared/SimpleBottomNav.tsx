@@ -131,11 +131,11 @@ import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { 
-  Home, 
-  Users, 
-  Heart, 
-  MessageCircle, 
+import {
+  Home,
+  Users,
+  Heart,
+  MessageCircle,
   User,
   LogIn,
   UserPlus,
@@ -145,6 +145,7 @@ import {
   Mic,
   HelpCircle
 } from 'lucide-react'
+import LogoutButton from '../auth/LogoutButton'
 // import { useNotifications } from '@/hooks/useNotifications'
 // import NotificationBadge from './NotificationBadge'
 
@@ -171,7 +172,7 @@ export default function SimpleBottomNav() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!session?.user?.id) return
-      
+
       try {
         const { data, error } = await supabase
           .from('users')
@@ -194,14 +195,14 @@ export default function SimpleBottomNav() {
   if (status === 'loading') return null
 
   return (
-    <motion.nav 
+    <motion.nav
       // initial={{ y: 100 }}
       // animate={{ y: 0 }}
       className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 md:hidden"
     >
-      
+
       <div className="bg-white/90 dark:bg-black backdrop-blur-xl rounded-[28px] shadow-soft border border-primary-100/50 dark:border-gray-200 border-t-2 p-4 w-[480px] rounded-b-none transition-colors duration-300  shadow-sm ">
-      {/* backdrop-blur-md border-b border-gray-200 shadow-sm */}
+        {/* backdrop-blur-md border-b border-gray-200 shadow-sm */}
         <div className="flex justify-between items-center px-18">
           {session ? (
             <>
@@ -219,7 +220,7 @@ export default function SimpleBottomNav() {
                 href="/matches"
                 icon={<MessageCircleHeart size={26} />}
                 isActive={isActive('/matches')}
-                // notificationCount={counts.total}
+              // notificationCount={counts.total}
               />
               <NavItem
                 href="/whispers"
@@ -231,9 +232,14 @@ export default function SimpleBottomNav() {
                 icon={<HelpCircle size={26} />}
                 isActive={isActive('/how-it-works')}
               /> */}
-              <NavItem
+              {/* <NavItem
                 href="/profile"
                 icon={<ProfileAvatar userProfile={userProfile} />}
+                isActive={isActive('/profile')}
+              /> */}
+              <NavItem
+                href="/profile"
+                icon={userProfile ? <ProfileAvatar userProfile={userProfile} /> : <LogoutButton />}
                 isActive={isActive('/profile')}
               />
             </>
@@ -286,25 +292,24 @@ const NavItem = ({ href, icon, isActive, notificationCount }: NavItemProps) => {
         whileTap={{ scale: 0.95 }}
       >
         {isActive && (
-           <motion.div
-    layoutId="activeBackground"
-    className="absolute inset-0 bg-primary-500 rounded-full shadow-soft"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-  />
+          <motion.div
+            layoutId="activeBackground"
+            className="absolute inset-0 bg-primary-500 rounded-full shadow-soft"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
         )}
         <div
-          className={`relative z-10 transition-colors duration-200 ${
-            isActive ? 'text-white' : 'text-neutral-750 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400'
-          }`}
+          className={`relative z-10 transition-colors duration-200 ${isActive ? 'text-white' : 'text-neutral-750 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400'
+            }`}
         >
           {icon}
         </div>
         {/* {notificationCount && notificationCount > 0 && (
           // <NotificationBadge count={NotificationStatus} size="sm" />
         )} */}
-      
+
       </motion.div>
     </Link>
   )
@@ -329,6 +334,9 @@ const ProfileAvatar = ({ userProfile }: ProfileAvatarProps) => {
       return userProfile.username[0].toUpperCase()
     }
     return '?'
+    // else {
+    //   LogoutButton(); // Force logout if no user data
+    // }
   }
 
   return (

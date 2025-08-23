@@ -352,8 +352,8 @@ export default function PhoneAuth({ onSuccess, onError }: PhoneAuthProps) {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* reCAPTCHA container */}
-      {/* <div id="recaptcha-container"></div> */}
+      {/* reCAPTCHA container (must exist for Firebase to send OTP) */}
+      {/* <div id="recaptcha-container" style={{ minHeight: 78 }} /> */}
       
       {step === 'phone' ? (
         <div className="space-y-6">
@@ -470,6 +470,8 @@ export default function PhoneAuth({ onSuccess, onError }: PhoneAuthProps) {
           </div>
         </div>
       )}
+      {/* <div id="recaptcha-container" style={{ minHeight: 78 }} /> */}
+      <div id="recaptcha-container" />
       <div className="w-full max-w-md mx-auto mt-4 text-center">
           <p className="text-xs text-white dark:text-gray-200">
             By creating an account, you agree to our{' '}

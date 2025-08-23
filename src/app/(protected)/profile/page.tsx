@@ -45,6 +45,8 @@ import AdminNotificationPanel from '@/components/admin/AdminNotificationPanel'
 import { useRouter } from 'next/navigation'
 import BlindCharmVerification from '@/components/verification/BlindCharmVerification'
 import FaceVerification from '@/components/verification/FaceVerification'
+import LogoutButton from '@/components/auth/LogoutButton'
+import DeleteAccountButton from '@/components/settings/DeleteAccountButton'
 
 interface UserProfile {
   id: string;
@@ -463,7 +465,7 @@ export default function ProfilePage() {
   return (
     <>
       <SimpleTopNav pageName="My Profile" />
-       {/* <BlindCharmVerification /> */}
+      {/* <BlindCharmVerification /> */}
 
       <main className="min-h-screen pt-0 pb-4 md:pt-0 md:pb-8 bg-gray-50 dark:bg-gray-900 transition-all duration-500">
         <div className="max-w-md mx-auto px-4 py-6 md:max-w-2xl md:pt-8 space-y-6">
@@ -533,7 +535,7 @@ export default function ProfilePage() {
             {/* Profile Info Card */}
             <div className="w-full max-w-3xl mx-auto pb-4  dark:bg-gray-900/50 rounded-2xl ">
               {/* Main Profile Card - Dark theme with glass effect */}
-              <div className= " bg-white/25 dark:bg-gray-900/50 border  dark:border-gray-700 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl">
+              <div className=" bg-white/25 dark:bg-gray-900/50 border  dark:border-gray-700 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl">
                 {/* Profile Header Section */}
                 <div className="relative">
                   {/* Large Profile Picture */}
@@ -1404,20 +1406,26 @@ export default function ProfilePage() {
                   <div>
                     <h4 className="text-sm font-bold text-red-600 dark:text-red-400 mb-4 uppercase tracking-wider">Danger Zone</h4>
                     <div className="space-y-3 p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30">
-                      <SettingsItem
+                      {/* <SettingsItem
                         icon={<LogOut className="w-5 h-5" />}
                         title="Sign Out"
                         subtitle="Sign out of your account"
                         onClick={async () => {
                           try {
-                            await signOut({ callbackUrl: '/login' })
+                            // await signOut({ callbackUrl: '/login' })
+                            await signOut({ callbackUrl:'/login' })
                           } catch (error) {
                             console.error('Error signing out:', error)
                           }
                         }}
                         danger
-                      />
-                      <SettingsItem
+                      /> */}
+                      <LogoutButton />
+
+                      
+                      {/* <DeleteAccountButton /> */}
+
+                      {/* <SettingsItem
                         icon={<Trash2 className="w-5 h-5" />}
                         title="Delete Account"
                         subtitle="Permanently delete your account"
@@ -1428,9 +1436,11 @@ export default function ProfilePage() {
                           }
                         }}
                         danger
-                      />
+                      /> */}
                     </div>
+                    
                   </div>
+                  
                 </div>
 
                 {/* Debug Admin Status */}
