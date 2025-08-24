@@ -32,7 +32,7 @@
 //   return (
 //     <html lang="en">
 //       <body className={`${inter.className} ${poppins.variable} ${montserrat.variable}`}>
-        
+
 //         <AuthProvider>
 //           <div className="flex flex-col min-h-screen">
 //             {/* <Navbar /> */}
@@ -40,7 +40,7 @@
 //               {/* <FloatingShapes /> */}
 //               {/* <FloatingLogo /> */}
 //               <BackgroundPattern />
-              
+
 //               {/* Main content area that fills space between navbar elements */}
 //               <main className="flex-1 pt-4 pb-4 md:pt-6 md:pb-6">
 //                 <div className="min-h-full">
@@ -94,7 +94,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import FloatingLogo from '@/components/FloatingLogo'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
 // import { inter, poppins, montserrat, playfair, dancing, quicksand, nunito, comfortaa, raleway } from './fonts'
-import { 
+import {
   // Local fonts
   boldonse, bitcountGrid, specialGothic,
   // Google fonts
@@ -105,12 +105,50 @@ import {
 import { Toaster } from 'sonner';
 import { NotificationProvider } from '@/components/notifications/NotificationProvider';
 import { FirebaseAuthProvider } from '@/providers/FirebaseAuthProvider'
+
+
+export const metadata = {
+  metadataBase: new URL("https://blindcharm.com"), // ✅ set your production domain
+  title: "BlindCharm - Blind Matchmaking App",
+  description: "Find meaningful connections through blind chats and vibe-based matchmaking.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
+  openGraph: {
+    title: "BlindCharm",
+    description: "A new way to connect through blind matchmaking.",
+    url: "https://blindcharm.com",
+    siteName: "BlindCharm",
+    images: [
+      {
+        url: "/og-image.png", // Next.js will resolve this with metadataBase → https://blindcharm.com/og-image.png
+        width: 1200,
+        height: 630,
+        alt: "BlindCharm Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BlindCharm",
+    description: "Find meaningful connections through blind chats.",
+    images: ["/og-image.png"],
+  },
+};
+
+
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-    const fontClasses = [
+  const fontClasses = [
     inter.className,
     boldonse.variable,
     bitcountGrid.variable,
@@ -132,9 +170,24 @@ export default function RootLayout({
     kalam.variable,
     pacifico.variable
   ].join(' ');
+
+
+  
   return (
     <html lang="en">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "url": "https://blindcharm.com",
+              "logo": "https://blindcharm.com/android-chrome-512x512.png"
+            }),
+          }}
+        />
+
         {/* PWA Meta Tags */}
         <meta name="application-name" content="BlindCharm" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -152,58 +205,81 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 
         {/* Icons */}
-        <link rel="apple-touch-icon" href="/icon-152x152.png" />
+        {/* <link rel="apple-touch-icon" href="/icon-152x152.png" />
         <link rel="apple-touch-icon" sizes="152x152" href="/icon-152x152.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icon-152x152.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icon-16x16.png" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="mask-icon" href="/icon.svg" color="#FF6B6B" />
-        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="shortcut icon" href="/favicon.ico" /> */}
+
+        {/* Favicons */}
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+
 
         {/* Splash Screens for iOS */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        
+
         {/* Font optimization */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
+
+        {/* Open Graph / Facebook */}
+        {/* <meta property="og:type" content="website" />
+        <meta property="og:title" content="BlindCharm - Anonymous Dating App" />
+        <meta property="og:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
+        <meta property="og:image" content="/icon-512x512.png" /> */}
+
+        {/* Twitter */}
+        {/* <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:title" content="BlindCharm - Anonymous Dating App" />
+        <meta property="twitter:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
+        <meta property="twitter:image" content="/icon-512x512.png" /> */}
+
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content="BlindCharm - Anonymous Dating App" />
         <meta property="og:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
-        <meta property="og:image" content="/icon-512x512.png" />
-        
+        <meta property="og:image" content="/android-chrome-512x512.png" />
+
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:title" content="BlindCharm - Anonymous Dating App" />
         <meta property="twitter:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
-        <meta property="twitter:image" content="/icon-512x512.png" />
+        <meta property="twitter:image" content="/android-chrome-512x512.png" />
+
       </head>
 
-      
-      
+
+
       {/* <body className={`${inter.className} ${boldonse.variable} ${bitcountGrid.variable} ${specialGothic.variable} ${poppins.variable} ${montserrat.variable} ${playfair.variable} ${dancing.variable} ${quicksand.variable} ${nunito.variable} ${comfortaa.variable} ${raleway.variable} ${caveat.variable} ${righteous.variable} ${fredoka.variable} ${outfit.variable} ${spaceGrotesk.variable} ${orbitron.variable} ${kalam.variable} ${pacifico.variable}`}> */}
       <body className={fontClasses}>
         <ThemeProvider >
           <AuthProvider>
             <FirebaseAuthProvider>
-            <NotificationProvider>
-              {/* <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" > */}
-              <div  className="light">
-                {/* <Navbar /> */}
-                <ErrorBoundary>
-                  {/* Main content area */}
-                  <div className="flex-1 relative">
-                    {children}
-                    <Toaster />
-                  </div>
-                </ErrorBoundary>
-                <PWAInstallPrompt />
-              </div>
-            </NotificationProvider>
+              <NotificationProvider>
+                {/* <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" > */}
+                <div className="light">
+                  {/* <Navbar /> */}
+                  <ErrorBoundary>
+                    {/* Main content area */}
+                    <div className="flex-1 relative">
+                      {children}
+                      <Toaster />
+                    </div>
+                  </ErrorBoundary>
+                  <PWAInstallPrompt />
+                </div>
+              </NotificationProvider>
             </FirebaseAuthProvider>
           </AuthProvider>
         </ThemeProvider>
