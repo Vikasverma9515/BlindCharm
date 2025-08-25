@@ -3,6 +3,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSession } from 'next-auth/react'
 
 interface LobbyContextType {
   activeLobby: string | null
@@ -16,24 +17,22 @@ interface LobbyContextType {
 const LobbyContext = createContext<LobbyContextType | null>(null)
 
 export function LobbyProvider({ children }: { children: React.ReactNode }) {
+  const { data: session } = useSession()
   const [activeLobby, setActiveLobby] = useState<string | null>(null)
   const [participants, setParticipants] = useState<any[]>([])
-  const [timeLeft, setTimeLeft] = useState<number>(300) // 5 minutes
+  const [timeLeft, setTimeLeft] = useState<number>(300)
   const [status, setStatus] = useState<'waiting' | 'matching' | 'completed'>('waiting')
 
   useEffect(() => {
     if (activeLobby) {
-      // Subscribe to lobby updates
       const lobbyChannel = supabase
         .channel(`lobby:${activeLobby}`)
         .on('presence', { event: 'sync' }, () => {
-          // Update participants
           const presenceState = lobbyChannel.presenceState()
           setParticipants(Object.values(presenceState))
         })
         .subscribe()
 
-      // Start timer
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 0) {
@@ -54,16 +53,14 @@ export function LobbyProvider({ children }: { children: React.ReactNode }) {
 
   const joinLobby = async (lobbyId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) throw new Error('Not authenticated')
+      const userId = session?.user?.id
+      if (!userId) throw new Error('Not authenticated')
 
-      // Join lobby in database
       const { error } = await supabase
         .from('lobby_participants')
         .insert({
           lobby_id: lobbyId,
-          user_id: user.id,
+          user_id: userId,
           status: 'waiting',
           joined_at: new Date().toISOString()
         })
@@ -78,15 +75,13 @@ export function LobbyProvider({ children }: { children: React.ReactNode }) {
 
   const leaveLobby = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user || !activeLobby) return
+      const userId = session?.user?.id
+      if (!userId || !activeLobby) return
 
-      // Leave lobby in database
       const { error } = await supabase
         .from('lobby_participants')
         .delete()
-        .match({ lobby_id: activeLobby, user_id: user.id })
+        .match({ lobby_id: activeLobby, user_id: userId })
 
       if (error) throw error
 

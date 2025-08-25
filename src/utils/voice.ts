@@ -1,26 +1,24 @@
 // utils/voice.ts
-// export const getVoiceMessageUrl = (filename: string) => {
-//   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-//   return `${supabaseUrl}/storage/v1/object/public/voice-messages/${filename}`;
-// };
+// Now compatible with both Firebase Storage and Supabase Storage
 import { supabase } from '@/lib/supabase';
 
-export const getVoiceMessageUrl = (filename: string) => {
+export const getVoiceMessageUrl = (pathOrUrl: string) => {
+  // If it's already a full URL (Firebase download URL), return as-is
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+
   try {
-    // Use Supabase's built-in method to get public URL
+    // Supabase public URL generation (legacy path)
     const { data } = supabase.storage
       .from('voice-messages')
-      .getPublicUrl(filename);
-    
+      .getPublicUrl(pathOrUrl);
     return data.publicUrl;
   } catch (error) {
     console.error('Error generating voice message URL:', error);
     // Fallback to manual URL construction
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (!supabaseUrl) throw new Error('Supabase URL not configured');
-    
     const baseUrl = supabaseUrl.endsWith('/') ? supabaseUrl : `${supabaseUrl}/`;
-    return `${baseUrl}storage/v1/object/public/voice-messages/${filename}`;
+    return `${baseUrl}storage/v1/object/public/voice-messages/${pathOrUrl}`;
   }
 };
 

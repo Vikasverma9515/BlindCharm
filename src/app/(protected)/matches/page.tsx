@@ -149,13 +149,13 @@ export default function MatchesPage() {
             </div>
           ) : (
             <div className="">
-             <div className=" p-5">
+             <div className=" p-5 ">
               {matches.map((match, index) => (
                 <div
                   key={match.id}
                   onClick={() => router.push(`/matches/${match.id}`)}
-                  className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors bg-white dark:bg-indigo-700 rounded-2xl border-b-8  ${
-                    index !== matches.length - 1 ? 'border-b border-gray-100' : ''
+                  className={`flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors bg-white dark:bg-indigo-700 rounded-2xl border-b-8 border-b-indigo-500  ${
+                    index !== matches.length - 1 ? 'border-b border-gray-100' : 'border-b border-gray-100'
                   }`}
                 >
                   <div className="relative flex-shrink-0 mr-3 ">
@@ -198,7 +198,7 @@ export default function MatchesPage() {
                           {match.lastMessage.content}
                         </p>
                       ) : (
-                        <p className="text-sm text-gray-300 italic">
+                        <p className="text-sm text-gray-600 italic">
                           Tap to start chatting
                         </p>
                       )}

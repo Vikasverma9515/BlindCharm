@@ -44,9 +44,10 @@ import BroadcastNotifications from '@/components/admin/BroadcastNotifications'
 import AdminNotificationPanel from '@/components/admin/AdminNotificationPanel'
 import { useRouter } from 'next/navigation'
 import BlindCharmVerification from '@/components/verification/BlindCharmVerification'
-import FaceVerification from '@/components/verification/FaceVerification'
 import LogoutButton from '@/components/auth/LogoutButton'
 import DeleteAccountButton from '@/components/settings/DeleteAccountButton'
+import FaceVerification from '@/components/verification/FaceVerification'
+import { VerifiedBadges } from '@/components/badge/VerifiedBadge'
 
 interface UserProfile {
   id: string;
@@ -80,6 +81,10 @@ interface UserProfile {
     distance: number;
     height_range: [number, number];
   };
+  match_count: number;
+  face_verified: boolean;
+  college_verified: boolean;
+  college_name: string;
 }
 interface ProfileSectionProps {
   title: string;
@@ -91,6 +96,12 @@ interface ProfileSectionProps {
   onSave: () => void;
   loading: boolean;
   theme: keyof typeof sectionThemes; // Add theme prop
+}
+
+interface VerificationBadgesProps {
+  faceVerified?: boolean;
+  collegeVerified?: boolean;
+  collegeName?: string;
 }
 
 
@@ -198,6 +209,8 @@ export default function ProfilePage() {
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [showVerifier, setShowVerifier] = useState(false);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [showFaceVerification, setShowFaceVerification] = useState(false);
 
   // Check if user is admin (same logic as lobby components)
   const isAdmin = profile?.is_admin ||
@@ -211,6 +224,8 @@ export default function ProfilePage() {
     finalIsAdmin: isAdmin,
     profile: profile
   });
+
+
 
 
   useEffect(() => {
@@ -253,6 +268,21 @@ export default function ProfilePage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleVerificationComplete = (verified: boolean) => {
+    if (verified) {
+      // Refresh user profile to show updated verification status
+      fetchProfile();
+      setShowFaceVerification(false);
+      alert('Face verification successful! You now have a verified badge.');
+    } else {
+      alert('Face verification failed. Please try again with better lighting and ensure your face is clearly visible.');
+    }
+  };
+
+  if (!session) {
+    return <div>Please log in to access verification.</div>;
   }
 
   const calculateCompletion = (data: UserProfile) => {
@@ -461,11 +491,163 @@ export default function ProfilePage() {
       </div>
     )
   }
+  // Add this temporarily to debug the profile photo URL
+  {
+    showFaceVerification && (
+      <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p className="text-sm text-yellow-800">
+          <strong>Debug:</strong> Profile Photo URL: {userProfile?.profile_picture || 'No URL found'}
+        </p>
+        <p className="text-sm text-yellow-800">
+          <strong>User Profile:</strong> {JSON.stringify(userProfile, null, 2)}
+        </p>
+      </div>
+    )
+  }
 
   return (
     <>
       <SimpleTopNav pageName="My Profile" />
+
+
       {/* <BlindCharmVerification /> */}
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <h1 className="text-3xl font-bold text-center mb-8">Account Verification</h1>
+
+          {/* Verification Status Cards */}
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+
+            {/* College Verification Card */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">College Verification</h2>
+                <span className="px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">
+                  Coming Soon
+                </span>
+              </div>
+              <p className="text-gray-600 mb-4">
+                Verify your college email to get a verified student badge and connect with people from your university.
+              </p>
+              <button
+                className="w-full bg-gray-300 text-gray-500 py-2 rounded-lg cursor-not-allowed"
+                disabled
+              >
+                College Verification (Coming Soon)
+              </button>
+            </div>
+            {/* Face Verification Card - Simplified */}
+            {/* Add this verification section somewhere in your profile page */}
+            <div className="w-full max-w-3xl mx-auto pb-4 dark:bg-gray-900/50 rounded-2xl mt-6">
+              <div className="bg-white/25 dark:bg-gray-900/50 border dark:border-gray-700 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-blue-500 p-2 rounded-lg">
+                      <Shield className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Face Verification
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Verify your identity for a trusted profile
+                      </p>
+                    </div>
+                  </div>
+
+                  {profile?.face_verified ? (
+                    <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 flex items-center">
+                      <Check className="w-4 h-4 mr-1" />
+                      Verified
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">
+                      Not Verified
+                    </span>
+                  )}
+                </div>
+
+                {profile?.face_verified ? (
+                  <div className="space-y-3">
+                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                      <p className="text-green-800 dark:text-green-300 font-medium">✓ Face Verified</p>
+                      <p className="text-green-600 dark:text-green-400 text-sm">
+                        Your profile is verified and trusted
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowFaceVerification(true)}
+                      className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      Re-verify Face
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowFaceVerification(true)}
+                    className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
+                    disabled={!profile?.profile_picture}
+                  >
+                    <Camera className="w-5 h-5" />
+                    <span>{profile?.profile_picture ? 'Verify My Face' : 'Add Profile Picture First'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Face Verification Modal */}
+            {showFaceVerification && profile?.profile_picture && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Face Verification</h3>
+                    <button
+                      onClick={() => setShowFaceVerification(false)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <FaceVerification
+                    profilePhotoUrl={profile.profile_picture}
+                    onVerificationComplete={handleVerificationComplete}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+
+
+
+          {/* Benefits Section */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Verification Benefits</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <h3 className="font-medium text-green-600">Face Verified Benefits:</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Verified badge on your profile</li>
+                  <li>• Higher trust from other users</li>
+                  <li>• Priority in match recommendations</li>
+                  <li>• Access to verified-only features</li>
+                  <li>• Reduced fake profile encounters</li>
+                </ul>
+              </div>
+              <div className="space-y-3">
+                <h3 className="font-medium text-blue-600">College Verified Benefits:</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• College badge on your profile</li>
+                  <li>• Connect with college peers</li>
+                  <li>• College-based filtering</li>
+                  <li>• Campus event notifications</li>
+                  <li>• Student community access</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <main className="min-h-screen pt-0 pb-4 md:pt-0 md:pb-8 bg-gray-50 dark:bg-gray-900 transition-all duration-500">
         <div className="max-w-md mx-auto px-4 py-6 md:max-w-2xl md:pt-8 space-y-6">
@@ -540,6 +722,7 @@ export default function ProfilePage() {
                 <div className="relative">
                   {/* Large Profile Picture */}
                   <div className="w-full h-64 sm:h-80 relative">
+
                     {profile.profile_picture ? (
                       <img
                         src={profile.profile_picture}
@@ -555,6 +738,7 @@ export default function ProfilePage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
                   </div>
 
+
                   {/* Edit Photo Button - Floating */}
                   <div className="absolute top-4 right-4">
                     <ImageUpload
@@ -564,6 +748,7 @@ export default function ProfilePage() {
                       className="bg-gray-900/50 backdrop-blur-md hover:bg-gray-800/50 text-white rounded-full p-2"
                     />
                   </div>
+
                 </div>
 
                 {/* Profile Info Section */}
@@ -586,6 +771,13 @@ export default function ProfilePage() {
                         <AdminBadge size="sm" />
                       </div>
                     )}
+                    <VerifiedBadges
+                      faceVerified={profile?.face_verified}
+                      // faceScore={profile?.face_verification_score}
+                      // estimatedAge={profile?.estimated_age}
+                      size="lg"
+                      showText={false}
+                    />
                   </div>
 
                   {/* Location */}
@@ -1422,7 +1614,7 @@ export default function ProfilePage() {
                       /> */}
                       <LogoutButton />
 
-                      
+
                       {/* <DeleteAccountButton /> */}
 
                       {/* <SettingsItem
@@ -1438,9 +1630,9 @@ export default function ProfilePage() {
                         danger
                       /> */}
                     </div>
-                    
+
                   </div>
-                  
+
                 </div>
 
                 {/* Debug Admin Status */}

@@ -271,7 +271,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
         <div className="flex justify-between items-center h-16 px-5 ">
           {/* Left side - Logo and Page Name */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-3">
+            <Link href={pathname.startsWith('/lobby') || pathname.startsWith('/matches') || pathname.startsWith('/whispers') || pathname.startsWith('/profile') ? '/lobby' : '/'} className="flex items-center space-x-3">
               {/* Light mode logo */}
               <img
                 src="/logo2.png"

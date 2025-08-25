@@ -4,9 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import { WhisperService } from '@/lib/services/WhisperService';
 import { WhisperCard } from '@/components/whispers/WhisperCard';
 import { WhisperDrawer } from '@/components/whispers/WhisperDrawer';
@@ -28,12 +27,10 @@ export default function WhispersPage() {
     }
     loadWhispers();
 
-    // Set up periodic refresh every 3 seconds
     const refreshInterval = setInterval(() => {
       loadWhispers();
     }, 3000);
 
-    // Cleanup interval on unmount
     return () => {
       clearInterval(refreshInterval);
     };
@@ -50,8 +47,6 @@ export default function WhispersPage() {
     }
   };
 
-
-
   const handleCreateWhisper = async (whisper: Partial<Whisper>) => {
     try {
       await WhisperService.createWhisper(whisper);
@@ -66,7 +61,6 @@ export default function WhispersPage() {
 
     try {
       const updatedWhisper = await WhisperService.toggleLike(whisperId, session.user.id);
-      // Update the specific whisper in state with calculated counts
       setWhispers(prev => prev.map(w => 
         w.id === whisperId ? updatedWhisper : w
       ));
@@ -76,21 +70,11 @@ export default function WhispersPage() {
   };
 
   const handleComment = async (whisperId: string, _comment: string) => {
-    // Immediately refresh to show updated counts
     loadWhispers();
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-4 mx-auto animate-spin">
-            <div className="w-3 h-3 bg-white rounded-full"></div>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400">Loading whispers...</p>
-        </div>
-      </div>
-    );
+  if (status === 'loading' || loading) {
+    return null
   }
 
   const actionButton = (
@@ -106,15 +90,6 @@ export default function WhispersPage() {
       <SimpleTopNav pageName="Whispers" actionButton={actionButton} />
       
       <main className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        {/* Header - Desktop only */}
-        <div className="hidden md:block bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Whispers</h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">Share your thoughts anonymously</p>
-          </div>
-        </div>
-
-        {/* Main Content */}
         <div className="max-w-2xl mx-auto px-4 py-4 pb-32">
           {whispers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
@@ -148,7 +123,6 @@ export default function WhispersPage() {
         </div>
       </main>
 
-      {/* Floating Action Button */}
       <div className="fixed bottom-24 right-6 z-30">
         <WhisperDrawer onSubmit={handleCreateWhisper}>
           <motion.button

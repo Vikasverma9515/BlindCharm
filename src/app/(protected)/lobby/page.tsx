@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import { LobbyProvider } from '@/contexts/LobbyContext'
 import ModernLobbySelection from '@/components/lobby/ModernLobbySelection'
 import { useLobby } from '@/contexts/LobbyContext'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import SimpleTopNav from '@/components/shared/SimpleTopNav'
 import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
@@ -40,22 +40,22 @@ export default function LobbyPage() {
   useEffect(() => {
     const checkProfileCompletion = async () => {
       if (status === 'loading') return
-      
       if (!session?.user?.id) {
         setProfileCheckLoading(false)
         return
       }
 
       try {
-        // First ensure the profile_completed field exists
         const fieldExists = await ensureProfileCompletedField()
-        
+
+        // Read source of truth for user id from NextAuth session, not supabase auth
+        const userId = session.user.id
+
         if (!fieldExists) {
-          // If field doesn't exist, check if user has basic profile info
           const { data: userData, error } = await supabase
             .from('users')
             .select('full_name, bio, interests')
-            .eq('id', session.user.id)
+            .eq('id', userId)
             .single()
 
           if (error) {
@@ -64,23 +64,22 @@ export default function LobbyPage() {
             return
           }
 
-          const hasBasicInfo = userData?.full_name && 
-                              userData.full_name.trim() !== '' && 
-                              userData?.bio && 
-                              userData.bio.trim() !== '' && 
-                              userData?.interests && 
-                              userData.interests.length > 0
+          const hasBasicInfo = Boolean(
+            userData?.full_name?.trim() &&
+            userData?.bio?.trim() &&
+            Array.isArray(userData?.interests) &&
+            userData!.interests.length > 0
+          )
 
           if (!hasBasicInfo) {
             router.push('/profile/setup')
             return
           }
         } else {
-          // Field exists, check profile_completed status
           const { data: userData, error } = await supabase
             .from('users')
             .select('profile_completed')
-            .eq('id', session.user.id)
+            .eq('id', userId)
             .single()
 
           if (error) {
