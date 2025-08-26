@@ -13,7 +13,7 @@ interface ChallengeCardProps {
 
 export default function ChallengeCard({ prompt, timeLimit, onAccept, onSkip }: ChallengeCardProps) {
   return (
-    <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 my-3 text-white shadow-lg">
+    <div className="bg-purple-600 rounded-2xl p-4 my-3 text-white shadow-lg">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
           <Zap className="w-4 h-4 text-white" />

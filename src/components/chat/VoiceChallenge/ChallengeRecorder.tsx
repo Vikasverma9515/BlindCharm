@@ -69,9 +69,9 @@ export default function ChallengeRecorder({
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 my-3 text-white">
+    <div className="bg-purple-600 rounded-2xl p-6 my-3 text-white ">
       <div className="text-center mb-4">
-        <h3 className="text-lg font-semibold mb-2">🎤 Recording Challenge</h3>
+        <h3 className="text-lg font-semibold mb-2"> Recording Challenge</h3>
         <p className="text-sm opacity-90 mb-4">{prompt}</p>
         
         <div className="text-3xl font-bold mb-2">

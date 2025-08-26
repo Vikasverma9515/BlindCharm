@@ -3,6 +3,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { uploadVoiceMessage, getVoiceMessageUrl  } from '@/lib/voice-upload';
+import { getRandomChallenge } from '@/lib/voiceChallenges';
 
 // Match-specific message interface
 export interface MatchMessage {
@@ -39,9 +41,22 @@ interface UseMatchChatReturn {
     clearError: () => void;
     ///////////////////////
     blockUser: () => Promise<void>;
+
+     createVoiceChallenge: (prompt: string, timeLimit: number) => Promise<VoiceChallenge>;
+  respondToChallenge: (challengeId: string, audioBlob: Blob, duration: number) => Promise<void>;
+  currentChallenge: VoiceChallenge | null;
+
 }
 
-
+export interface VoiceChallenge {
+  id: string;
+  match_id: string;
+  challenge_prompt: string;
+  category: string;
+  time_limit: number;
+  created_at: string;
+  status: string;
+}
 
 export function useMatchChat({
     matchId,
@@ -54,6 +69,9 @@ export function useMatchChat({
     const [error, setError] = useState<string | null>(null);
     const [hasMoreMessages, setHasMoreMessages] = useState(true);
     const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+    const [currentChallenge, setCurrentChallenge] = useState<VoiceChallenge | null>(null);
+const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
 
     const subscriptionRef = useRef<any>(null);
     const loadingRef = useRef(false);
@@ -572,6 +590,99 @@ export function useMatchChat({
         }
     }, [userId, matchId]);
 
+    const createVoiceChallenge = useCallback(async (prompt: string, timeLimit: number): Promise<VoiceChallenge> => {
+  if (!matchId) {
+    throw new Error('No match ID');
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('voice_challenges')
+      .insert({
+        match_id: matchId,
+        challenge_prompt: prompt,
+        time_limit: timeLimit,
+        category: 'quick_fun'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    setCurrentChallenge(data);
+    return data;
+  } catch (err) {
+    console.error('Error creating voice challenge:', err);
+    throw err;
+  }
+}, [matchId]);
+
+// Respond to challenge
+const respondToChallenge = useCallback(async (challengeId: string, audioBlob: Blob, duration: number) => {
+  if (!userId) {
+    throw new Error('No user ID');
+  }
+
+  try {
+    // Upload audio file
+    const uploadResult = await uploadVoiceMessage(audioBlob, matchId, userId);
+    if (!uploadResult?.path) {
+      throw new Error('Upload failed');
+    }
+
+    const audioUrl = getVoiceMessageUrl(uploadResult.path);
+
+    // Save challenge response
+    const { error } = await supabase
+      .from('voice_challenge_responses')
+      .insert({
+        challenge_id: challengeId,
+        user_id: userId,
+        audio_url: audioUrl,
+        duration: duration
+      });
+
+    if (error) throw error;
+
+    // Send as a special message
+    await sendMessage(`🎤 Voice Challenge Response: "${currentChallenge?.challenge_prompt}"`, 'voice', {
+      audio_url: audioUrl,
+      duration: duration,
+      challenge_id: challengeId,
+      is_challenge_response: true
+    });
+
+    // Clear current challenge
+    setCurrentChallenge(null);
+
+  } catch (err) {
+    console.error('Error responding to challenge:', err);
+    throw err;
+  }
+}, [userId, matchId, currentChallenge, sendMessage]);
+
+// Auto-suggest challenges when conversation slows down
+useEffect(() => {
+  if (messages.length === 0) return;
+
+  const lastMessage = messages[messages.length - 1];
+  const lastMessageDate = new Date(lastMessage.created_at);
+  setLastMessageTime(lastMessageDate);
+
+  // Check if conversation has been slow (no challenge already active)
+  if (!currentChallenge) {
+    const timeSinceLastMessage = Date.now() - lastMessageDate.getTime();
+    const thirtyMinutes = 30 * 60 * 1000;
+
+    if (timeSinceLastMessage > thirtyMinutes) {
+      // Auto-suggest a challenge
+      const randomChallenge = getRandomChallenge();
+      createVoiceChallenge(randomChallenge.prompt, randomChallenge.timeLimit)
+        .catch(console.error);
+    }
+  }
+}, [messages, currentChallenge, createVoiceChallenge]);
+
     return {
         messages,
         loading,
@@ -581,6 +692,9 @@ export function useMatchChat({
         hasMoreMessages,
         refreshMessages,
         clearError,
-        blockUser
+        blockUser,
+        createVoiceChallenge,
+        respondToChallenge,
+        currentChallenge
     };
 }
