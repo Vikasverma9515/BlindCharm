@@ -13,6 +13,11 @@ import { LucideVoicemail, Mic, Play, Pause, Send, Square } from 'lucide-react';
 import { uploadVoiceMessage, getVoiceMessageUrl } from '@/lib/voice-upload'
 import VoiceMessage from '@/components/chat/VoiceMessage'
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder'
+import { useMatchChat } from '@/hooks/useMatchChat'
+import MatchMessages from '@/components/chat/MatchMessages'
+import ChatActionsMenu from '@/components/chat/ChatActionMenu'
+import BlockConfirmationModal from '@/components/chat/BlockConfirmationModal'
+
 
 interface MatchParams {
   params: { id: string }
@@ -92,9 +97,26 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   const { data: session } = useSession();
   const router = useRouter();
 
+  const {
+    messages,
+    loading: messagesLoading,
+    error: messageError,
+    sendMessage: sendChatMessage,
+    loadMoreMessages,
+    hasMoreMessages,
+    refreshMessages,
+    clearError,
+    blockUser
+  } = useMatchChat({
+    matchId,
+    userId: session?.user?.id,
+    enabled: !!matchId && !!session?.user?.id,
+    pageSize: 20
+  });
+
   // All useState hooks at the top
   const [match, setMatch] = useState<Match | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  // const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [hasRevealed, setHasRevealed] = useState(false);
@@ -115,6 +137,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   // const [unreadCount, setUnreadCount] = useState(0);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [showBlockModal, setShowBlockModal] = useState(false);
 
 
   const { isRecording, isProcessing, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
@@ -131,10 +154,29 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   const [hasInitiallyScrolled, setHasInitiallyScrolled] = useState(false);
 
   // NEW PAGINATION STATES
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMoreMessages, setHasMoreMessages] = useState(true);
-  const [currentOffset, setCurrentOffset] = useState(0);
+  // const [isLoadingMore, setIsLoadingMore] = useState(false);
+  // const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  // const [currentOffset, setCurrentOffset] = useState(0);
   const MESSAGES_PER_PAGE = 20; // Load 20 messages at a time
+
+
+  const handleBlockUser = async () => {
+    try {
+      await blockUser();
+      setShowBlockModal(false);
+
+      // Redirect to matches page after blocking
+      router.push('/matches');
+
+      // Optional: Show success message
+      // You can use a toast library here
+      console.log('User blocked successfully');
+    } catch (error) {
+      console.error('Failed to block user:', error);
+      // Optional: Show error message
+      alert('Failed to block user. Please try again.');
+    }
+  };
 
   // Cleanup effect for voice recording
   useEffect(() => {
@@ -162,10 +204,10 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
 
   // Fetch messages on mount and when matchId changes
-  useEffect(() => {
-    if (!matchId) return;
-    fetchMessages();
-  }, [matchId]);
+  // useEffect(() => {
+  //   if (!matchId) return;
+  //   fetchMessages();
+  // }, [matchId]);
 
 
   // Real-time subscription for new messages
@@ -195,69 +237,64 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
 
   // Update your real-time subscription useEffect
-useEffect(() => {
-  if (!matchId) return;
+  // useEffect(() => {
+  //   if (!matchId) return;
 
-  const channel = supabase
-    .channel(`match_messages_${matchId}_${Date.now()}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT', // Only listen for new messages
-        schema: 'public',
-        table: 'match_messages',
-        filter: `match_id=eq.${matchId}`
-      },
-      (payload) => {
-        console.log('📨 New message received:', payload.new);
+  //   const channel = supabase
+  //     .channel(`match_messages_${matchId}_${Date.now()}`)
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: 'INSERT', // Only listen for new messages
+  //         schema: 'public',
+  //         table: 'match_messages',
+  //         filter: `match_id=eq.${matchId}`
+  //       },
+  //       (payload) => {
+  //         console.log('📨 New message received:', payload.new);
 
-        
-        
-        // Add the new message to the end of the array
-        const newMessage = {
-          ...payload.new,
-          sender: payload.new.sender || {
-            id: payload.new.sender_id,
-            username: 'Unknown',
-            profile_picture: null
-          },
-          type: payload.new.type || 'text',
-          metadata: payload.new.metadata || undefined
-        } as Message;
 
-        setMessages(prev => [...prev, newMessage]);
-      }
-    )
-    .subscribe();
 
-  return () => {
-    channel.unsubscribe();
-  };
-}, [matchId]);
+  //         // Add the new message to the end of the array
+  //         const newMessage = {
+  //           ...payload.new,
+  //           sender: payload.new.sender || {
+  //             id: payload.new.sender_id,
+  //             username: 'Unknown',
+  //             profile_picture: null
+  //           },
+  //           type: payload.new.type || 'text',
+  //           metadata: payload.new.metadata || undefined
+  //         } as Message;
+
+  //         setMessages(prev => [...prev, newMessage]);
+  //       }
+  //     )
+  //     .subscribe();
+
+  //   return () => {
+  //     channel.unsubscribe();
+  //   };
+  // }, [matchId]);
 
   // Fetch match info and poll messages
-  useEffect(() => {
-    if (!session?.user?.id || !matchId) return;
+  // useEffect(() => {
+  //   if (!session?.user?.id || !matchId) return;
 
-    fetchMatch();
-    const interval = setInterval(fetchMessages, 3000);
+  //   fetchMatch();
+  //   const interval = setInterval(fetchMessages, 3000);
 
-    return () => clearInterval(interval);
-  }, [session?.user?.id, matchId]);
-
-//   useEffect(() => {
-//   if (!session?.user?.id || !matchId) return;
-//   fetchMatch();
-// }, [session?.user?.id, matchId]);
+  //   return () => clearInterval(interval);
+  // }, [session?.user?.id, matchId]);
 
 
-  useEffect(() => {
-    // For now, get user from localStorage or your auth context
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+  // useEffect(() => {
+  //   // For now, get user from localStorage or your auth context
+  //   const storedUser = localStorage.getItem('user');
+  //   if (storedUser) {
+  //     setUser(JSON.parse(storedUser));
+  //   }
+  // }, []);
 
   // Fetch reveal status and profiles
   const fetchRevealStatus = async () => {
@@ -346,89 +383,89 @@ useEffect(() => {
   // };
 
   // Replace your existing fetchMessages function with this paginated version
-  const fetchMessages = async (loadMore = false) => {
-    try {
-      if (loadMore) {
-        setIsLoadingMore(true);
-      }
+  // const fetchMessages = async (loadMore = false) => {
+  //   try {
+  //     if (loadMore) {
+  //       setIsLoadingMore(true);
+  //     }
 
-      const offset = loadMore ? currentOffset : 0;
-      const limit = MESSAGES_PER_PAGE;
+  //     const offset = loadMore ? currentOffset : 0;
+  //     const limit = MESSAGES_PER_PAGE;
 
-      console.log(`📨 Fetching messages - Offset: ${offset}, Limit: ${limit}`);
+  //     console.log(`📨 Fetching messages - Offset: ${offset}, Limit: ${limit}`);
 
-      const { data, error } = await supabase
-        .from('match_messages')
-        .select('id, content, sender_id, created_at, type, metadata, sender:sender_id(id, username, profile_picture)')
-        .eq('match_id', matchId)
-        .order('created_at', { ascending: false }) // Get newest first
-        .range(offset, offset + limit - 1); // Pagination range
+  //     const { data, error } = await supabase
+  //       .from('match_messages')
+  //       .select('id, content, sender_id, created_at, type, metadata, sender:sender_id(id, username, profile_picture)')
+  //       .eq('match_id', matchId)
+  //       .order('created_at', { ascending: false }) // Get newest first
+  //       .range(offset, offset + limit - 1); // Pagination range
 
-      if (error) {
-        console.error('Error fetching messages:', error);
-        return;
-      }
+  //     if (error) {
+  //       console.error('Error fetching messages:', error);
+  //       return;
+  //     }
 
-      if (!data) {
-        console.log('No messages found');
-        return;
-      }
+  //     if (!data) {
+  //       console.log('No messages found');
+  //       return;
+  //     }
 
-      // Transform the data
-      const transformedMessages: Message[] = data.map(msg => ({
-        ...msg,
-        sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender,
-        type: msg.type ?? 'text',
-        metadata: msg.metadata ?? undefined
-      }));
+  //     // Transform the data
+  //     const transformedMessages: Message[] = data.map(msg => ({
+  //       ...msg,
+  //       sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender,
+  //       type: msg.type ?? 'text',
+  //       metadata: msg.metadata ?? undefined
+  //     }));
 
-      // Reverse to get chronological order (oldest first)
-      const chronologicalMessages = transformedMessages.reverse();
+  //     // Reverse to get chronological order (oldest first)
+  //     const chronologicalMessages = transformedMessages.reverse();
 
-      if (loadMore) {
-        // Prepend older messages to the beginning
-        setMessages(prev => [...chronologicalMessages, ...prev]);
-        setCurrentOffset(prev => prev + limit);
-      } else {
-        // Initial load - replace all messages
-        setMessages(chronologicalMessages);
-        setCurrentOffset(limit);
-      }
+  //     if (loadMore) {
+  //       // Prepend older messages to the beginning
+  //       setMessages(prev => [...chronologicalMessages, ...prev]);
+  //       setCurrentOffset(prev => prev + limit);
+  //     } else {
+  //       // Initial load - replace all messages
+  //       setMessages(chronologicalMessages);
+  //       setCurrentOffset(limit);
+  //     }
 
-      // Check if there are more messages to load
-      setHasMoreMessages(data.length === limit);
+  //     // Check if there are more messages to load
+  //     setHasMoreMessages(data.length === limit);
 
-      console.log(`✅ Loaded ${data.length} messages. Total in state: ${loadMore ? messages.length + data.length : data.length}`);
+  //     console.log(`✅ Loaded ${data.length} messages. Total in state: ${loadMore ? messages.length + data.length : data.length}`);
 
-    } catch (err) {
-      console.error('Error in fetchMessages:', err);
-    } finally {
-      if (loadMore) {
-        setIsLoadingMore(false);
-      }
-    }
-  };
+  //   } catch (err) {
+  //     console.error('Error in fetchMessages:', err);
+  //   } finally {
+  //     if (loadMore) {
+  //       setIsLoadingMore(false);
+  //     }
+  //   }
+  // };
 
-  // New function to load more messages
-  const loadMoreMessages = async () => {
-    if (!hasMoreMessages || isLoadingMore) {
-      return;
-    }
+  // // New function to load more messages
+  // const loadMoreMessages = async () => {
+  //   if (!hasMoreMessages || isLoadingMore) {
+  //     return;
+  //   }
 
-    await fetchMessages(true);
-  };
+  //   await fetchMessages(true);
+  // };
 
-  // Update your existing useEffect for fetching messages
-  useEffect(() => {
-    if (!matchId) return;
+  // // Update your existing useEffect for fetching messages
+  // useEffect(() => {
+  //   if (!matchId) return;
 
-    // Reset pagination state when matchId changes
-    setCurrentOffset(0);
-    setHasMoreMessages(true);
-    setMessages([]);
+  //   // Reset pagination state when matchId changes
+  //   setCurrentOffset(0);
+  //   setHasMoreMessages(true);
+  //   setMessages([]);
 
-    fetchMessages(); // Initial load
-  }, [matchId]);
+  //   fetchMessages(); // Initial load
+  // }, [matchId]);
 
   const fetchMatch = async () => {
     try {
@@ -486,74 +523,74 @@ useEffect(() => {
     }
   };
 
-   const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !session?.user?.id || !match?.id) return;
+  //  const sendMessage = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!newMessage.trim() || !session?.user?.id || !match?.id) return;
 
-    const messageContent = newMessage.trim();
-    setNewMessage(''); // Clear input immediately for better UX
+  //   const messageContent = newMessage.trim();
+  //   setNewMessage(''); // Clear input immediately for better UX
 
-    try {
-      const { data, error } = await supabase
-        .from('match_messages')
-        .insert({
-          match_id: match.id,
-          sender_id: session.user.id,
-          content: messageContent
-        })
-        .select('id, content, sender_id, created_at, metadata')
-        .single();
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from('match_messages')
+  //       .insert({
+  //         match_id: match.id,
+  //         sender_id: session.user.id,
+  //         content: messageContent
+  //       })
+  //       .select('id, content, sender_id, created_at, metadata')
+  //       .single();
 
-      if (error) throw error;
+  //     if (error) throw error;
 
-      // Immediately add the message to the local state for instant feedback
-      if (data) {
-        const newMsg: Message = {
-          ...data,
-          sender: {
-            id: session.user.id,
-            username: session.user.name || 'You',
-            profile_picture: null
-          },
-          type: 'text',
-          metadata: data.metadata ?? undefined
-        };
-        setMessages(prev => [...prev, newMsg]);
-       
-      }
+  //     // Immediately add the message to the local state for instant feedback
+  //     if (data) {
+  //       const newMsg: Message = {
+  //         ...data,
+  //         sender: {
+  //           id: session.user.id,
+  //           username: session.user.name || 'You',
+  //           profile_picture: null
+  //         },
+  //         type: 'text',
+  //         metadata: data.metadata ?? undefined
+  //       };
+  //       setMessages(prev => [...prev, newMsg]);
 
-      // Also fetch all messages to ensure consistency
-      await fetchMessages();
+  //     }
 
-      // Send push notification to the other user
-      try {
-        const otherUserId = match.user1_id === session.user.id ? match.user2_id : match.user1_id;
-        const senderName = session.user.name || 'Someone';
+  //     // Also fetch all messages to ensure consistency
+  //     await fetchMessages();
 
-        await fetch('/api/notifications/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: otherUserId,
-            title: ` ${senderName} 💥`,
-            body: messageContent.length > 50
-              ? `${messageContent.substring(0, 50)}...`
-              : messageContent,
-            type: 'message',
-            url: `/matches/${match.id}`,
-            matchId: match.id
-          })
-        });
-      } catch (notificationError) {
-        console.error('Failed to send push notification:', notificationError);
-        // Don't throw here - message was sent successfully, notification is just a bonus
-      }
-    } catch (err) {
-      console.error('Error sending message:', err);
-      // Restore the message in input if there was an error
-      setNewMessage(messageContent);
-    }
-  };
+  //     // Send push notification to the other user
+  //     try {
+  //       const otherUserId = match.user1_id === session.user.id ? match.user2_id : match.user1_id;
+  //       const senderName = session.user.name || 'Someone';
+
+  //       await fetch('/api/notifications/send', {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify({
+  //           userId: otherUserId,
+  //           title: ` ${senderName} 💥`,
+  //           body: messageContent.length > 50
+  //             ? `${messageContent.substring(0, 50)}...`
+  //             : messageContent,
+  //           type: 'message',
+  //           url: `/matches/${match.id}`,
+  //           matchId: match.id
+  //         })
+  //       });
+  //     } catch (notificationError) {
+  //       console.error('Failed to send push notification:', notificationError);
+  //       // Don't throw here - message was sent successfully, notification is just a bonus
+  //     }
+  //   } catch (err) {
+  //     console.error('Error sending message:', err);
+  //     // Restore the message in input if there was an error
+  //     setNewMessage(messageContent);
+  //   }
+  // };
 
   // const sendMessage = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -625,12 +662,165 @@ useEffect(() => {
   //   }
   // };
 
-  
 
-  
 
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    console.log('🚀 Form submitted - attempting to send message');
+    console.log('📝 Form data:', {
+      newMessage: newMessage.trim(),
+      userId: session?.user?.id,
+      matchId: match?.id
+    });
+
+    if (!newMessage.trim() || !session?.user?.id || !match?.id) {
+      console.log('❌ Cannot send - missing required data:', {
+        hasMessage: !!newMessage.trim(),
+        hasUserId: !!session?.user?.id,
+        hasMatchId: !!match?.id
+      });
+      return;
+    }
+
+    const messageContent = newMessage.trim();
+    setNewMessage('');
+
+    try {
+      console.log('📤 Calling sendChatMessage with:', messageContent);
+
+      await sendChatMessage(messageContent, 'text');
+
+      console.log('✅ sendChatMessage completed successfully');
+
+      // Send push notification
+      const otherUserId = match.user1_id === session.user.id ? match.user2_id : match.user1_id;
+      const senderName = session.user.name || 'Someone';
+
+      console.log('📱 Sending push notification to:', otherUserId);
+
+      await fetch('/api/notifications/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: otherUserId,
+          title: `${senderName} 💥`,
+          body: messageContent.length > 50 ? `${messageContent.substring(0, 50)}...` : messageContent,
+          type: 'message',
+          url: `/matches/${match.id}`,
+          matchId: match.id
+        })
+      });
+
+      console.log('✅ Push notification sent');
+    } catch (err) {
+      console.error('💥 Error in sendMessage:', err);
+      setNewMessage(messageContent);
+    }
+  };
+
+  // Add this temporary test function to your MatchChatPage
+  const testDatabaseInsert = async () => {
+    try {
+      console.log('🧪 Testing direct database insert...');
+
+      const { data, error } = await supabase
+        .from('match_messages')
+        .insert({
+          match_id: matchId,
+          sender_id: session?.user?.id,
+          content: `Test message ${Date.now()}`,
+          type: 'text'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Test insert failed:', error);
+      } else {
+        console.log('✅ Test insert successful:', data);
+      }
+    } catch (err) {
+      console.error('💥 Test insert error:', err);
+    }
+  };
+
+  // Add a button temporarily to test this
+  // <button onClick={testDatabaseInsert}>Test DB Insert</button>
+
+  // UPDATE your handleVoiceMessage function:
+  const handleVoiceMessage = async () => {
+    if (!match?.id || !session?.user?.id || isUploadingVoice) {
+      return;
+    }
+
+    try {
+      setIsUploadingVoice(true);
+      console.log('🎤 Processing voice message...');
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const { blob, duration } = await stopRecording();
+
+      console.log('📝 Recording result:', { duration, size: blob.size, type: blob.type });
+
+      if (blob.size < 1000) {
+        alert('Recording too short. Please hold the button longer.');
+        return;
+      }
+
+      if (blob.size > 1024 * 1024) {
+        alert('Recording too long. Please record a shorter message.');
+        return;
+      }
+
+      // Upload the voice message
+      const uploadResult = await uploadVoiceMessage(blob, match.id, session.user.id);
+      if (!uploadResult?.path) {
+        throw new Error('Upload failed');
+      }
+
+      const audioUrl = getVoiceMessageUrl(uploadResult.path);
+
+      // Use the hook's sendMessage with voice type
+      await sendChatMessage('🎤 Voice message', 'voice', {
+        audio_url: audioUrl,
+        duration: duration,
+        file_type: blob.type,
+        file_size: blob.size
+      });
+
+      console.log('✅ Voice message sent successfully');
+
+    } catch (error) {
+      console.error('❌ Voice message failed:', error);
+      if (error instanceof Error && error.message.includes('No audio data')) {
+        console.log('Recording too short, cancelled');
+      } else {
+        alert('Failed to send voice message. Please try again.');
+      }
+    } finally {
+      setIsUploadingVoice(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!session?.user?.id || !matchId) return;
+    fetchMatch();
+  }, [session?.user?.id, matchId]);
+
+  useEffect(() => {
+    if (messages.length > 0 && !messagesLoading) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [messages.length > 0, messagesLoading]);
 
   const [faceIndex, setFaceIndex] = useState(0)
+
+
+
+
 
   const faces = ['( ˶°ㅁ°) !!', '( ˶–ㅁ–) zZ', '( ˶°ㅁ°) !!'] // Add more if you want!
   const boyFaces = ['( ˶°ㅁ°) !!', '( ˶–ㅁ–) zZ', '( ˶⚆_⚆) !!']
@@ -668,115 +858,136 @@ useEffect(() => {
 
   // Add this function in your MatchChatPage component, after the existing helper functions
 
-  const handleVoiceMessage = async () => {
-    if (!match?.id || !session?.user?.id) {
-      console.error('Missing match or user data');
-      return;
-    }
+  // const handleVoiceMessage = async () => {
+  //   if (!match?.id || !session?.user?.id) {
+  //     console.error('Missing match or user data');
+  //     return;
+  //   }
 
-    // Prevent rapid calls
-    if (isUploadingVoice) {
-      console.log('Already processing voice message');
-      return;
-    }
+  //   // Prevent rapid calls
+  //   if (isUploadingVoice) {
+  //     console.log('Already processing voice message');
+  //     return;
+  //   }
 
-    try {
-      setIsUploadingVoice(true);
-      console.log('🎤 Processing voice message...');
+  //   try {
+  //     setIsUploadingVoice(true);
+  //     console.log('🎤 Processing voice message...');
 
-      // Add a small delay to ensure recording has time to process
-      await new Promise(resolve => setTimeout(resolve, 100));
+  //     // Add a small delay to ensure recording has time to process
+  //     await new Promise(resolve => setTimeout(resolve, 100));
 
-      const { blob, duration } = await stopRecording();
+  //     const { blob, duration } = await stopRecording();
 
-      console.log('📝 Recording result:', {
-        duration,
-        size: blob.size,
-        type: blob.type
-      });
+  //     console.log('📝 Recording result:', {
+  //       duration,
+  //       size: blob.size,
+  //       type: blob.type
+  //     });
 
-      // Minimum checks
-      if (blob.size < 1000) { // Less than 1KB
-        console.log('⚠️ Recording too small');
-        alert('Recording too short. Please hold the button longer.');
-        return;
-      }
+  //     // Minimum checks
+  //     if (blob.size < 1000) { // Less than 1KB
+  //       console.log('⚠️ Recording too small');
+  //       alert('Recording too short. Please hold the button longer.');
+  //       return;
+  //     }
 
-      // Upload the voice message
-      const uploadResult = await uploadVoiceMessage(blob, match.id, session.user.id);
+  //     // Upload the voice message
+  //     const uploadResult = await uploadVoiceMessage(blob, match.id, session.user.id);
 
-      if (!uploadResult?.path) {
-        throw new Error('Upload failed');
-      }
+  //     if (!uploadResult?.path) {
+  //       throw new Error('Upload failed');
+  //     }
 
-      const audioUrl = getVoiceMessageUrl(uploadResult.path);
+  //     const audioUrl = getVoiceMessageUrl(uploadResult.path);
 
-      // Save to database
-      const { data: messageData, error: messageError } = await supabase
-        .from('match_messages')
-        .insert({
-          match_id: match.id,
-          sender_id: session.user.id,
-          content: '🎤 Voice message',
-          type: 'voice',
-          metadata: {
-            audio_url: audioUrl,
-            duration: duration,
-            file_type: blob.type,
-            file_size: blob.size
-          }
-        })
-        .select('*, sender:sender_id(*)')
-        .single();
+  //     // Save to database
+  //     const { data: messageData, error: messageError } = await supabase
+  //       .from('match_messages')
+  //       .insert({
+  //         match_id: match.id,
+  //         sender_id: session.user.id,
+  //         content: '🎤 Voice message',
+  //         type: 'voice',
+  //         metadata: {
+  //           audio_url: audioUrl,
+  //           duration: duration,
+  //           file_type: blob.type,
+  //           file_size: blob.size
+  //         }
+  //       })
+  //       .select('*, sender:sender_id(*)')
+  //       .single();
 
-      if (messageError) {
-        console.error('Database error:', messageError);
-        throw messageError;
-      }
+  //     if (messageError) {
+  //       console.error('Database error:', messageError);
+  //       throw messageError;
+  //     }
 
-      console.log('✅ Voice message sent successfully');
+  //     console.log('✅ Voice message sent successfully');
 
-      // Update UI
-      if (messageData) {
-        const newVoiceMessage: Message = {
-          ...messageData,
-          sender: {
-            id: session.user.id,
-            username: session.user.name || 'You',
-            profile_picture: null
-          },
-          type: 'voice',
-          metadata: messageData.metadata ?? undefined
-        };
-        setMessages(prev => [...prev, newVoiceMessage]);
-        // setTimeout(() => scrollToBottom(true), 100);
-      }
+  //     // Update UI
+  //     if (messageData) {
+  //       const newVoiceMessage: Message = {
+  //         ...messageData,
+  //         sender: {
+  //           id: session.user.id,
+  //           username: session.user.name || 'You',
+  //           profile_picture: null
+  //         },
+  //         type: 'voice',
+  //         metadata: messageData.metadata ?? undefined
+  //       };
+  //       setMessages(prev => [...prev, newVoiceMessage]);
+  //       // setTimeout(() => scrollToBottom(true), 100);
+  //     }
 
-    } catch (error) {
-      console.error('❌ Voice message failed:', error);
+  //   } catch (error) {
+  //     console.error('❌ Voice message failed:', error);
 
-      if (error instanceof Error && error.message.includes('No audio data')) {
-        // Don't show alert for short recordings
-        console.log('Recording too short, cancelled');
-      } else {
-        alert('Failed to send voice message. Please try again.');
-      }
-    } finally {
-      setIsUploadingVoice(false);
-    }
-  };
+  //     if (error instanceof Error && error.message.includes('No audio data')) {
+  //       // Don't show alert for short recordings
+  //       console.log('Recording too short, cancelled');
+  //     } else {
+  //       alert('Failed to send voice message. Please try again.');
+  //     }
+  //   } finally {
+  //     setIsUploadingVoice(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (messages.length > 0) {
+  //     // Scroll to bottom on initial load only
+  //     setTimeout(() => {
+  //       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  //     }, 100);
+  //   }
+  // }, [messages.length > 0]);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      // Scroll to bottom on initial load only
+    if (messages.length > 0 && !messagesLoading) {
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
-  }, [messages.length > 0]);
+  }, [messages.length > 0, messagesLoading]);
 
 
+  useEffect(() => {
+    // Debug subscription
+    const testSubscription = () => {
+      console.log('🧪 Testing subscription for match:', matchId);
+      console.log('🧪 Current messages count:', messages.length);
+      console.log('🧪 User ID:', session?.user?.id);
+      console.log('🧪 Messages loading:', messagesLoading);
+    };
 
+    // Run test every 10 seconds
+    const interval = setInterval(testSubscription, 10000);
+
+    return () => clearInterval(interval);
+  }, [matchId, messages.length, session?.user?.id, messagesLoading]);
 
   if (loading) {
     return (
@@ -887,8 +1098,28 @@ useEffect(() => {
               <span className="sm:hidden">{showProfile ? 'Hide' : 'View 👀'}</span>
             </button>
           )}
+          <ChatActionsMenu
+            onBlock={() => setShowBlockModal(true)}
+            otherUserName={
+              bothRevealed && otherUserProfile?.username
+                ? otherUserProfile.username
+                : 'this user'
+            }
+          />
         </div>
       </div>
+
+      <BlockConfirmationModal
+  isOpen={showBlockModal}
+  onClose={() => setShowBlockModal(false)}
+  onConfirm={handleBlockUser}
+  otherUserName={
+    bothRevealed && otherUserProfile?.username 
+      ? otherUserProfile.username 
+      : 'this user'
+  }
+/>
+
 
       {/* Main Content Area - Add top padding to account for fixed navbar */}
       <div className="flex-1 flex flex-col pt-16 h-full overflow-hidden"> {/* pt-16 accounts for navbar height */}
@@ -930,102 +1161,16 @@ useEffect(() => {
 
         {/* Messages Area - Updated with smart scrolling */}
         {/* Messages Area with Load More functionality */}
-        <div className="flex-1 min-h-0 overflow-y-auto bg-gray-50 dark:bg-black relative">
-          <div className="px-4 py-2 h-full">
-            {messages.length === 0 ? (
-              // Your empty state JSX here...
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className='inline-flex scale-75 items-center justify-center mb-4 gap-3'>
-                  <div className='bg-amber-300 shadow-2xl rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
-                    <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
-                      {boyFaces[faceIndex]}
-                    </span>
-                  </div>
-                  <div className='bg-amber-300 shadow-2xl rounded-2xl w-28 h-20 flex items-center justify-center animate-floaty'>
-                    <span className='text-red-500 text-xl font-semibold transition-all duration-300'>
-                      {girlFaces[faceIndex]}
-                    </span>
-                  </div>
-                </div>
-                <h3 className="text-lg font-blindcharm-tech text-gray-900 dark:text-amber-100 mb-2">No messages yet</h3>
-                <p className="text-red-500 text-sm max-w-xs font-bold italic">
-                  Your story hasn't started yet...
-                  <br />
-                  <span className="font-semibold">Tip: </span>Say hey, share a thought — let the vibe flow ♡
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3 py-2 min-h-full">
-                {/* LOAD MORE BUTTON - At the top */}
-                {hasMoreMessages && (
-                  <div className="flex justify-center py-4">
-                    <button
-                      onClick={loadMoreMessages}
-                      disabled={isLoadingMore}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${isLoadingMore
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700'
-                        }`}
-                    >
-                      {isLoadingMore ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Loading...</span>
-                        </div>
-                      ) : (
-                        '↑ Load older messages'
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                {/* Messages */}
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`max-w-[75%] ${message.sender_id === session?.user?.id ? 'order-2' : 'order-1'}`}>
-                      <div
-                        className={`px-4 py-2 rounded-2xl ${message.sender_id === session?.user?.id
-                          ? 'bg-red-500 text-white rounded-br-md'
-                          : 'bg-white text-gray-900 rounded-bl-md border border-gray-200'
-                          }`}
-                      >
-                        {message.type === 'voice' && message.metadata?.audio_url ? (
-                          <VoiceMessage
-                            audioUrl={message.metadata.audio_url}
-                            duration={message.metadata.duration}
-                            isOwn={message.sender_id === session?.user?.id}
-                            isLoading={false}
-                          />
-                        ) : (
-                          <p className="text-sm leading-relaxed">{message.content}</p>
-                        )}
-                      </div>
-                      <div className={`flex items-center mt-1 space-x-1 ${message.sender_id === session?.user?.id ? 'justify-end' : 'justify-start'
-                        }`}>
-                        <span className="text-xs text-gray-400">
-                          {new Date(message.created_at).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                        {message.sender_id === session?.user?.id && (
-                          <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                <div ref={messagesEndRef} />
-              </div>
-            )}
-          </div>
-        </div>
+        <MatchMessages
+          messages={messages}
+          loading={messagesLoading}
+          hasMoreMessages={hasMoreMessages}
+          loadMoreMessages={loadMoreMessages}
+          currentUserId={session?.user?.id}
+          boyFaces={boyFaces}
+          girlFaces={girlFaces}
+          faceIndex={faceIndex}
+        />
 
         {/* Message Input */}
         <div className="flex-shrink-0 bg-white border-t border-gray-200 dark:border-gray-100 dark:bg-black px-4 py-3 rounded-2xl">
@@ -1140,6 +1285,261 @@ useEffect(() => {
 }
 
 // Enhanced Profile Card Component
+// function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
+//   if (!user) return null;
+
+//   const calculateAge = (dob?: string): number | null => {
+//     if (!dob) return null;
+//     const birthDate = new Date(dob);
+//     const today = new Date();
+//     let age = today.getFullYear() - birthDate.getFullYear();
+//     const monthDiff = today.getMonth() - birthDate.getMonth();
+//     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+//       age--;
+//     }
+//     return age;
+//   };
+
+//   const formatLocation = (location?: string | { city: string; country: string }): string | null => {
+//     if (!location) return null;
+//     if (typeof location === 'string') return location;
+//     if (typeof location === 'object' && location.city && location.country) {
+//       return `${location.city}, ${location.country}`;
+//     }
+//     return null;
+//   };
+
+//   const age = calculateAge(user.dob);
+//   const locationStr = formatLocation(user.location);
+
+//   return (
+//     <div className="bg-purple-400 dark:bg-black border border-gray-200 dark:border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+//       {/* Header with main photo - Responsive */}
+//       <div className="relative h-100 sm:h-72 md:h-80 lg:h-96 xl:h-[28rem] bg-gradient-to-br from-red-400 to-pink-500 overflow-hidden">
+//         {user.profile_picture ? (
+//           <div
+//             className="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-300 hover:scale-105"
+//             style={{
+//               backgroundImage: `url(${user.profile_picture})`,
+//               backgroundSize: 'cover',
+//               backgroundPosition: 'center center'
+//             }}
+//           />
+//         ) : (
+//           <div className="w-full h-full flex items-center justify-center">
+//             <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+//               <span className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">
+//                 {user.username?.[0]?.toUpperCase() || '?'}
+//               </span>
+//             </div>
+//           </div>
+//         )}
+//         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-5 md:p-6 xl:p-8">
+//           <h1 className="text-white font-blindcharm-tech text-xl sm:text-2xl md:text-3xl xl:text-4xl  mb-1 leading-tight drop-shadow-lg">
+//             {user.full_name || user.username}
+//             {age && <span className="text-lg sm:text-xl md:text-2xl xl:text-3xl font-normal ml-2">{age}</span>}
+//           </h1>
+//           {locationStr && (
+//             <div className="flex items-center text-white/90 text-xs sm:text-sm md:text-base font-blindcharm-logo">
+//               <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+//                 <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+//               </svg>
+//               <span className="truncate drop-shadow-sm">{locationStr}</span>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+
+//       <div className="p-4 sm:p-5 md:p-6 xl:p-8 space-y-4 sm:space-y-5 md:space-y-6 xl:space-y-8">
+//         {/* Bio */}
+//         {user.bio && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-blindcharm-tech text-gray-900 dark:text-lime-300 mb-2">About</h3>
+//             <p className="text-gray-700 dark:text-white leading-relaxed text-sm sm:text-base">{user.bio}</p>
+//           </div>
+//         )}
+
+//         {/* Basic Info */}
+//         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 xl:gap-6">
+//           {user.height && (
+//             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+//               <div className="flex items-center">
+//                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
+//                 </svg>
+//                 <div className="min-w-0">
+//                   <p className="text-xs text-gray-500 dark:text-white">Height</p>
+//                   <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base truncate">{user.height} cm</p>
+//                 </div>
+//               </div>
+//             </div>
+//           )}
+
+//           {user.occupation && (
+//             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+//               <div className="flex items-center">
+//                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 002 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2V8" />
+//                 </svg>
+//                 <div className="min-w-0">
+//                   <p className="text-xs text-gray-500 dark:text-white">Work</p>
+//                   <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base truncate">{user.occupation}</p>
+//                 </div>
+//               </div>
+//             </div>
+//           )}
+
+//           {user.education && (
+//             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+//               <div className="flex items-center">
+//                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+//                 </svg>
+//                 <div className="min-w-0">
+//                   <p className="text-xs text-gray-500 dark:text-white">Education</p>
+//                   <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base">{user.education}</p>
+//                 </div>
+//               </div>
+//             </div>
+//           )}
+//         </div>
+
+//         {/* Interests */}
+//         {user.interests && user.interests.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Interests</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.interests.map((interest: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-red-100 dark:bg-red-600 dark:text-white text-red-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {interest}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Personality Tags */}
+//         {user.personality_tags && user.personality_tags.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Personality</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.personality_tags.map((tag: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-blue-100 text-blue-700 dark:bg-blue-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {tag}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Lifestyle Tags */}
+//         {user.lifestyle_tags && user.lifestyle_tags.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Lifestyle</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.lifestyle_tags.map((tag: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-green-100 text-green-700 dark:bg-green-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {tag}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Languages */}
+//         {user.languages && user.languages.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 font-blindcharm-tech dark:text-lime-300 mb-2 sm:mb-3">Languages</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.languages.map((language: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-purple-100 text-purple-700 dark:bg-purple-700 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {language}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Hobbies */}
+//         {user.hobbies && user.hobbies.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Hobbies</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.hobbies.map((hobby: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-yellow-100 text-yellow-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {hobby}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Looking For */}
+//         {user.looking_for && user.looking_for.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Looking For</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.looking_for.map((item: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-pink-100 text-pink-700 dark:bg-pink-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {item}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+// // Add this at the bottom of your file
+// function ProfileCard({ user, bothRevealed }: { user: UserProfile & { bio?: string; interests?: string[]; age?: number; education?: string }, bothRevealed: boolean }) {
+//   if (!user) return null;
+//   return (
+//     <div className="flex flex-col items-center bg-white rounded-lg shadow p-4 w-full max-w-xs">
+//       <img
+//         src={user.profile_picture || '/default-avatar.png'}
+//         alt={user.username}
+//         className={`w-20 h-20 rounded-full object-cover mb-2 transition-all duration-300 ${!bothRevealed ? 'blur-sm grayscale' : ''}`}
+//       />
+//       <h3 className="font-bold text-lg">{user.username}</h3>
+//       {bothRevealed && (
+//         <>
+//           <p className="text-gray-500">{user.bio}</p>
+//           <p className="text-gray-400 text-sm">Age: {user.age}</p>
+//           <p className="text-gray-400 text-sm">Education: {user.education}</p>
+//           <div className="flex flex-wrap gap-1 mt-2">
+//             {user.interests?.map((interest: string) => (
+//               <span key={interest} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">{interest}</span>
+//             ))}
+//           </div>
+//         </>
+//       )}
+//     </div>
+//   );
+// }
+
+
+// Enhanced Profile Card Component - Updated version
 function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
   if (!user) return null;
 
@@ -1169,19 +1569,55 @@ function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
 
   return (
     <div className="bg-purple-400 dark:bg-black border border-gray-200 dark:border-gray-100 rounded-2xl shadow-lg overflow-hidden">
-      {/* Header with main photo - Responsive */}
-      <div className="relative h-100 sm:h-72 md:h-80 lg:h-96 xl:h-[28rem] bg-gradient-to-br from-red-400 to-pink-500 overflow-hidden">
+      {/* Header with main photo - Responsive with adaptive height */}
+      <div className="relative bg-purple-400 dark:bg-black overflow-hidden">
         {user.profile_picture ? (
-          <div
-            className="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-300 hover:scale-105"
-            style={{
-              backgroundImage: `url(${user.profile_picture})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center center'
-            }}
-          />
+          // Mobile: Fixed height, Desktop: Adaptive height
+          <div className="relative">
+            {/* Mobile version - fixed height */}
+            <div className="block md:hidden relative h-100 sm:h-72">
+              <div
+                className="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-300 hover:scale-105"
+                style={{
+                  backgroundImage: `url(${user.profile_picture})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center center'
+                }}
+              />
+            </div>
+            
+            {/* Desktop version - adaptive height */}
+            <div className="hidden md:block">
+              <img
+                src={user.profile_picture}
+                alt={user.full_name || user.username}
+                className="w-full h-auto object-contain max-h-[70vh] transition-transform duration-300 hover:scale-105"
+                style={{
+                  minHeight: '400px',
+                  maxHeight: '70vh',
+                  objectFit: 'contain'
+                }}
+                onError={(e) => {
+                  // Fallback if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallbackDiv = target.nextElementSibling as HTMLElement;
+                  if (fallbackDiv) fallbackDiv.style.display = 'flex';
+                }}
+              />
+              {/* Fallback for desktop */}
+              <div className="w-full h-96 flex items-center justify-center" style={{ display: 'none' }}>
+                <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <span className="text-white text-4xl font-bold">
+                    {user.username?.[0]?.toUpperCase() || '?'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          // No profile picture - show placeholder
+          <div className="h-100 sm:h-72 md:h-96 lg:h-[32rem] xl:h-[28rem] w-full flex items-center justify-center">
             <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <span className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">
                 {user.username?.[0]?.toUpperCase() || '?'}
@@ -1189,8 +1625,10 @@ function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
             </div>
           </div>
         )}
+        
+        {/* Overlay with name and location */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-5 md:p-6 xl:p-8">
-          <h1 className="text-white font-blindcharm-tech text-xl sm:text-2xl md:text-3xl xl:text-4xl  mb-1 leading-tight drop-shadow-lg">
+          <h1 className="text-white font-blindcharm-tech text-xl sm:text-2xl md:text-3xl xl:text-4xl mb-1 leading-tight drop-shadow-lg">
             {user.full_name || user.username}
             {age && <span className="text-lg sm:text-xl md:text-2xl xl:text-3xl font-normal ml-2">{age}</span>}
           </h1>
@@ -1366,38 +1804,4 @@ function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
   );
 }
 
-// Add this at the bottom of your file
-function ProfileCard({ user, bothRevealed }: { user: UserProfile & { bio?: string; interests?: string[]; age?: number; education?: string }, bothRevealed: boolean }) {
-  if (!user) return null;
-  return (
-    <div className="flex flex-col items-center bg-white rounded-lg shadow p-4 w-full max-w-xs">
-      <img
-        src={user.profile_picture || '/default-avatar.png'}
-        alt={user.username}
-        className={`w-20 h-20 rounded-full object-cover mb-2 transition-all duration-300 ${!bothRevealed ? 'blur-sm grayscale' : ''}`}
-      />
-      <h3 className="font-bold text-lg">{user.username}</h3>
-      {bothRevealed && (
-        <>
-          <p className="text-gray-500">{user.bio}</p>
-          <p className="text-gray-400 text-sm">Age: {user.age}</p>
-          <p className="text-gray-400 text-sm">Education: {user.education}</p>
-          <div className="flex flex-wrap gap-1 mt-2">
-            {user.interests?.map((interest: string) => (
-              <span key={interest} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">{interest}</span>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-
-// Helper function for formatting duration
-function formatDuration(seconds: number) {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
 

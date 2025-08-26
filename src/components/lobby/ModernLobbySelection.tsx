@@ -484,48 +484,48 @@ export default function ModernLobbySelection() {
                     Let's get you started with our unique blind dating experience
                   </p>
                 </div>
-<div className="space-y-4 mb-8">
-  {/* Step 1 */}
-  <div className="flex items-start gap-4">
-    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
-      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">1</span>
-    </div>
-    <div>
-      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Enter the Lobby</h3>
-      <p className="text-sm text-neutral-700 dark:text-gray-300">
-        Step into a vibe-driven space where everyone starts with just words—no photos, no pressure. 
-      </p>
-    </div>
-  </div>
+                <div className="space-y-4 mb-8">
+                  {/* Step 1 */}
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">1</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Enter the Lobby</h3>
+                      <p className="text-sm text-neutral-700 dark:text-gray-300">
+                        Step into a vibe-driven space where everyone starts with just words—no photos, no pressure.
+                      </p>
+                    </div>
+                  </div>
 
-  {/* Step 2 */}
-  <div className="flex items-start gap-4">
-    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
-      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">2</span>
-    </div>
-    <div>
-      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Chat & Connect</h3>
-      <p className="text-sm text-neutral-700 dark:text-gray-300">
-        Hang out in the lobby, share thoughts, and vibe with others. Blind matches happen daily at <strong>12:00 AM, 6:00 AM </strong> 
-      </p>
-    </div>
-  </div>
+                  {/* Step 2 */}
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">2</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Chat & Connect</h3>
+                      <p className="text-sm text-neutral-700 dark:text-gray-300">
+                        Hang out in the lobby, share thoughts, and vibe with others. Blind matches happen daily at <strong>12:00 AM, 6:00 AM </strong>
+                      </p>
+                    </div>
+                  </div>
 
-  {/* Step 3 */}
-  <div className="flex items-start gap-4">
-    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
-      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">3</span>
-    </div>
-    <div>
-      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Reveal & Go Deeper</h3>
-      <p className="text-sm text-neutral-700 dark:text-gray-300">
-        Once matched, chat privately and when both agree, reveal your identities—turning conversations into real connections. 
-      </p>
-    </div>
-  </div>
-</div>
+                  {/* Step 3 */}
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-primary-600 dark:text-primary-400 font-bold text-sm">3</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-neutral-850 dark:text-gray-100 mb-1">Reveal & Go Deeper</h3>
+                      <p className="text-sm text-neutral-700 dark:text-gray-300">
+                        Once matched, chat privately and when both agree, reveal your identities—turning conversations into real connections.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-                
+
 
                 <div className="flex gap-3">
                   <Link
@@ -577,7 +577,7 @@ export default function ModernLobbySelection() {
                 <div className="flex items-center space-x-2 bg-secondary-50 dark:bg-gray-800 px-4 py-2 rounded-full">
                   <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
                   <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
-                    {activeLobbies.length} active
+                    {activeLobbies.length} Lobbies
                   </span>
                 </div>
               </div>
@@ -620,10 +620,10 @@ export default function ModernLobbySelection() {
                       Create Lobby
                     </ModernButton>
                   )}
-                  <div className="flex items-center space-x-2 bg-lime-200 dark:bg-gray-800 px-4 py-2 rounded-full">
+                  <div className="flex items-center space-x-1 bg-lime-200 dark:bg-gray-800 px-2 py-2 rounded-full">
                     <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
                     <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
-                      {activeLobbies.length} active
+                      {activeLobbies.length} Lobbies
                     </span>
                   </div>
                 </div>
@@ -719,8 +719,8 @@ export default function ModernLobbySelection() {
             </div>
           </div>
           <div className="w-full">
-  <OnboardingCards />
-</div>
+            <OnboardingCards />
+          </div>
           {/* <div className="w-full">
             <OnboardingCards />
           </div> */}
