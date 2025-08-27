@@ -313,64 +313,120 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import ContactForm from '../contact/ContactForm';
+import QuickContactButtons from '../contact/QuickContactButtons';
 
 const LobbyBanner: React.FC = () => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    // const announcements = [
+    //     {
+    //         id: 1,
+    //         title: "Match Time!",
+    //         description: "Next blind matches at 6:00 pm – don't be late"
+    //     },
+    //     {
+    //         id: 2,
+    //         title: "Your Lobby",
+    //         description: "Hang out, chat & vibe with students"
+    //     },
+    //     {
+    //         id: 3,
+    //         title: "Safety First",
+    //         description: "Report anytime. We've got your back."
+    //     },
+    //     {
+    //         id: 4,
+    //         title: "Pro Tip",
+    //         description: "The more you vibe, the better your matches get"
+    //     }
+    // ];
     const announcements = [
-        {
-            id: 1,
-            title: "Match Time!",
-            description: "Next blind matches at 12:00 & 6:00 – don't be late"
-        },
-        {
-            id: 2,
-            title: "Your Lobby",
-            description: "Hang out, chat & vibe with Thapar students"
-        },
-        {
-            id: 3,
-            title: "Safety First",
-            description: "Report & block anytime. We've got your back."
-        },
-        {
-            id: 4,
-            title: "Pro Tip",
-            description: "The more you vibe, the better your matches get"
-        }
-    ];
+  {
+    id: 1,
+    title: "Match Time!",
+    description: "Next blind matches at 6:00 PM sharp ⏰ – don’t miss out!"
+  },
+  {
+    id: 2,
+    title: "Your Lobby",
+    description: "Hang out, chat & vibe with fellow students 🎉"
+  },
+  {
+    id: 3,
+    title: "Safety First",
+    description: "Report/block anytime — we’ve got your back 💙"
+  },
+  {
+    id: 4,
+    title: "Pro Tip",
+    description: "The more you vibe, the better your matches 🔥"
+  }
+];
 
+
+    // const appRules = [
+    //     {
+    //         category: "How It Works",
+    //         rules: [
+    //             "Auto-matching happens at 6:00 PM sharp",
+    //             "Answer to females questions and get points and leaderboard to get matched first",
+    //             "You'll be paired based on your vibes & preferences",
+    //             "After matching, you'll get a private chat room",
+    //             "After chatting you can choose to reveal your identity",
+                
+    //         ]
+    //     },
+    //     {
+    //         category: "Community Vibes",
+    //         rules: [
+    //             "Be kind & respectful — good vibes only",
+    //             "No spam, no inappropriate content",
+    //             "Keep conversations fun & positive",
+    //             "Respect everyone's space & privacy"
+    //         ]
+    //     },
+    //     {
+    //         category: "Safety First",
+    //         rules: [
+    //             "Report us if someone feels off",
+    //             "Our system keeps things safe & secure",
+    //             "Emergency help is always available"
+    //         ]
+    //     }
+    // ];
     const appRules = [
-        {
-            category: "How It Works",
-            rules: [
-                "Auto-matching happens at 12:00 PM & 6:00 PM sharp",
-                "You'll be paired based on your vibes & preferences",
-                "After matching, you'll get a private chat room",
-                "After chatting you can choose to reveal your identity",
-                "Didn't click? Don't worry, another chance soon"
-            ]
-        },
-        {
-            category: "Community Vibes",
-            rules: [
-                "Be kind & respectful — good vibes only",
-                "No spam, no inappropriate content",
-                "Keep conversations fun & positive",
-                "Respect everyone's space & privacy"
-            ]
-        },
-        {
-            category: "Safety First",
-            rules: [
-                "Report/block if someone feels off",
-                "Our system keeps things safe & secure",
-                "Emergency help is always available"
-            ]
-        }
-    ];
+  {
+    category: "How It Works",
+    rules: [
+      "Auto-matching happens daily at 6:00 PM ⏰",
+      "Play fun Q&A to earn points & rise on the leaderboard 🏆",
+      "You’ll be paired based on vibes + preferences 💕",
+      "After matching, you get your own private chat room 🗨️",
+      "When you’re ready, you can choose to reveal identities 👀"
+    ]
+  },
+  {
+    category: "Community Vibes",
+    rules: [
+      "Be kind & respectful — good vibes only 🌸",
+      "No spam, no creepy stuff 🚫",
+      "Keep convos fun, light & positive ✨",
+      "Respect everyone’s privacy & space 🔒"
+    ]
+  },
+  {
+    category: "Safety First",
+    rules: [
+      "Report/block instantly if something feels off 🚨",
+      "Our system is built to keep you safe & secure ✅",
+      "Emergency support is always available 💙"
+    ]
+  }
+];
+
 
     useEffect(() => {
         if (!isExpanded) {
@@ -545,7 +601,7 @@ const LobbyBanner: React.FC = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                 </svg>
                                             </div>
-                                            <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Someone's already interested</div>
+                                            <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Get Verified to boost your match chances 🚀</div>
                                         </div>
 
                                         <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-pink-300 dark:hover:border-pink-600 hover:shadow-md transition-all duration-300">
@@ -554,7 +610,7 @@ const LobbyBanner: React.FC = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                 </svg>
                                             </div>
-                                            <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Your next connection awaits</div>
+                                            <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Your next connection is just one click away 💌 </div>
                                         </div>
 
                                         <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-300">
@@ -563,7 +619,7 @@ const LobbyBanner: React.FC = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                                 </svg>
                                             </div>
-                                            <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Engaging conversations guaranteed</div>
+                                            <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Warning: BlindCharm may cause late-night chats 🌙</div>
                                         </div>
 
                                         <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-600 hover:shadow-md transition-all duration-300">
@@ -572,7 +628,7 @@ const LobbyBanner: React.FC = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                                 </svg>
                                             </div>
-                                            <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Connect beyond appearances</div>
+                                            <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Fall for vibes, not just faces 💜</div>
                                         </div>
                                     </div>
                                 </div>
@@ -587,7 +643,7 @@ const LobbyBanner: React.FC = () => {
                                         Our team is just one tap away. We're here for you!
                                     </p>
 
-                                    <button
+                                    {/* <button
                                         className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white py-4 rounded-2xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg hover:transform hover:scale-[1.01]"
                                         onClick={handleSupportClick}
                                         role="button"
@@ -595,7 +651,9 @@ const LobbyBanner: React.FC = () => {
                                         onKeyDown={handleSupportKeyDown}
                                     >
                                         Contact Support
-                                    </button>
+                                    </button> */}
+                                    <ContactForm />
+                                    {/* <QuickContactButtons /> */}
                                 </div>
                             </div>
 

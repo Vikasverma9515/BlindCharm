@@ -79,6 +79,12 @@ interface UserProfile {
   interests?: string[];
   age?: number;
   education?: string;
+  face_verified?: boolean;
+  college_verified?: boolean;
+  college_name?: string;
+  additional_photo_1?: string | null;
+  additional_photo_2?: string | null;
+  is_admin?: boolean;
 }
 
 interface ExtendedUserProfile extends UserProfile {
@@ -165,6 +171,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
 
 
+
   const { isRecording, isProcessing, startRecording, stopRecording, cancelRecording } = useVoiceRecorder();
   const [isUploadingVoice, setIsUploadingVoice] = useState(false);
 
@@ -197,6 +204,23 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   //     alert('Failed to create voice challenge. Please try again.');
   //   }
   // };
+
+  const [showRevealedBanner, setShowRevealedBanner] = useState(() => {
+    // Check localStorage on initial load - make it match-specific
+    if (typeof window !== 'undefined' && matchId) {
+      const dismissed = localStorage.getItem(`dismissed-reveal-banner-${matchId}`);
+      return dismissed !== 'true'; // If dismissed is 'true', don't show banner
+    }
+    return true; // Default to showing the banner
+  });
+
+  // Function to dismiss banner and save to localStorage
+  const dismissRevealedBanner = () => {
+    setShowRevealedBanner(false);
+    if (typeof window !== 'undefined' && matchId) {
+      localStorage.setItem(`dismissed-reveal-banner-${matchId}`, 'true');
+    }
+  };
 
 
 
@@ -275,6 +299,60 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
 
   // Fetch reveal status and profiles
+  // const fetchRevealStatus = async () => {
+  //   if (!matchId || !session?.user?.id) return;
+
+  //   try {
+  //     // First, fetch the match reveal status
+  //     const { data: matchData, error: matchError } = await supabase
+  //       .from('matches')
+  //       .select('user1_id, user2_id, user1_revealed, user2_revealed')
+  //       .eq('id', matchId)
+  //       .single();
+
+  //     if (matchError) {
+  //       console.error('Error fetching match data:', matchError);
+  //       return;
+  //     }
+  //     if (!matchData) return;
+
+  //     const isCurrentUser1 = matchData.user1_id === session.user.id;
+  //     setIsUser1(isCurrentUser1);
+  //     setHasRevealed(isCurrentUser1 ? matchData.user1_revealed : matchData.user2_revealed);
+  //     setBothRevealed(matchData.user1_revealed && matchData.user2_revealed);
+
+  //     // Then, fetch user profiles separately only if both have revealed
+  //     if (matchData.user1_revealed && matchData.user2_revealed) {
+  //       const { data: userData, error: userError } = await supabase
+  //         .from('users')
+  //         .select(`
+  //         id, username, profile_picture, bio, interests, age, education, gender,
+  //         full_name, height, occupation, languages, hobbies, looking_for, 
+  //         personality_tags, lifestyle_tags, location, photos, dob
+  //       `)
+  //         .in('id', [matchData.user1_id, matchData.user2_id]);
+
+  //       if (userError) {
+  //         console.error('Error fetching user data:', userError);
+  //         return;
+  //       }
+  //       if (!userData) return;
+
+  //       const user1Data = userData.find(u => u.id === matchData.user1_id);
+  //       const user2Data = userData.find(u => u.id === matchData.user2_id);
+
+  //       setMyProfile((isCurrentUser1 ? user1Data : user2Data) || null);
+  //       setOtherUserProfile((isCurrentUser1 ? user2Data : user1Data) || null);
+  //     } else {
+  //       // Clear profiles if not both revealed
+  //       setMyProfile(null);
+  //       setOtherUserProfile(null);
+  //     }
+  //   } catch (err) {
+  //     console.error('Error in fetchRevealStatus:', err);
+  //   }
+  // };
+  // Update the fetchRevealStatus function
   const fetchRevealStatus = async () => {
     if (!matchId || !session?.user?.id) return;
 
@@ -297,14 +375,40 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
       setHasRevealed(isCurrentUser1 ? matchData.user1_revealed : matchData.user2_revealed);
       setBothRevealed(matchData.user1_revealed && matchData.user2_revealed);
 
-      // Then, fetch user profiles separately only if both have revealed
+      // Always fetch verification status (even during anonymous phase)
+      const otherUserId = isCurrentUser1 ? matchData.user2_id : matchData.user1_id;
+
+      // Fetch minimal data for verification badges during anonymous phase
+      const { data: verificationData, error: verificationError } = await supabase
+        .from('users')
+        .select('id, face_verified, college_verified, college_name')
+        .eq('id', otherUserId)
+        .single();
+
+      if (verificationError) {
+        console.error('Error fetching verification data:', verificationError);
+      } else {
+        // Set basic verification info for anonymous phase
+        setOtherUserProfile(prev => ({
+          ...prev,
+          id: verificationData.id,
+          face_verified: verificationData.face_verified,
+          college_verified: verificationData.college_verified,
+          college_name: verificationData.college_name,
+          username: prev?.username || '',
+          profile_picture: prev?.profile_picture || null
+        }));
+      }
+
+      // If both have revealed, fetch full profile data
       if (matchData.user1_revealed && matchData.user2_revealed) {
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select(`
           id, username, profile_picture, bio, interests, age, education, gender,
           full_name, height, occupation, languages, hobbies, looking_for, 
-          personality_tags, lifestyle_tags, location, photos, dob
+          personality_tags, lifestyle_tags, location, photos, dob, 
+          face_verified, college_verified, college_name
         `)
           .in('id', [matchData.user1_id, matchData.user2_id]);
 
@@ -319,10 +423,6 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
         setMyProfile((isCurrentUser1 ? user1Data : user2Data) || null);
         setOtherUserProfile((isCurrentUser1 ? user2Data : user1Data) || null);
-      } else {
-        // Clear profiles if not both revealed
-        setMyProfile(null);
-        setOtherUserProfile(null);
       }
     } catch (err) {
       console.error('Error in fetchRevealStatus:', err);
@@ -707,7 +807,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
         onClose={() => setShowSuccessPopup(false)}
       />
       {/* Chat Header with safe area support */}
-      <div className="bg-white border-b border-gray-200 dark:bg-black px-4 py-3 flex items-center justify-between fixed top-0 left-0 right-0 z-50 ">
+      {/* <div className="bg-white border-b border-gray-200 dark:bg-black px-4 py-3 flex items-center justify-between fixed top-0 left-0 right-0 z-50 ">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.push('/matches')}
@@ -805,6 +905,210 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
             }
           />
         </div>
+      </div> */}
+      {/* Chat Header with safe area support */}
+      <div className="bg-white border-b border-gray-200 dark:bg-black px-4 py-3 flex items-center justify-between fixed top-0 left-0 right-0 z-50 ">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => router.push('/matches')}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white rounded-full transition-colors"
+          >
+            <svg className="w-5 h-5 text-gray-600 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              {bothRevealed && otherUserProfile?.profile_picture ? (
+                <img
+                  src={otherUserProfile.profile_picture}
+                  alt={otherUserProfile.username}
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
+                />
+              ) : (
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex border dark:text-amber-50 border-red-500 items-center justify-center">
+                  <span className="text-white font-semibold text-sm sm:text-base">
+                    {bothRevealed && otherUserProfile?.username
+                      ? otherUserProfile.username[0].toUpperCase()
+                      : '?'}
+                  </span>
+                </div>
+              )}
+              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border border-white"></div>
+
+              {/* Verification Badge Overlay - Show even during anonymous phase */}
+              {otherUserProfile && (otherUserProfile.face_verified || otherUserProfile.college_verified) && (
+                <div className="absolute -top-1 -right-1 flex space-x-0.5">
+                  {/* {otherUserProfile.face_verified && (
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-blue-500 border border-white rounded-full flex items-center justify-center">
+                      
+                      <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                    </div>
+                  )} */}
+                  {/* {otherUserProfile.college_verified && (
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 border border-white rounded-full flex items-center justify-center">
+                      
+                      <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18M12,3L1,9L12,15L21,11V17H23V9L12,3Z" />
+                      </svg>
+                    </div>
+                  )} */}
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center space-x-2">
+                <h1 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
+                  {bothRevealed && otherUserProfile?.username
+                    ? otherUserProfile.full_name
+                    : 'Blind Match'}
+                </h1>
+
+                {/* Verification Badges - Show always when available */}
+                {otherUserProfile && (
+                  <div className="flex items-center space-x-1">
+                    {/* Face Verification Badge */}
+                    <div className={`flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 ${otherUserProfile.face_verified
+                      ? 'bg-blue-500 border-blue-500'
+                      : 'border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600'
+                      }`}
+                    >
+                      {otherUserProfile.face_verified ? (
+                        /* Face Icon - Verified */
+                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      ) : (
+                        /* Face Icon - Unverified */
+                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      )}
+                    </div>
+
+                    {/* College Verification Badge */}
+                    <div className={`flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 ${otherUserProfile.college_verified
+                      ? 'bg-green-500 border-green-500'
+                      : 'border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600'
+                      }`}
+                      title={otherUserProfile.college_verified ? `College Verified ✓${otherUserProfile.college_name ? ` (${otherUserProfile.college_name})` : ''}` : 'College Not Verified'}
+                    >
+                      {otherUserProfile.college_verified ? (
+                        /* Graduation Cap Icon - Verified */
+                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18M12,3L1,9L12,15L21,11V17H23V9L12,3Z" />
+                        </svg>
+                      ) : (
+                        /* Graduation Cap Icon - Unverified */
+                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18M12,3L1,9L12,15L21,11V17H23V9L12,3Z" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {bothRevealed ? (
+                  <span className="flex items-center space-x-1">
+                    <span>Online</span>
+                    {/* Show verification status text */}
+                    {otherUserProfile && (
+                      <span className="hidden sm:inline text-xs">
+                        {otherUserProfile.face_verified && otherUserProfile.college_verified
+                          ? '• Fully Verified'
+                          : otherUserProfile.face_verified && !otherUserProfile.college_verified
+                            ? '• Face Verified'
+                            : !otherUserProfile.face_verified && otherUserProfile.college_verified
+                              ? '• College Verified'
+                              : '• Unverified'
+                        }
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  <span className="flex items-center space-x-1">
+                    {/* Show verification status even during anonymous phase */}
+                    {otherUserProfile && (
+                      <span className="text-xs">
+                        {otherUserProfile.face_verified && otherUserProfile.college_verified
+                          ? '• Fully Verified'
+                          : otherUserProfile.face_verified && !otherUserProfile.college_verified
+                            ? '• Face Verified'
+                            : !otherUserProfile.face_verified && otherUserProfile.college_verified
+                              ? '• College Verified'
+                              : '• Unverified'
+                        }
+                      </span>
+                    )}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-1 sm:space-x-2">
+          {!hasRevealed ? (
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <button
+                  onClick={() => setShowTooltip(!showTooltip)}
+                  className="w-5 h-5 flex items-center justify-center rounded-full bg-yellow-300 text-black text-xs font-bold hover:bg-yellow-400 transition-colors">
+                  ?
+                </button>
+
+                {showTooltip && (
+                  <div className="absolute top-10 z-20 w-60 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md dark:bg-gray-800 dark:text-white left-1/2 transform -translate-x-1/2">
+                    You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>.
+                    <br />
+                    <span className=" text-gray-700 dark:text-gray-300 mt-1 mb-1 block">
+                      👤 Blue = Face Verified, 🎓 Green = College Verified
+                    </span>
+                    <span className="">
+                      <Zap className="w-3 h-3 inline-block text-purple-500 " /> Send Voice challenge to your match
+                    </span>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={handleReveal}
+                className="bg-red-500 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition-colors"
+              >
+                Reveal
+              </button>
+            </div>
+          ) : !bothRevealed ? (
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-gray-500 dark:text-white hidden sm:inline">Waiting...</span>
+              <span className="text-xs text-gray-500 dark:text-white sm:hidden">...</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowProfile(!showProfile)}
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${showProfile
+                ? 'bg-red-500 text-white hover:bg-red-600'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-lime-500 dark:text-white dark:hover:bg-gray-600'
+                }`}
+            >
+              <span className="hidden sm:inline">{showProfile ? 'Hide Profile' : 'View Profile'}</span>
+              <span className="sm:hidden">{showProfile ? 'Hide' : 'View 👀'}</span>
+            </button>
+          )}
+          <ChatActionsMenu
+            onBlock={() => setShowBlockModal(true)}
+            otherUserName={
+              bothRevealed && otherUserProfile?.username
+                ? otherUserProfile.username
+                : 'this user'
+            }
+          />
+        </div>
       </div>
 
       <BlockConfirmationModal
@@ -833,7 +1137,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
             </div>
           </div>
         )}
-
+{/* 
         {bothRevealed && (
           <div className="bg-green-50 border-b border-green-200 px-4 py-2">
             <div className="flex items-center justify-center space-x-2">
@@ -843,6 +1147,75 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
               <p className="text-green-700 text-sm font-medium">
                 Both identities revealed! You can now see each other's profiles.
               </p>
+            </div>
+          </div>
+        )} */}
+        {bothRevealed && showRevealedBanner && (
+          <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/30 dark:via-emerald-900/30 dark:to-teal-900/30 border-b border-green-200 dark:border-green-700">
+            <div className="px-4 py-2.5">
+              <div className="flex items-center justify-between max-w-2xl mx-auto">
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  {/* Success animation */}
+                  <div className="relative">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="absolute inset-0 w-6 h-6 bg-green-400 rounded-full animate-ping opacity-75"></div>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-green-800 dark:text-green-200 text-sm font-semibold">
+                      🎉 Both revealed! Profiles unlocked
+                    </p>
+                    <p className="text-green-600 dark:text-green-300 text-xs">
+                      Tap "View" to see their full details
+                    </p>
+                  </div>
+
+                  {/* Quick verification preview - only show on larger screens */}
+                  {otherUserProfile && (
+                    <div className="hidden sm:flex items-center space-x-1 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-2 py-1 rounded-full border border-green-200 dark:border-green-700">
+                      {otherUserProfile.face_verified && (
+                        <div className="w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center">
+                          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          </svg>
+                        </div>
+                      )}
+                      {otherUserProfile.college_verified && (
+                        <div className="w-3.5 h-3.5 bg-green-500 rounded-full flex items-center justify-center">
+                          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18M12,3L1,9L12,15L21,11V17H23V9L12,3Z" />
+                          </svg>
+                        </div>
+                      )}
+                      {(otherUserProfile.face_verified || otherUserProfile.college_verified) && (
+                        <span className="text-xs text-green-700 dark:text-green-200 font-medium">
+                          Verified
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Dismiss button - Updated to use new function */}
+                <button
+                  onClick={dismissRevealedBanner}
+                  className="ml-2 p-1.5 hover:bg-green-200/50 dark:hover:bg-green-800/50 rounded-full transition-all duration-200 flex-shrink-0 group"
+                  title="Dismiss notification"
+                >
+                  <svg
+                    className="w-4 h-4 text-green-600 dark:text-green-300 group-hover:text-green-800 dark:group-hover:text-green-100 transition-colors"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1064,7 +1437,272 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
 
 
-// Enhanced Profile Card Component - Updated version
+// // Enhanced Profile Card Component - Updated version
+// function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
+//   if (!user) return null;
+
+//   const calculateAge = (dob?: string): number | null => {
+//     if (!dob) return null;
+//     const birthDate = new Date(dob);
+//     const today = new Date();
+//     let age = today.getFullYear() - birthDate.getFullYear();
+//     const monthDiff = today.getMonth() - birthDate.getMonth();
+//     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+//       age--;
+//     }
+//     return age;
+//   };
+
+//   const formatLocation = (location?: string | { city: string; country: string }): string | null => {
+//     if (!location) return null;
+//     if (typeof location === 'string') return location;
+//     if (typeof location === 'object' && location.city && location.country) {
+//       return `${location.city}, ${location.country}`;
+//     }
+//     return null;
+//   };
+
+//   const age = calculateAge(user.dob);
+//   const locationStr = formatLocation(user.location);
+
+//   return (
+//     <div className="bg-purple-400 dark:bg-black border border-gray-200 dark:border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+//       {/* Header with main photo - Responsive with adaptive height */}
+//       <div className="relative bg-purple-400 dark:bg-black overflow-hidden">
+//         {user.profile_picture ? (
+//           // Mobile: Fixed height, Desktop: Adaptive height
+//           <div className="relative">
+//             {/* Mobile version - fixed height */}
+//             <div className="block md:hidden relative h-100 sm:h-72">
+//               <div
+//                 className="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-300 hover:scale-105"
+//                 style={{
+//                   backgroundImage: `url(${user.profile_picture})`,
+//                   backgroundSize: 'cover',
+//                   backgroundPosition: 'center center'
+//                 }}
+//               />
+//             </div>
+
+//             {/* Desktop version - adaptive height */}
+//             <div className="hidden md:block">
+//               <img
+//                 src={user.profile_picture}
+//                 alt={user.full_name || user.username}
+//                 className="w-full h-auto object-contain max-h-[70vh] transition-transform duration-300 hover:scale-105"
+//                 style={{
+//                   minHeight: '400px',
+//                   maxHeight: '70vh',
+//                   objectFit: 'contain'
+//                 }}
+//                 onError={(e) => {
+//                   // Fallback if image fails to load
+//                   const target = e.target as HTMLImageElement;
+//                   target.style.display = 'none';
+//                   const fallbackDiv = target.nextElementSibling as HTMLElement;
+//                   if (fallbackDiv) fallbackDiv.style.display = 'flex';
+//                 }}
+//               />
+//               {/* Fallback for desktop */}
+//               <div className="w-full h-96 flex items-center justify-center" style={{ display: 'none' }}>
+//                 <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+//                   <span className="text-white text-4xl font-bold">
+//                     {user.username?.[0]?.toUpperCase() || '?'}
+//                   </span>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         ) : (
+//           // No profile picture - show placeholder
+//           <div className="h-100 sm:h-72 md:h-96 lg:h-[32rem] xl:h-[28rem] w-full flex items-center justify-center">
+//             <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+//               <span className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">
+//                 {user.username?.[0]?.toUpperCase() || '?'}
+//               </span>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Overlay with name and location */}
+//         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-5 md:p-6 xl:p-8">
+//           <h1 className="text-white font-blindcharm-tech text-xl sm:text-2xl md:text-3xl xl:text-4xl mb-1 leading-tight drop-shadow-lg">
+//             {user.full_name || user.username}
+//             {age && <span className="text-lg sm:text-xl md:text-2xl xl:text-3xl font-normal ml-2">{age}</span>}
+//           </h1>
+//           {locationStr && (
+//             <div className="flex items-center text-white/90 text-xs sm:text-sm md:text-base font-blindcharm-logo">
+//               <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+//                 <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+//               </svg>
+//               <span className="truncate drop-shadow-sm">{locationStr}</span>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+
+//       <div className="p-4 sm:p-5 md:p-6 xl:p-8 space-y-4 sm:space-y-5 md:space-y-6 xl:space-y-8">
+//         {/* Bio */}
+//         {user.bio && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-blindcharm-tech text-gray-900 dark:text-lime-300 mb-2">About</h3>
+//             <p className="text-gray-700 dark:text-white leading-relaxed text-sm sm:text-base">{user.bio}</p>
+//           </div>
+//         )}
+
+//         {/* Basic Info */}
+//         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 xl:gap-6">
+//           {user.height && (
+//             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+//               <div className="flex items-center">
+//                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
+//                 </svg>
+//                 <div className="min-w-0">
+//                   <p className="text-xs text-gray-500 dark:text-white">Height</p>
+//                   <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base truncate">{user.height} cm</p>
+//                 </div>
+//               </div>
+//             </div>
+//           )}
+
+//           {user.occupation && (
+//             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+//               <div className="flex items-center">
+//                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 002 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2V8" />
+//                 </svg>
+//                 <div className="min-w-0">
+//                   <p className="text-xs text-gray-500 dark:text-white">Work</p>
+//                   <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base truncate">{user.occupation}</p>
+//                 </div>
+//               </div>
+//             </div>
+//           )}
+
+//           {user.education && (
+//             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+//               <div className="flex items-center">
+//                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+//                 </svg>
+//                 <div className="min-w-0">
+//                   <p className="text-xs text-gray-500 dark:text-white">Education</p>
+//                   <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base">{user.education}</p>
+//                 </div>
+//               </div>
+//             </div>
+//           )}
+//         </div>
+
+//         {/* Interests */}
+//         {user.interests && user.interests.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Interests</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.interests.map((interest: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-red-100 dark:bg-red-600 dark:text-white text-red-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {interest}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Personality Tags */}
+//         {user.personality_tags && user.personality_tags.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Personality</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.personality_tags.map((tag: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-blue-100 text-blue-700 dark:bg-blue-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {tag}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Lifestyle Tags */}
+//         {user.lifestyle_tags && user.lifestyle_tags.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Lifestyle</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.lifestyle_tags.map((tag: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-green-100 text-green-700 dark:bg-green-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {tag}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Languages */}
+//         {user.languages && user.languages.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 font-blindcharm-tech dark:text-lime-300 mb-2 sm:mb-3">Languages</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.languages.map((language: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-purple-100 text-purple-700 dark:bg-purple-700 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {language}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Hobbies */}
+//         {user.hobbies && user.hobbies.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Hobbies</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.hobbies.map((hobby: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-yellow-100 text-yellow-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {hobby}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Looking For */}
+//         {user.looking_for && user.looking_for.length > 0 && (
+//           <div>
+//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Looking For</h3>
+//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
+//               {user.looking_for.map((item: string, index: number) => (
+//                 <span
+//                   key={index}
+//                   className="bg-pink-100 text-pink-700 dark:bg-pink-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
+//                 >
+//                   {item}
+//                 </span>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+// Enhanced Profile Card Component - Updated version with Verification
 function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
   if (!user) return null;
 
@@ -1151,12 +1789,35 @@ function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
           </div>
         )}
 
+
+
         {/* Overlay with name and location */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-5 md:p-6 xl:p-8">
-          <h1 className="text-white font-blindcharm-tech text-xl sm:text-2xl md:text-3xl xl:text-4xl mb-1 leading-tight drop-shadow-lg">
-            {user.full_name || user.username}
-            {age && <span className="text-lg sm:text-xl md:text-2xl xl:text-3xl font-normal ml-2">{age}</span>}
-          </h1>
+          <div className="flex items-center space-x-3 mb-2">
+            <h1 className="text-white font-blindcharm-tech text-xl sm:text-2xl md:text-3xl xl:text-4xl leading-tight drop-shadow-lg">
+              {user.full_name || user.username}
+              {age && <span className="text-lg sm:text-xl md:text-2xl xl:text-3xl font-normal ml-2">{age}</span>}
+            </h1>
+
+            {/* Compact verification badges next to name */}
+            <div className="flex space-x-1">
+              {user.face_verified && (
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </div>
+              )}
+              {user.college_verified && (
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18M12,3L1,9L12,15L21,11V17H23V9L12,3Z" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          </div>
+
           {locationStr && (
             <div className="flex items-center text-white/90 text-xs sm:text-sm md:text-base font-blindcharm-logo">
               <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -1167,8 +1828,54 @@ function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
           )}
         </div>
       </div>
+      {/* Verification Badges - Top left overlay */}
+      <div className="relative pt-4 flex items-center justify-center  space-x-2">
+        {/* Face Verification Badge */}
+        <div className={`flex items-center space-x-1.5 px-3 py-2 rounded-full backdrop-blur-md border ${user.face_verified
+          ? 'bg-blue-500/90 border-blue-400 text-white'
+          : 'bg-white/20 border-white/30 text-white'
+          }`}>
+          <div className={`flex items-center justify-center w-5 h-5 rounded-full ${user.face_verified
+            ? 'bg-white text-blue-500'
+            : 'bg-white/10 text-white/70'
+            }`}>
+            {/* Face Icon */}
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+          </div>
+          <span className="text-sm font-medium">
+            {user.face_verified ? 'Face Verified' : 'Face Unverified'}
+          </span>
+        </div>
+
+        {/* College Verification Badge */}
+        <div className={`flex items-center space-x-1.5 px-3 py-2 rounded-full backdrop-blur-md border ${user.college_verified
+          ? 'bg-green-500/90 border-green-400 text-white'
+          : 'bg-white/20 border-white/30 text-white'
+          }`}>
+          <div className={`flex items-center justify-center w-5 h-5 rounded-full ${user.college_verified
+            ? 'bg-white text-green-500'
+            : 'bg-white/10 text-white/70'
+            }`}>
+            {/* Graduation Cap Icon */}
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18M12,3L1,9L12,15L21,11V17H23V9L12,3Z" />
+            </svg>
+          </div>
+          <span className="text-sm font-medium">
+            {user.college_verified
+              ? `College Verified${user.college_name ? ` (${user.college_name})` : ''}`
+              : 'College Unverified'
+            }
+          </span>
+        </div>
+      </div>
 
       <div className="p-4 sm:p-5 md:p-6 xl:p-8 space-y-4 sm:space-y-5 md:space-y-6 xl:space-y-8">
+
+
+        {/* Rest of your existing profile sections... */}
         {/* Bio */}
         {user.bio && (
           <div>
@@ -1328,4 +2035,3 @@ function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
     </div>
   );
 }
-

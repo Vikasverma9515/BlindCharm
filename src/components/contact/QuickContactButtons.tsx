@@ -45,7 +45,7 @@ export default function QuickContactButtons() {
   return (
     <>
       {/* Quick Contact Buttons */}
-      <div className="flex flex-wrap gap-2 justify-center scale-75 md:scale-80 lg:scale-100">
+      <div className="flex flex-wrap gap-1 justify-center scale-75 md:scale-80 lg:scale-100">
         {quickButtons.map((button) => {
           const Icon = button.icon;
           return (

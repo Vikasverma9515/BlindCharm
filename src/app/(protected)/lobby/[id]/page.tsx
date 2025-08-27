@@ -121,20 +121,78 @@ export default function LobbyPage({ params }: PageProps) {
 
 
   // Add this before the main component function
+// const generateRandomName = (userId: string, gender?: string): string => {
+//   const maleNames = ['Alex', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Morgan', 'Quinn', 'Avery', 'Parker'];
+//   const femaleNames = ['Sam', 'Blake', 'Drew', 'Sage', 'River', 'Phoenix', 'Sky', 'Ocean', 'Luna', 'Nova'];
+//   const neutralNames = ['Mystery', 'Enigma', 'Curious', 'Wonder', 'Secret', 'Hidden', 'Unknown', 'Puzzle', 'Riddle', 'Quest'];
+  
+//   // Use userId as seed for consistent random name per user
+//   const seed = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
+//   let names = neutralNames;
+//   if (gender === 'male') names = maleNames;
+//   else if (gender === 'female') names = femaleNames;
+  
+//   return names[seed % names.length];
+// };
 const generateRandomName = (userId: string, gender?: string): string => {
-  const maleNames = ['Alex', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Morgan', 'Quinn', 'Avery', 'Parker'];
-  const femaleNames = ['Sam', 'Blake', 'Drew', 'Sage', 'River', 'Phoenix', 'Sky', 'Ocean', 'Luna', 'Nova'];
+  const maleNames = [
+    "MisterMystery",
+    "CharmKing",
+    "CaptainFlirt",
+    "SirGiggles",
+    "CoffeeKnight",
+    "CosmicHero",
+    "LaughLord",
+    "MidnightRider",
+    "PrincePuzzle",
+    "MrSecret",
+    "GalaxyGuy",
+    "SilentStorm",
+    "CharmWizard",
+    "MaskedMaverick",
+    "DreamCatcher",
+    "ShadowKnight",
+    "NovaNomad",
+    "WittyWolf",
+    "HiddenHero",
+    "RogueSmile"
+  ];
+
+  const femaleNames = [
+    "LadyWhisper",
+    "CharmQueen",
+    "MissMystery",
+    "GiggleGoddess",
+    "CoffeeFairy",
+    "LunaDreamer",
+    "SparkleMuse",
+    "VelvetVibe",
+    "QueenPuzzle",
+    "SecretSiren",
+    "GalaxyGirl",
+    "TwilightMuse",
+    "CharmWitch",
+    "MaskedMermaid",
+    "DreamDancer",
+    "ShadowRose",
+    "NovaStar",
+    "WittyWillow",
+    "HiddenHalo",
+    "RogueSmileys"
+  ];
   const neutralNames = ['Mystery', 'Enigma', 'Curious', 'Wonder', 'Secret', 'Hidden', 'Unknown', 'Puzzle', 'Riddle', 'Quest'];
-  
+
   // Use userId as seed for consistent random name per user
-  const seed = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  
-  let names = neutralNames;
-  if (gender === 'male') names = maleNames;
-  else if (gender === 'female') names = femaleNames;
-  
+  const seed = userId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  let names = [...maleNames, ...femaleNames];
+  if (gender === "male") names = maleNames;
+  else if (gender === "female") names = femaleNames;
+
   return names[seed % names.length];
 };
+
 
   // Load blur preference from localStorage and database on component mount
   useEffect(() => {
