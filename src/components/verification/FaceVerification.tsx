@@ -1052,7 +1052,7 @@ export default function FaceVerification({
       <canvas ref={canvasRef} className="hidden" />
 
       {/* Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* {process.env.NODE_ENV === 'development' && (
         <div className="mt-6 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs">
           <p className="font-mono text-gray-600 dark:text-gray-400 mb-2">Debug Info:</p>
           <ul className="text-gray-500 dark:text-gray-500 space-y-1">
@@ -1064,7 +1064,7 @@ export default function FaceVerification({
             <li>Error: {error || 'None'}</li>
           </ul>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

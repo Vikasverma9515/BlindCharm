@@ -14,6 +14,8 @@ export interface User {
   is_admin?: boolean;
   created_at?: string;
   updated_at?: string;
+  additional_photo_1?: string | null;
+  additional_photo_2?: string | null;
 }
 
 export interface Message {

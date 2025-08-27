@@ -16,6 +16,8 @@ import { righteous, specialGothic } from '@/app/fonts'
 import ScrollStack, { ScrollStackItem } from '@/blocks/Components/ScrollStack/ScrollStack'
 import Carousel from '@/blocks/Components/Carousel/Carousel'
 import OnboardingCards from './OnboardingCards'
+import QuickContactButtons from '../contact/QuickContactButtons'
+import FloatingContactButton from '../contact/FloatingContactButton'
 
 
 
@@ -706,8 +708,8 @@ export default function ModernLobbySelection() {
             </ScrollStack> */}
           {/* </div> */}
 
-          <div className='flex justify-center md:hidden'>
-            <div style={{ height: '250px', position: 'relative' }}>
+          <div className='flex justify-center md:hidden size-1/2 m-auto'>
+            <div style={{ height: '250px', position: 'relative' } }>
               <Carousel
                 baseWidth={350}
                 autoplay={true}
@@ -718,6 +720,19 @@ export default function ModernLobbySelection() {
               />
             </div>
           </div>
+
+          <div className="mt-0 p-0 bg-gray-50 dark:bg-gray-700/50 rounded-lg ">
+            {/* <h5 className="font-medium text-gray-900 dark:text-white mb-3 text-center">
+              💬 Help Us Improve
+            </h5> */}
+            <QuickContactButtons />
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+              Your feedback helps us make BlindCharm better!
+            </p>
+          </div>
+           
+          
+
           <div className="w-full">
             <OnboardingCards />
           </div>

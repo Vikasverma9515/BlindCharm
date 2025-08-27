@@ -12,6 +12,8 @@ interface CachedMessage {
     username: string;
     gender?: string;
     profile_picture?: string | null;
+    additional_photo_1?: string | null;
+    additional_photo_2?: string | null;
   };
   timestamp: number; // When this message was cached
 }

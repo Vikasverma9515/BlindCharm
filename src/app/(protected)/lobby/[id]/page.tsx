@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import LobbyChat from '@/components/lobby/LobbyChat'
-import { Loader2, Users, Clock, Heart,BookHeart,MessagesSquare, MessageCircle, Info, ArrowLeft, Weight, Settings, LucideVolumeOff, LucideMove3D, HeartIcon } from 'lucide-react'
+import { Loader2, Users, Clock, Heart, BookHeart, MessagesSquare, MessageCircle, Info, ArrowLeft, Weight, Settings, LucideVolumeOff, LucideMove3D, HeartIcon } from 'lucide-react'
 import { Message, LobbyParticipant, User } from '@/types/lobby'
 import { MatchingService } from '@/lib/services/MatchingService'
 import ErrorBoundary from '@/components/ErrorBoundary'
@@ -54,6 +54,12 @@ interface Lobby {
   description?: string
   lobby_participants?: any[]
   image_url?: string | null
+}
+
+interface UserProfile {
+  additional_photo_1: string | null;
+  additional_photo_2: string | null;
+  
 }
 // Extend window interface for match trigger tracking
 declare global {
@@ -111,6 +117,24 @@ export default function LobbyPage({ params }: PageProps) {
   // const [mindMatchCurrentQuestion, setMindMatchCurrentQuestion] = useState<CurrentQuestion | null>(null);
   const [mindMatchLoading, setMindMatchLoading] = useState(false);
   const [mindMatchState, setMindMatchState] = useState<'waiting' | 'playing' | 'results'>('waiting');
+
+
+
+  // Add this before the main component function
+const generateRandomName = (userId: string, gender?: string): string => {
+  const maleNames = ['Alex', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Morgan', 'Quinn', 'Avery', 'Parker'];
+  const femaleNames = ['Sam', 'Blake', 'Drew', 'Sage', 'River', 'Phoenix', 'Sky', 'Ocean', 'Luna', 'Nova'];
+  const neutralNames = ['Mystery', 'Enigma', 'Curious', 'Wonder', 'Secret', 'Hidden', 'Unknown', 'Puzzle', 'Riddle', 'Quest'];
+  
+  // Use userId as seed for consistent random name per user
+  const seed = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
+  let names = neutralNames;
+  if (gender === 'male') names = maleNames;
+  else if (gender === 'female') names = femaleNames;
+  
+  return names[seed % names.length];
+};
 
   // Load blur preference from localStorage and database on component mount
   useEffect(() => {
@@ -173,6 +197,8 @@ export default function LobbyPage({ params }: PageProps) {
   //     setIsLoading(false);
   //   }
   // };
+
+  
 
   const checkAdminStatus = async () => {
     if (!session?.user?.id) return
@@ -545,6 +571,8 @@ export default function LobbyPage({ params }: PageProps) {
             username,
             gender,
             profile_picture,
+            additional_photo_1,
+            additional_photo_2,
             bio,
             interests
           )
@@ -569,6 +597,8 @@ export default function LobbyPage({ params }: PageProps) {
             username: userObj?.username,
             gender: userObj?.gender,
             profile_picture: userObj?.profile_picture,
+            additional_photo_1: userObj?.additional_photo_1,
+            additional_photo_2: userObj?.additional_photo_2,
             bio: userObj?.bio,
             interests: userObj?.interests
           }
@@ -639,7 +669,9 @@ export default function LobbyPage({ params }: PageProps) {
             id,
             username,
             gender,
-            profile_picture
+            profile_picture,
+            additional_photo_1,
+            additional_photo_2
           )
         `)
         .eq('lobby_id', lobbyId)
@@ -658,6 +690,8 @@ export default function LobbyPage({ params }: PageProps) {
           username: msg.user?.username || 'Unknown User',
           gender: msg.user?.gender || 'other',
           profile_picture: msg.user?.profile_picture || null,
+          additional_photo_1: msg.user?.additional_photo_1 || null,
+          additional_photo_2: msg.user?.additional_photo_2 || null,
         }
       }));
 
@@ -1027,7 +1061,7 @@ export default function LobbyPage({ params }: PageProps) {
 
 
 
-  
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -1351,7 +1385,7 @@ export default function LobbyPage({ params }: PageProps) {
 
                 <div className='p-0 px-0' >
                   <div className='pt-1'>
-                  <LobbyBanner />
+                    <LobbyBanner />
                   </div>
                   <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200/50 dark:border-gray-700/50">
                     <div className="flex h-14 px-4">
@@ -1362,24 +1396,24 @@ export default function LobbyPage({ params }: PageProps) {
                       >
                         {/* Badge positioned like your image */}
                         <div className="absolute -top-0 left-1/2 transform translate-x-3 w-2 h-2 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold text-[10px]">
-                          
+
                         </div>
 
                         <div className={`p-1 rounded-lg transition-all duration-200 ${activeTab === 'chat'
-                            ? 'bg-purple-100 dark:bg-purple-900/50'
-                            : ''
+                          ? 'bg-purple-100 dark:bg-purple-900/50'
+                          : ''
                           }`}>
                           <MessagesSquare
                             size={20}
                             className={`transition-colors duration-200 ${activeTab === 'chat'
-                                ? 'text-purple-600 dark:text-purple-400'
-                                : 'text-gray-500 dark:text-gray-400'
+                              ? 'text-purple-600 dark:text-purple-400'
+                              : 'text-gray-500 dark:text-gray-400'
                               }`}
                           />
                         </div>
                         <span className={`text-xs font-medium mt-0.5 transition-colors duration-200 ${activeTab === 'chat'
-                            ? 'text-purple-600 dark:text-purple-400'
-                            : 'text-gray-500 dark:text-gray-400'
+                          ? 'text-purple-600 dark:text-purple-400'
+                          : 'text-gray-500 dark:text-gray-400'
                           }`}>
                           Chat
                         </span>
@@ -1391,20 +1425,20 @@ export default function LobbyPage({ params }: PageProps) {
                         className="flex-1 flex flex-col items-center justify-center py-2"
                       >
                         <div className={`p-1 rounded-lg transition-all duration-200 ${activeTab === 'questions'
-                            ? 'bg-gray-100 dark:bg-gray-800'
-                            : ''
+                          ? 'bg-gray-100 dark:bg-gray-800'
+                          : ''
                           }`}>
                           <BookHeart
                             size={20}
                             className={`transition-colors duration-200 ${activeTab === 'questions'
-                                ? 'text-purple-600 dark:text-purple-400'
-                                : 'text-gray-500 dark:text-gray-400'
+                              ? 'text-purple-600 dark:text-purple-400'
+                              : 'text-gray-500 dark:text-gray-400'
                               }`}
                           />
                         </div>
                         <span className={`text-xs font-medium mt-0.5 transition-colors duration-200 ${activeTab === 'questions'
-                            ? 'text-purple-600 dark:text-purple-400'
-                                : 'text-gray-500 dark:text-gray-400'
+                          ? 'text-purple-600 dark:text-purple-400'
+                          : 'text-gray-500 dark:text-gray-400'
                           }`}>
                           Questions
                         </span>
@@ -1573,10 +1607,11 @@ export default function LobbyPage({ params }: PageProps) {
                                   animate={{ opacity: 1, y: 0 }}
                                   className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 dark:bg-gray-700 dark:border-gray-700 hover:bg-gray-100 transition-colors"
                                 >
-                                  {participant.user?.profile_picture ? (
+                                  {participant.user?.additional_photo_1 ? (
                                     <img
-                                      src={participant.user.profile_picture}
-                                      alt={participant.user.username || 'User'}
+                                      src={participant.user.additional_photo_1}
+                                      // alt={participant.user.username || 'User'}
+                                      alt={generateRandomName(participant.user_id, participant.user?.gender)}
                                       className={`w-12 h-12 rounded-full object-cover ring-2 ring-primary-200 transition-all duration-300 ${participant.blur_profile
                                         ? 'blur-[1px] opacity-85'
                                         : ''
@@ -1587,13 +1622,16 @@ export default function LobbyPage({ params }: PageProps) {
                                       ? 'blur-[1px] opacity-85'
                                       : ''
                                       }`}>
-                                      {participant.user?.username?.[0]?.toUpperCase() || 'U'}
+                                      {/* {participant.user?.username?.[0]?.toUpperCase() || '(ᵕ—ᴗ—)'} */}
+                                      ☕︎
+                                      {/* {generateRandomName(participant.user_id, participant.user?.gender)} */}
                                     </div>
                                   )}
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                       <p className="font-medium text-neutral-850 truncate dark:text-white">
-                                        {participant.user?.username || 'Anonymous'}
+                                        {/* {participant.user?.username || 'Anonymous'} */}
+                                        {generateRandomName(participant.user_id, participant.user?.gender)}
                                       </p>
                                       {participant.blur_profile && (
                                         <div className="flex items-center gap-1 bg-primary-100 text-primary-600 px-2 py-1 rounded-full text-xs">
@@ -1605,7 +1643,7 @@ export default function LobbyPage({ params }: PageProps) {
                                       )}
                                     </div>
                                     <p className="text-sm text-neutral-750 dark:text-amber-200">
-                                      {participant.user?.gender === 'male' ? '♂️ Male' : participant.user?.gender === 'female' ? '♀️ Female' : '⚧️ Other'}
+                                      {/* {participant.user?.gender === 'male' ? '♂️ Male' : participant.user?.gender === 'female' ? '♀️ Female' : '⚧️ Other'} */}
                                       {' • '}Waiting for match...
                                     </p>
                                   </div>
@@ -1661,13 +1699,13 @@ export default function LobbyPage({ params }: PageProps) {
 
                           {/* Next Match Info */}
                           <div className="flex-shrink-0 mt-6 pt-6 border-t border-gray-200">
-                            <div className="text-center bg-lime-300 rounded-2xl p-4">
+                            <div className="text-center bg-purple-500 rounded-2xl p-4">
                               <div className="flex items-center justify-center gap-2 mb-2">
-                                <Clock className="w-5 h-5 text-primary-500" />
-                                <span className="text-sm font-medium text-neutral-850">Next Match</span>
+                                <Clock className="w-5 h-5 text-white" />
+                                <span className="text-sm font-medium text-white">Next Match</span>
                               </div>
-                              <p className="text-2xl font-bold text-primary-600">{nextMatchTime}</p>
-                              <p className="text-xs text-neutral-750 mt-1">
+                              <p className="text-2xl font-bold text-white">{nextMatchTime}</p>
+                              <p className="text-xs text-white mt-1">
                                 Matches happen every few hours
                               </p>
 
@@ -1700,12 +1738,12 @@ export default function LobbyPage({ params }: PageProps) {
               </div>
             ) : (
               // Desktop Layout
-              
+
               // <div className="max-w-[1600px] mx-auto px-4  lg:pt-4 lg:pb-0  ">
               <div className="max-w-[1600px] mx-auto px-10 h-[calc(85vh-40px)] pt-1 pb-0">
                 <div className='pt-0'>
                   <LobbyBanner />
-                  </div>
+                </div>
                 {/* <div className="flex gap-6 h-[calc(90vh-40px)] bg-blue-600"> */}
                 <div className="flex gap-6 h-full">
                   {/* Information Section - Left side */}
@@ -1717,7 +1755,7 @@ export default function LobbyPage({ params }: PageProps) {
                           <Users className="w-6 h-6 text-primary-500" />
                           <h2 className="text-xl font-semibold text-neutral-850 dark:text-white">Participants ({participants.length})</h2>
                         </div>
-                        
+
                       </div>
                       {/* <div className='pt-1'>
                   <LobbyBanner />
@@ -1732,10 +1770,11 @@ export default function LobbyPage({ params }: PageProps) {
                               animate={{ opacity: 1, y: 0 }}
                               className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-colors"
                             >
-                              {participant.user?.profile_picture ? (
+                              {participant.user?.additional_photo_1 ?(
                                 <img
-                                  src={participant.user.profile_picture}
-                                  alt={participant.user.username || 'User'}
+                                  src={participant.user.additional_photo_1}
+                                  // alt={participant.user.username || 'User'}
+                                  alt={generateRandomName(participant.user_id, participant.user?.gender)}
                                   className={`w-12 h-12 rounded-full object-cover ring-2 ring-primary-200 transition-all duration-300 ${participant.blur_profile
                                     ? 'blur-[1px] opacity-85'
                                     : ''
@@ -1746,13 +1785,15 @@ export default function LobbyPage({ params }: PageProps) {
                                   ? 'blur-[1px] opacity-85'
                                   : ''
                                   }`}>
-                                  {participant.user?.username?.[0]?.toUpperCase() || 'U'}
+                                  {/* {participant.user?.username?.[0]?.toUpperCase() || 'U'} */}
+                                  ☕︎
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <p className="font-medium text-neutral-850 dark:text-lime-400 truncate">
-                                    {participant.user?.username || 'Anonymous'}
+                                    {/* {participant.user?.username || 'Anonymous'} */}
+                                    {generateRandomName(participant.user_id, participant.user?.gender)}
                                   </p>
                                   {participant.blur_profile && (
                                     <div className="flex items-center gap-1 bg-primary-100 text-primary-600 px-2 py-1 rounded-full text-xs">
@@ -1856,7 +1897,7 @@ export default function LobbyPage({ params }: PageProps) {
 
                     </div>
                   </div>
-                  
+
 
                   {/* Chat Section - Center */}
                   <div className="flex-1 min-w-0">
@@ -1887,8 +1928,8 @@ export default function LobbyPage({ params }: PageProps) {
 
                   </div>
 
-                   
-                      
+
+
 
 
                   {/* MindMatch Arena - Right side */}

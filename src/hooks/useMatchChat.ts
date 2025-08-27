@@ -46,7 +46,7 @@ interface UseMatchChatReturn {
     skipChallenge: (challengeId: string) => Promise<void>;
 
 
-     createVoiceChallenge: (prompt: string, timeLimit: number, recipientId: string) => Promise<VoiceChallenge>;
+    createVoiceChallenge: (prompt: string, timeLimit: number, recipientId: string) => Promise<VoiceChallenge>;
     respondToChallenge: (challengeId: string, audioBlob: Blob, duration: number) => Promise<void>;
     currentChallenge: VoiceChallenge | null;
 
@@ -540,7 +540,7 @@ export function useMatchChat({
         if (!enabled || !matchId || !userId) return;
         // slight delay to let subscription register on server
         const t = setTimeout(() => {
-            refreshMessages().catch(() => {});
+            refreshMessages().catch(() => { });
         }, 150);
         return () => clearTimeout(t);
     }, [enabled, matchId, userId, refreshMessages]);
@@ -618,76 +618,132 @@ export function useMatchChat({
     // }, [matchId]);
     // Update your createVoiceChallenge function to include the new fields
     const createVoiceChallenge = useCallback(async (prompt: string, timeLimit: number, recipientId: string): Promise<VoiceChallenge> => {
-  if (!matchId || !userId) {
-    throw new Error('No match ID or user ID');
-  }
+        if (!matchId || !userId) {
+            throw new Error('No match ID or user ID');
+        }
 
-  try {
-    console.log('🎯 Creating challenge FROM', userId, 'FOR', recipientId);
-    
-    const { data, error } = await supabase
-      .from('voice_challenges')
-      .insert({
-        match_id: matchId,
-        challenge_prompt: prompt,
-        time_limit: timeLimit,
-        category: 'quick_fun',
-        status: 'active',
-        challenge_from: userId,
-        challenge_for: recipientId,
-        recipient_status: 'pending'
-      })
-      .select()
-      .single();
+        try {
+            console.log('🎯 Creating challenge FROM', userId, 'FOR', recipientId);
 
-    if (error) throw error;
+            const { data, error } = await supabase
+                .from('voice_challenges')
+                .insert({
+                    match_id: matchId,
+                    challenge_prompt: prompt,
+                    time_limit: timeLimit,
+                    category: 'quick_fun',
+                    status: 'active',
+                    challenge_from: userId,
+                    challenge_for: recipientId,
+                    recipient_status: 'pending'
+                })
+                .select()
+                .single();
 
-    console.log('✅ Challenge created successfully for recipient:', recipientId);
-    return data;
-  } catch (err) {
-    console.error('Error creating voice challenge:', err);
-    throw err;
-  }
-}, [matchId, userId]);
+            if (error) throw error;
+
+            console.log('✅ Challenge created successfully for recipient:', recipientId);
+            return data;
+        } catch (err) {
+            console.error('Error creating voice challenge:', err);
+            throw err;
+        }
+    }, [matchId, userId]);
 
 
+    // const fetchCurrentChallenge = useCallback(async () => {
+    //     if (!userId || !matchId) return;
+
+    //     try {
+    //         const { data, error } = await supabase
+    //             .from('voice_challenges')
+    //             .select('*')
+    //             .eq('match_id', matchId)
+    //             .eq('challenge_for', userId) // Only challenges FOR current user
+    //             .eq('status', 'active')
+    //             .in('recipient_status', ['pending', 'accepted'])
+    //             .order('created_at', { ascending: false })
+    //             .limit(1)
+    //             .single();
+
+    //         if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    //             console.error('Error fetching current challenge:', error);
+    //             return;
+    //         }
+
+    //         if (data) {
+    //             console.log('📥 Found active challenge for current user:', data);
+    //             setCurrentChallenge(data);
+    //         } else {
+    //             console.log('📭 No active challenges for current user');
+    //             setCurrentChallenge(null);
+    //         }
+    //     } catch (err) {
+    //         console.error('Error in fetchCurrentChallenge:', err);
+    //     }
+    // }, [userId, matchId]);
+
+    // Update your fetchCurrentChallenge function to be more robust
 const fetchCurrentChallenge = useCallback(async () => {
-  if (!userId || !matchId) return;
+  if (!userId || !matchId) {
+    console.log('❌ Cannot fetch challenges - missing userId or matchId:', { userId, matchId });
+    return;
+  }
 
   try {
+    console.log('🔍 Fetching current challenges for user:', userId, 'in match:', matchId);
+    
     const { data, error } = await supabase
       .from('voice_challenges')
       .select('*')
       .eq('match_id', matchId)
-      .eq('challenge_for', userId) // Only challenges FOR current user
+      .eq('challenge_for', userId)
       .eq('status', 'active')
       .in('recipient_status', ['pending', 'accepted'])
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+      .order('created_at', { ascending: false });
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('Error fetching current challenge:', error);
+    if (error && error.code !== 'PGRST116') {
+      console.error('❌ Error fetching current challenge:', error);
       return;
     }
 
-    if (data) {
-      console.log('📥 Found active challenge for current user:', data);
-      setCurrentChallenge(data);
+    console.log('📊 Raw challenge query result:', { 
+      dataLength: data?.length || 0, 
+      data: data?.map(d => ({
+        id: d.id,
+        for: d.challenge_for,
+        from: d.challenge_from,
+        status: d.status,
+        recipient_status: d.recipient_status,
+        prompt: d.challenge_prompt?.substring(0, 30)
+      }))
+    });
+
+    if (data && data.length > 0) {
+      const challenge = data[0]; // Get the most recent one
+      console.log('📥 Found active challenge for current user:', {
+        id: challenge.id,
+        from: challenge.challenge_from,
+        for: challenge.challenge_for,
+        prompt: challenge.challenge_prompt?.substring(0, 50),
+        status: challenge.status,
+        recipient_status: challenge.recipient_status
+      });
+      setCurrentChallenge(challenge);
     } else {
-      console.log('📭 No active challenges for current user');
+      console.log('📭 No active challenges found for current user');
       setCurrentChallenge(null);
     }
   } catch (err) {
-    console.error('Error in fetchCurrentChallenge:', err);
+    console.error('💥 Error in fetchCurrentChallenge:', err);
   }
 }, [userId, matchId]);
 
 
 
-useEffect(() => {
-  fetchCurrentChallenge();
-}, [fetchCurrentChallenge]);
+    useEffect(() => {
+        fetchCurrentChallenge();
+    }, [fetchCurrentChallenge]);
     // Respond to challenge
     // const respondToChallenge = useCallback(async (challengeId: string, audioBlob: Blob, duration: number) => {
     //   if (!userId) {
@@ -877,27 +933,15 @@ useEffect(() => {
 
             if (responseError) throw responseError;
 
-            // Determine if current user is user1 or user2
-            const { data: matchData } = await supabase
-                .from('matches')
-                .select('user1_id, user2_id')
-                .eq('id', matchId)
-                .single();
-
-            if (!matchData) throw new Error('Match not found');
-
-            const isUser1 = matchData.user1_id === userId;
-            const statusField = isUser1 ? 'user1_status' : 'user2_status';
-            const responseField = isUser1 ? 'user1_response_id' : 'user2_response_id';
-
-            // Update challenge with user's completion
+            // Update challenge status to completed (simplified - no more user1/user2 columns)
             const { error: updateError } = await supabase
                 .from('voice_challenges')
                 .update({
-                    [statusField]: 'completed',
-                    [responseField]: responseData.id
+                    recipient_status: 'completed',
+                    status: 'completed'
                 })
-                .eq('id', challengeId);
+                .eq('id', challengeId)
+                .eq('challenge_for', userId); // Make sure it's a challenge for current user
 
             if (updateError) throw updateError;
 
@@ -911,6 +955,9 @@ useEffect(() => {
 
             console.log('✅ Challenge response completed');
 
+            // Clear current challenge
+            setCurrentChallenge(null);
+
         } catch (err) {
             console.error('Error responding to challenge:', err);
             throw err;
@@ -919,51 +966,51 @@ useEffect(() => {
 
     // Accept challenge (user-specific)
     const acceptChallenge = useCallback(async (challengeId: string) => {
-  if (!userId) return;
+        if (!userId) return;
 
-  try {
-    console.log('✅ Accepting challenge:', challengeId);
-    
-    const { error } = await supabase
-      .from('voice_challenges')
-      .update({ recipient_status: 'accepted' })
-      .eq('id', challengeId)
-      .eq('challenge_for', userId);
+        try {
+            console.log('✅ Accepting challenge:', challengeId);
 
-    if (error) throw error;
+            const { error } = await supabase
+                .from('voice_challenges')
+                .update({ recipient_status: 'accepted' })
+                .eq('id', challengeId)
+                .eq('challenge_for', userId);
 
-    console.log('✅ Challenge accepted successfully');
-  } catch (err) {
-    console.error('Error accepting challenge:', err);
-    throw err;
-  }
-}, [userId]);
+            if (error) throw error;
+
+            console.log('✅ Challenge accepted successfully');
+        } catch (err) {
+            console.error('Error accepting challenge:', err);
+            throw err;
+        }
+    }, [userId]);
 
     // Skip challenge (user-specific)
     const skipChallenge = useCallback(async (challengeId: string) => {
-  if (!userId) return;
+        if (!userId) return;
 
-  try {
-    console.log('⏭️ Skipping challenge:', challengeId);
-    
-    const { error } = await supabase
-      .from('voice_challenges')
-      .update({ 
-        recipient_status: 'skipped',
-        status: 'completed' 
-      })
-      .eq('id', challengeId)
-      .eq('challenge_for', userId); // Extra safety check
+        try {
+            console.log('⏭️ Skipping challenge:', challengeId);
 
-    if (error) throw error;
+            const { error } = await supabase
+                .from('voice_challenges')
+                .update({
+                    recipient_status: 'skipped',
+                    status: 'completed'
+                })
+                .eq('id', challengeId)
+                .eq('challenge_for', userId); // Extra safety check
 
-    console.log('✅ Challenge skipped successfully');
-    setCurrentChallenge(null);
-  } catch (err) {
-    console.error('Error skipping challenge:', err);
-    throw err;
-  }
-}, [userId]);
+            if (error) throw error;
+
+            console.log('✅ Challenge skipped successfully');
+            setCurrentChallenge(null);
+        } catch (err) {
+            console.error('Error skipping challenge:', err);
+            throw err;
+        }
+    }, [userId]);
 
 
     // Add this useEffect for challenge real-time updates (add this after your message subscription)
@@ -1031,65 +1078,119 @@ useEffect(() => {
     //     };
     // }, [enabled, matchId]);
 
+    // Replace the existing challenge subscription useEffect with this enhanced version
     useEffect(() => {
-  if (!enabled || !matchId || !userId) return;
+        if (!enabled || !matchId || !userId) return;
 
-  console.log('🎯 Setting up challenge subscription for challenges TO user:', userId);
+        console.log('🎯 Setting up ENHANCED challenge subscription for match:', matchId, 'user:', userId);
 
-  const challengeChannel = supabase
-    .channel(`voice_challenges_for_${userId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'voice_challenges',
-        filter: `challenge_for=eq.${userId}`
-      },
-      (payload) => {
-        console.log('🎪 New challenge received FOR current user:', payload.new);
-        const newChallenge = payload.new as VoiceChallenge;
-        
-        // Only set if it's for this match and current user
-        if (newChallenge.match_id === matchId && newChallenge.challenge_for === userId) {
-          setCurrentChallenge(newChallenge);
-        }
-      }
-    )
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'voice_challenges',
-        filter: `challenge_for=eq.${userId}`
-      },
-      (payload) => {
-        console.log('🔄 Challenge updated for current user:', payload.new);
-        const updatedChallenge = payload.new as VoiceChallenge;
-        
-        // Update current challenge if it matches
-        setCurrentChallenge(prevChallenge => {
-          if (prevChallenge?.id === updatedChallenge.id) {
-            return updatedChallenge;
-          }
-          return prevChallenge;
-        });
-        
-        // Clear challenge if completed/cancelled
-        if (updatedChallenge.status === 'completed' || updatedChallenge.status === 'cancelled') {
-          setCurrentChallenge(null);
-        }
-      }
-    )
-    .subscribe((status) => {
-      console.log('📡 Challenge subscription status:', status);
-    });
+        // Use a similar channel pattern to your working message subscription
+        const challengeChannelName = `match_challenges_${matchId}`;
 
-  return () => {
-    challengeChannel.unsubscribe();
-  };
-}, [enabled, matchId, userId]);
+        const challengeChannel = supabase
+            .channel(challengeChannelName)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'voice_challenges',
+                    filter: `match_id=eq.${matchId}` // Listen to ALL challenges in this match (like messages)
+                },
+                async (payload) => {
+                    console.log('🎪 Challenge INSERT received:', payload.new);
+                    const newChallenge = payload.new as VoiceChallenge;
+
+                    // Only show challenges that are FOR the current user
+                    if (newChallenge.challenge_for === userId && newChallenge.status === 'active') {
+                        console.log('✅ This challenge is FOR current user, showing it!');
+                        console.log('📊 Challenge details:', {
+                            id: newChallenge.id,
+                            from: newChallenge.challenge_from,
+                            for: newChallenge.challenge_for,
+                            prompt: newChallenge.challenge_prompt,
+                            status: newChallenge.status,
+                            recipient_status: newChallenge.recipient_status
+                        });
+                        setCurrentChallenge(newChallenge);
+                    } else {
+                        console.log('⏭️ This challenge is not for current user, ignoring:', {
+                            challenge_for: newChallenge.challenge_for,
+                            current_userId: userId,
+                            status: newChallenge.status
+                        });
+                    }
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'voice_challenges',
+                    filter: `match_id=eq.${matchId}`
+                },
+                (payload) => {
+                    console.log('🔄 Challenge UPDATE received:', payload.new);
+                    const updatedChallenge = payload.new as VoiceChallenge;
+
+                    // Update current challenge if it's the same one
+                    setCurrentChallenge(prevChallenge => {
+                        if (prevChallenge?.id === updatedChallenge.id) {
+                            console.log('🔄 Updating current challenge:', {
+                                old_status: prevChallenge.recipient_status,
+                                new_status: updatedChallenge.recipient_status
+                            });
+
+                            // Clear challenge if completed or cancelled
+                            if (updatedChallenge.status === 'completed' ||
+                                updatedChallenge.status === 'cancelled' ||
+                                updatedChallenge.recipient_status === 'completed' ||
+                                updatedChallenge.recipient_status === 'skipped') {
+                                console.log('✅ Challenge completed/cancelled, clearing it');
+                                return null;
+                            }
+
+                            return updatedChallenge;
+                        }
+                        return prevChallenge;
+                    });
+                }
+            )
+            .subscribe((status) => {
+                console.log('📡 Enhanced challenge subscription status:', status);
+
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Successfully subscribed to challenge updates');
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.error('❌ Error subscribing to challenges');
+                } else if (status === 'TIMED_OUT') {
+                    console.error('⏰ Challenge subscription timed out');
+                } else if (status === 'CLOSED') {
+                    console.warn('🔒 Challenge subscription closed');
+                }
+            });
+
+        return () => {
+            console.log('🔌 Unsubscribing from enhanced challenge updates');
+            challengeChannel.unsubscribe();
+        };
+    }, [enabled, matchId, userId]);
+
+
+    useEffect(() => {
+        if (!enabled || !matchId || !userId) return;
+
+        console.log('🔄 Setting up challenge refresh timer...');
+
+        // Slight delay to let subscription register on server
+        const t = setTimeout(() => {
+            console.log('🔄 Refreshing challenges after subscription setup...');
+            fetchCurrentChallenge().catch(console.error);
+        }, 200);
+
+        return () => clearTimeout(t);
+    }, [enabled, matchId, userId, fetchCurrentChallenge]);
 
     // Add this to your useMatchChat hook - auto-cleanup after 5 minutes
     useEffect(() => {

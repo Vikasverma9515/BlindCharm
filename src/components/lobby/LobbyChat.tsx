@@ -39,6 +39,22 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
     pageSize: 30
   });
 
+  // Add this before the main component function
+  const generateRandomName = (userId: string, gender?: string): string => {
+    const maleNames = ['Alex', 'Chris', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Morgan', 'Quinn', 'Avery', 'Parker'];
+    const femaleNames = ['Sam', 'Blake', 'Drew', 'Sage', 'River', 'Phoenix', 'Sky', 'Ocean', 'Luna', 'Nova'];
+    const neutralNames = ['Mystery', 'Enigma', 'Curious', 'Wonder', 'Secret', 'Hidden', 'Unknown', 'Puzzle', 'Riddle', 'Quest'];
+
+    // Use userId as seed for consistent random name per user
+    const seed = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+    let names = neutralNames;
+    if (gender === 'male') names = maleNames;
+    else if (gender === 'female') names = femaleNames;
+
+    return names[seed % names.length];
+  };
+
   const verifyLobbyParticipation = async () => {
     const { data } = await supabase
       .from('lobby_participants')
@@ -54,7 +70,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
   const scrollToBottom = (force = false) => {
     const doScroll = () => {
       if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ 
+        messagesEndRef.current.scrollIntoView({
           behavior: force ? 'auto' : 'smooth',
           block: 'end'
         });
@@ -72,6 +88,9 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
     } else {
       doScroll();
     }
+  };
+  const handleScrollToBottomClick = () => {
+    scrollToBottom(false);
   };
 
   // Handle scroll events to show/hide scroll to bottom button and load more trigger
@@ -102,7 +121,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
         scrollToBottom(true); // Force immediate scroll for initial load
         setIsInitialLoad(false);
       }, 200);
-      
+
       return () => clearTimeout(timer);
     }
   }, [messages.length, isInitialLoad, loading]);
@@ -110,7 +129,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (!containerRef.current || messages.length === 0) return;
-    
+
     // Always scroll to bottom on initial load
     if (isInitialLoad && !loading) {
       setTimeout(() => {
@@ -119,12 +138,12 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
       }, 100);
       return;
     }
-    
+
     // For subsequent messages, only scroll if user is near bottom
     if (!isInitialLoad) {
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
-      
+
       if (isNearBottom) {
         scrollToBottom();
       }
@@ -143,7 +162,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
 
       await sendChatMessage(newMessage.trim());
       setNewMessage('');
-      
+
       // Always scroll to bottom when user sends a message
       setTimeout(() => {
         scrollToBottom();
@@ -155,12 +174,12 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
 
   const handleLoadMore = async () => {
     if (loading || !hasMoreMessages) return;
-    
+
     const container = containerRef.current;
     const scrollHeightBefore = container?.scrollHeight || 0;
-    
+
     await loadMoreMessages();
-    
+
     // Maintain scroll position after loading more messages
     setTimeout(() => {
       if (container) {
@@ -206,7 +225,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
       )}
 
       {/* Scroll to Bottom Button */}
-      {showScrollToBottom && (
+      {/* {showScrollToBottom && (
         <div className="absolute bottom-20 right-4 z-10">
           <button
             onClick={scrollToBottom}
@@ -215,10 +234,21 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
             <ChevronUp className="w-5 h-5 rotate-180" />
           </button>
         </div>
+      )} */}
+      {/* Scroll to Bottom Button */}
+      {showScrollToBottom && (
+        <div className="absolute bottom-20 right-4 z-10">
+          <button
+            onClick={handleScrollToBottomClick}
+            className="bg-primary-500 hover:bg-primary-600 text-white p-3 rounded-full shadow-lg transition-all duration-200"
+          >
+            <ChevronUp className="w-5 h-5 rotate-180" />
+          </button>
+        </div>
       )}
 
       {/* Messages Area */}
-      <div 
+      <div
         ref={containerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4"
         onScroll={handleScroll}
@@ -246,7 +276,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
                 <Loader2 className="w-5 h-5 animate-spin text-primary-500" />
               </div>
             )}
-            
+
             {messages.map((message) => {
               const isOwnMessage = message.user_id === currentUser?.id
               const messageParticipant = participants.find(p => p.user_id === message.user_id)
@@ -258,48 +288,48 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
                 >
                   {/* Avatar */}
                   <div className="flex-shrink-0">
-                    {message.user.profile_picture ? (
-                      <img 
-                        src={message.user.profile_picture}
-                        alt={message.user.username}
-                        className={`w-8 h-8 rounded-full object-cover ring-2 ring-primary-200 transition-all duration-300 ${
-                          shouldBlur 
-                            ? 'blur-[1px] opacity-85' 
+                    {message.user.additional_photo_1 ? (
+                      <img
+                        src={message.user.additional_photo_1}
+                        // alt={message.user.username}
+                        alt={generateRandomName(message.user_id, message.user?.gender)}
+                        className={`w-8 h-8 rounded-full object-cover ring-2 ring-primary-200 transition-all duration-300 ${shouldBlur
+                            ? 'blur-[1px] opacity-85'
                             : ''
-                        }`}
+                          }`}
                       />
                     ) : (
-                      <div className={`w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-sm shadow-soft transition-all duration-300 ${
-                        shouldBlur 
-                          ? 'blur-[1px] opacity-85' 
+                      <div className={`w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-sm shadow-soft transition-all duration-300 ${shouldBlur
+                          ? 'blur-[1px] opacity-85'
                           : ''
-                      }`}>
-                        {message.user.username[0]?.toUpperCase() || 'U'}
+                        }`}>
+                        {/* {message.user.username[0]?.toUpperCase() || 'U'} */}
+                        ☕︎
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Message Content */}
                   <div className={`max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'} flex flex-col`}>
                     {/* Username and Time */}
                     <div className={`flex items-center gap-2 mb-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
                       <span className="text-xs font-medium text-neutral-750 dark:text-gray-300">
-                        {isOwnMessage ? 'You' : message.user.username}
+                        {/* {isOwnMessage ? 'You' : message.user.username} */}
+                        {isOwnMessage ? 'You' : generateRandomName(message.user_id, message.user?.gender)}
                       </span>
                       <span className="text-xs text-neutral-600 dark:text-gray-400">
-                        {new Date(message.created_at).toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
+                        {new Date(message.created_at).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
                         })}
                       </span>
                     </div>
-                    
+
                     {/* Message Bubble */}
-                    <div className={`rounded-2xl px-4 py-3 shadow-soft ${
-                      isOwnMessage 
-                        ? 'bg-primary-500 text-white rounded-br-md' 
+                    <div className={`rounded-2xl px-4 py-3 shadow-soft ${isOwnMessage
+                        ? 'bg-primary-500 text-white rounded-br-md'
                         : 'bg-gray-100 dark:bg-gray-700 text-neutral-850 dark:text-gray-100 rounded-bl-md border border-gray-200 dark:border-gray-600'
-                    }`}>
+                      }`}>
                       <p className="break-words leading-relaxed text-sm">{message.content}</p>
                     </div>
                   </div>
@@ -324,7 +354,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
             </button>
           </div>
         )}
-        
+
         {/* <div className="flex items-center gap-2 mb-3">
           <button
             onClick={refreshMessages}
@@ -339,7 +369,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
             {hasMoreMessages && ' (more available)'}
           </span>
         </div> */}
-        
+
         <form onSubmit={handleSendMessage} className="flex gap-3">
           <div className="flex-1 relative">
             <input
@@ -356,7 +386,7 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
               {newMessage.length}/500
             </div>
           </div>
-          
+
           <button
             type="submit"
             disabled={loading || !newMessage.trim()}
@@ -369,12 +399,12 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
             )}
           </button>
         </form>
-        
+
         {/* <p className="text-xs text-neutral-600 dark:text-gray-400 mt-2 text-center">
           Be respectful and have fun! 💕
         </p> */}
       </div>
-      
+
     </div>
   );
 }

@@ -62,7 +62,9 @@ export function useChat({
             id,
             username,
             ${type === 'lobby' ? 'gender,' : ''}
-            profile_picture
+            profile_picture,
+            additional_photo_1,
+            additional_photo_2
           )
         `)
         .eq(type === 'lobby' ? 'lobby_id' : 'chat_id', chatId)
@@ -90,6 +92,8 @@ export function useChat({
             username: user?.username || 'Unknown User',
             gender: user?.gender || 'other',
             profile_picture: user?.profile_picture || null,
+            additional_photo_1: user?.additional_photo_1 || null,
+            additional_photo_2: user?.additional_photo_2 || null
           },
           timestamp: Date.now()
         };
@@ -240,7 +244,7 @@ export function useChat({
           try {
             const { data: userData } = await supabase
               .from('users')
-              .select('id, username, gender, profile_picture')
+              .select('id, username, gender, profile_picture, additional_photo_1, additional_photo_2')
               .eq('id', type === 'lobby' ? newMsg.user_id : newMsg.sender_id)
               .single();
 
@@ -255,6 +259,8 @@ export function useChat({
                 username: userData?.username || 'Unknown User',
                 gender: userData?.gender || 'other',
                 profile_picture: userData?.profile_picture || null,
+                additional_photo_1: userData?.additional_photo_1 || null,
+                additional_photo_2: userData?.additional_photo_2 || null
               },
               timestamp: Date.now()
             };

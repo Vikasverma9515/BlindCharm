@@ -48,6 +48,8 @@ import LogoutButton from '@/components/auth/LogoutButton'
 import DeleteAccountButton from '@/components/settings/DeleteAccountButton'
 import FaceVerification from '@/components/verification/FaceVerification'
 import { VerifiedBadges } from '@/components/badge/VerifiedBadge'
+import CollegeVerification from '@/components/profile/CollegeVerification'
+import CollegeVerifiedBadge from '@/components/ui/CollegeVerifiedBadge'
 
 interface UserProfile {
   id: string;
@@ -211,6 +213,11 @@ export default function ProfilePage() {
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [showFaceVerification, setShowFaceVerification] = useState(false);
+
+  const [user, setUser] = useState({
+    college_verified: false,
+    college_name: '',
+  });
 
   // Check if user is admin (same logic as lobby components)
   const isAdmin = profile?.is_admin ||
@@ -508,6 +515,21 @@ export default function ProfilePage() {
   return (
     <>
       <SimpleTopNav pageName="My Profile" />
+
+
+      <div className="space-y-6">
+        {/* Other profile sections */}
+
+        <CollegeVerification />
+
+        {/* Show badge if verified */}
+        {user.college_verified && (
+          <CollegeVerifiedBadge
+            collegeName={user.college_name}
+            size="lg"
+          />
+        )}
+      </div>
 
 
       {/* <BlindCharmVerification /> */}
@@ -948,6 +970,9 @@ export default function ProfilePage() {
                       />
                     </label>
                   )}
+                  <div className="absolute bottom-1 left-1 px-2 py-1 bg-black/50 rounded text-white text-xs font-medium">
+                    Lobby
+                  </div>
                 </div>
 
                 {/* Additional Photo 2 */}
@@ -1051,65 +1076,68 @@ export default function ProfilePage() {
           <div className="space-y-6">
 
             {/* Basic Info Section */}
-            <ProfileSection
-              title="Basic Information"
-              icon={<User className="w-5 h-5 " />}
-              theme='basic'
-              isEditing={editingSection === 'basic'}
-              onEdit={() => setEditingSection('basic')}
-              onCancel={() => setEditingSection(null)}
-              onSave={() => {
-                handleMultipleUpdates({
-                  full_name: editForm.full_name,
-                  dob: editForm.dob,
-                  gender: editForm.gender
-                })
-              }}
-              loading={loading}
-            >
-              {editingSection === 'basic' ? (
-                <div className="space-y-4 ">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      value={editForm.full_name || ''}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Enter your full name"
-                    />
+
+            {isAdmin && (
+              <ProfileSection
+                title="Basic Information"
+                icon={<User className="w-5 h-5 " />}
+                theme='basic'
+                isEditing={editingSection === 'basic'}
+                onEdit={() => setEditingSection('basic')}
+                onCancel={() => setEditingSection(null)}
+                onSave={() => {
+                  handleMultipleUpdates({
+                    full_name: editForm.full_name,
+                    dob: editForm.dob,
+                    gender: editForm.gender
+                  })
+                }}
+                loading={loading}
+              >
+                {editingSection === 'basic' ? (
+                  <div className="space-y-4 ">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Full Name</label>
+                      <input
+                        type="text"
+                        value={editForm.full_name || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Enter your full name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Date of Birth</label>
+                      <input
+                        type="date"
+                        value={editForm.dob || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, dob: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-200  rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Gender</label>
+                      <select
+                        value={editForm.gender || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, gender: e.target.value as 'male' | 'female' | 'other' }))}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      >
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Date of Birth</label>
-                    <input
-                      type="date"
-                      value={editForm.dob || ''}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, dob: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-200  rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    />
+                ) : (
+                  <div className="space-y-3">
+                    <InfoItem label="Name" value={profile.full_name} />
+                    <InfoItem label="Age" value={profile.dob ? `${getAge(profile.dob)} years old` : null} />
+                    <InfoItem label="Gender" value={profile.gender} />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-emerald-400 mb-2">Gender</label>
-                    <select
-                      value={editForm.gender || ''}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, gender: e.target.value as 'male' | 'female' | 'other' }))}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    >
-                      <option value="">Select gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <InfoItem label="Name" value={profile.full_name} />
-                  <InfoItem label="Age" value={profile.dob ? `${getAge(profile.dob)} years old` : null} />
-                  <InfoItem label="Gender" value={profile.gender} />
-                </div>
-              )}
-            </ProfileSection>
+                )}
+              </ProfileSection>
+            )}
 
             {/* About Me Section */}
             <ProfileSection
