@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from './useAuth';
+import { useSession } from 'next-auth/react';
+import { useFirebaseAuth } from '@/providers/FirebaseAuthProvider';
 
 interface NotificationPermission {
   granted: boolean;
@@ -20,7 +21,10 @@ interface PushNotificationHook {
 }
 
 export const usePushNotifications = (): PushNotificationHook => {
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const { user: fbUser } = useFirebaseAuth();
+  const userId = session?.user?.id || fbUser?.uid || null;
+
   const [permission, setPermission] = useState<NotificationPermission>({
     granted: false,
     denied: false,
@@ -34,13 +38,13 @@ export const usePushNotifications = (): PushNotificationHook => {
   // Check if push notifications are supported
   useEffect(() => {
     const checkSupport = () => {
-      const supported = 
+      const supported =
         'serviceWorker' in navigator &&
         'PushManager' in window &&
         'Notification' in window;
-      
+
       setIsSupported(supported);
-      
+
       if (supported) {
         updatePermissionState();
         checkSubscriptionStatus();
@@ -105,78 +109,160 @@ export const usePushNotifications = (): PushNotificationHook => {
   }, [isSupported]);
 
   // Subscribe to push notifications
-  const subscribe = useCallback(async (): Promise<boolean> => {
-    if (!isSupported || !user) {
-      setError('Push notifications not supported or user not authenticated');
-      return false;
-    }
+  // const subscribe = useCallback(async (): Promise<boolean> => {
+  //   if (!isSupported || !userId) {
+  //     setError('Push notifications not supported or user not authenticated');
+  //     return false;
+  //   }
 
-    try {
-      setIsLoading(true);
-      setError(null);
+  //   try {
+  //     setIsLoading(true);
+  //     setError(null);
 
-      // Request permission if not granted
-      if (permission.default) {
-        const permissionGranted = await requestPermission();
-        if (!permissionGranted) {
-          return false;
-        }
-      }
+  //     // Request permission if not granted
+  //     if (permission.default) {
+  //       const permissionGranted = await requestPermission();
+  //       if (!permissionGranted) {
+  //         return false;
+  //       }
+  //     }
 
-      if (!permission.granted) {
-        setError('Notification permission not granted');
+  //     if (!permission.granted) {
+  //       setError('Notification permission not granted');
+  //       return false;
+  //     }
+
+  //     // Register service worker - try custom first, then default
+  //     let registration;
+  //     try {
+  //       registration = await navigator.serviceWorker.register('/sw-custom.js');
+  //       console.log('Custom service worker registered');
+  //     } catch (e) {
+  //       console.log('Custom SW failed, trying default:', e);
+  //       registration = await navigator.serviceWorker.register('/sw.js');
+  //       console.log('Default service worker registered');
+  //     }
+  //     await navigator.serviceWorker.ready;
+
+  //     // Subscribe to push manager
+  //     // const applicationServerKey = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!);
+  //     // const subscription = await registration.pushManager.subscribe({
+  //     //   userVisibleOnly: true,
+  //     //   // Cast for TS compatibility; runtime expects BufferSource (Uint8Array works)
+  //     //   applicationServerKey: applicationServerKey as unknown as Uint8Array,
+  //     // });
+
+  //     const subscription = await registration.pushManager.subscribe({
+  //       userVisibleOnly: true,
+  //       applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
+  //     });
+
+  //     // Send subscription to server
+  //     const response = await fetch('/api/notifications/subscribe', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         subscription: subscription.toJSON(),
+  //         userId,
+  //         authProvider: fbUser ? 'firebase' : 'nextauth'
+  //       })
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error('Failed to save subscription');
+  //     }
+
+  //     setIsSubscribed(true);
+  //     return true;
+
+  //   } catch (err: any) {
+  //     setError(err.message || 'Failed to subscribe to notifications');
+  //     console.error('Subscription error:', err);
+  //     return false;
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, [isSupported, userId, permission, requestPermission]);
+// Subscribe to push notifications
+const subscribe = useCallback(async (): Promise<boolean> => {
+  if (!isSupported || !userId) {
+    setError('Push notifications not supported or user not authenticated');
+    return false;
+  }
+
+  try {
+    setIsLoading(true);
+    setError(null);
+
+    // Request permission if not granted
+    if (permission.default) {
+      const permissionGranted = await requestPermission();
+      if (!permissionGranted) {
         return false;
       }
-
-      // Register service worker - try custom first, then default
-      let registration;
-      try {
-        registration = await navigator.serviceWorker.register('/sw-custom.js');
-        console.log('Custom service worker registered');
-      } catch (e) {
-        console.log('Custom SW failed, trying default:', e);
-        registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('Default service worker registered');
-      }
-      await navigator.serviceWorker.ready;
-
-      // Subscribe to push manager
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
-      });
-
-      // Send subscription to server
-      const response = await fetch('/api/notifications/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          subscription: subscription.toJSON(),
-          userId: user.id
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save subscription');
-      }
-
-      setIsSubscribed(true);
-      return true;
-
-    } catch (err: any) {
-      setError(err.message || 'Failed to subscribe to notifications');
-      console.error('Subscription error:', err);
-      return false;
-    } finally {
-      setIsLoading(false);
     }
-  }, [isSupported, user, permission, requestPermission]);
+
+    if (!permission.granted) {
+      setError('Notification permission not granted');
+      return false;
+    }
+
+    // Register service worker
+    let registration;
+    try {
+      registration = await navigator.serviceWorker.register('/sw-custom.js');
+      console.log('Custom service worker registered');
+    } catch (e) {
+      console.log('Custom SW failed, trying default:', e);
+      registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Default service worker registered');
+    }
+    await navigator.serviceWorker.ready;
+
+    // Convert VAPID key with explicit type assertion
+    const applicationServerKey = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!);
+    
+    // Subscribe to push manager with explicit type assertion
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: applicationServerKey as BufferSource, // Explicit type assertion
+    });
+
+    // Rest of the code...
+    const response = await fetch('/api/notifications/subscribe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        subscription: subscription.toJSON(),
+        userId,
+        authProvider: fbUser ? 'firebase' : 'nextauth'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save subscription');
+    }
+
+    setIsSubscribed(true);
+    return true;
+
+  } catch (err: any) {
+    setError(err.message || 'Failed to subscribe to notifications');
+    console.error('Subscription error:', err);
+    return false;
+  } finally {
+    setIsLoading(false);
+  }
+}, [isSupported, userId, permission, requestPermission]);
+
 
   // Unsubscribe from push notifications
   const unsubscribe = useCallback(async (): Promise<boolean> => {
-    if (!isSupported || !user) {
+    if (!isSupported || !userId) {
       return false;
     }
 
@@ -199,7 +285,7 @@ export const usePushNotifications = (): PushNotificationHook => {
           },
           body: JSON.stringify({
             endpoint: subscription.endpoint,
-            userId: user.id
+            userId
           })
         });
       }
@@ -214,11 +300,11 @@ export const usePushNotifications = (): PushNotificationHook => {
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported, user]);
+  }, [isSupported, userId]);
 
   // Send test notification
   const sendTestNotification = useCallback(async (): Promise<void> => {
-    if (!user) return;
+    if (!userId) return;
 
     try {
       await fetch('/api/notifications/send', {
@@ -227,7 +313,7 @@ export const usePushNotifications = (): PushNotificationHook => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.id,
+          userId,
           title: 'Test Notification',
           body: 'This is a test notification from BlindCharm!',
           type: 'test',
@@ -237,7 +323,7 @@ export const usePushNotifications = (): PushNotificationHook => {
     } catch (err) {
       console.error('Failed to send test notification:', err);
     }
-  }, [user]);
+  }, [userId]);
 
   return {
     permission,

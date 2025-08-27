@@ -588,11 +588,13 @@ export default function ModernLobbySelection() {
             {/* Mobile Header */}
             <div className="md:hidden space-y-2 ">
               <div className="">
+                
                 <div className={roboto.className}>
                   <h1 className={`${specialGothic.className} text-3xl font-bold tracking-tight text-neutral-850 dark:text-gray-100 mb-1 blindcharm-heading flex items-center`} >
                     Hello, {profile?.full_name || profile?.username || profile?.email || 'Guest'}
                     <HandMetal size={24} className="ml-2" />
                   </h1>
+
                 </div>
                 <p className="text-neutral-750 dark:text-gray-400 text-sm font-elegant">
                   Choose a lobby and join the fun!
@@ -708,8 +710,9 @@ export default function ModernLobbySelection() {
             </ScrollStack> */}
           {/* </div> */}
 
+
           <div className='flex justify-center md:hidden size-1/2 m-auto'>
-            <div style={{ height: '250px', position: 'relative' } }>
+            <div style={{ height: '250px', position: 'relative' }}>
               <Carousel
                 baseWidth={350}
                 autoplay={true}
@@ -720,18 +723,18 @@ export default function ModernLobbySelection() {
               />
             </div>
           </div>
-
-          <div className="mt-0 p-0 bg-gray-50 dark:bg-gray-700/50 rounded-lg ">
-            {/* <h5 className="font-medium text-gray-900 dark:text-white mb-3 text-center">
+          <div className="mt-0  dark:bg-gray-700/50 rounded-xl ">
+                  {/* <h5 className="font-medium text-gray-900 dark:text-white mb-3 text-center">
               💬 Help Us Improve
             </h5> */}
-            <QuickContactButtons />
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
-              Your feedback helps us make BlindCharm better!
-            </p>
-          </div>
-           
-          
+                  <QuickContactButtons />
+                  {/* <p className="text-xs text-gray-500 dark:text-gray-400 text-center lg:mt-4 ">
+                    Your feedback helps us make BlindCharm better!
+                  </p> */}
+                </div>
+
+
+
 
           <div className="w-full">
             <OnboardingCards />

@@ -15,21 +15,24 @@ export default function QuickContactButtons() {
       id: 'feedback',
       label: 'Feedback',
       icon: MessageCircle,
-      color: 'bg-blue-500 hover:bg-blue-600',
+      // color: 'bg-blue-500 hover:bg-blue-600',
+      color: 'bg-black hover:bg-gray-800',
       description: 'Share your thoughts'
     },
     {
       id: 'bug_report',
       label: 'Report Bug',
       icon: Bug,
-      color: 'bg-red-500 hover:bg-red-600',
+      // color: 'bg-red-500 hover:bg-red-600',
+      color: 'bg-black hover:bg-gray-800',
       description: 'Found an issue?'
     },
     {
       id: 'feature_request',
       label: 'Request Feature',
       icon: Lightbulb,
-      color: 'bg-yellow-500 hover:bg-yellow-600',
+      // color: 'bg-yellow-500 hover:bg-yellow-600',
+      color: 'bg-black hover:bg-gray-800',
       description: 'Suggest improvements'
     }
   ];
@@ -42,7 +45,7 @@ export default function QuickContactButtons() {
   return (
     <>
       {/* Quick Contact Buttons */}
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="flex flex-wrap gap-2 justify-center scale-75 md:scale-80 lg:scale-100">
         {quickButtons.map((button) => {
           const Icon = button.icon;
           return (
@@ -53,7 +56,7 @@ export default function QuickContactButtons() {
               onClick={() => handleQuickContact(button.id)}
               className={`${button.color} text-white px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 shadow-lg`}
             >
-              <Icon className="w-4 h-4" />
+              {/* <Icon className="w-4 h-4" /> */}
               {button.label}
             </motion.button>
           );

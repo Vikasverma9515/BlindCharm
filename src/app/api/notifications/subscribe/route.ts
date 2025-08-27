@@ -8,38 +8,69 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { subscription, userId } = await request.json();
+    const { subscription, userId, authProvider = 'nextauth' } = await request.json();
 
-    if (!subscription || !userId) {
+    if (!subscription) {
       return NextResponse.json(
-        { error: 'Missing subscription or userId' },
+        { error: 'Missing subscription' },
         { status: 400 }
       );
     }
 
-    // Store the subscription in the database
-    const { data, error } = await supabase
-      .from('push_subscriptions')
-      .upsert({
-        user_id: userId,
-        endpoint: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,endpoint'
-      });
+    // Upsert by endpoint (unique), attach user_id if it's a valid UUID, else store external_user_id
+    const isUUID = (v: string) => /^(?i:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/.test(v);
 
-    if (error) {
-      console.error('Error storing subscription:', error);
+    const payload: any = {
+      endpoint: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      updated_at: new Date().toISOString(),
+      auth_provider: authProvider,
+    };
+
+    if (userId) {
+      if (isUUID(userId)) {
+        payload.user_id = userId;
+      } else {
+        payload.external_user_id = String(userId);
+      }
+    }
+
+    // Try to fetch existing by endpoint to decide insert/update
+    const { data: existing, error: fetchErr } = await supabase
+      .from('push_subscriptions')
+      .select('id')
+      .eq('endpoint', subscription.endpoint)
+      .maybeSingle();
+
+    if (fetchErr) {
+      console.error('Error checking existing subscription:', fetchErr);
+    }
+
+    let result;
+    if (existing?.id) {
+      result = await supabase
+        .from('push_subscriptions')
+        .update(payload)
+        .eq('id', existing.id)
+        .select();
+    } else {
+      payload.created_at = new Date().toISOString();
+      result = await supabase
+        .from('push_subscriptions')
+        .insert(payload)
+        .select();
+    }
+
+    if (result.error) {
+      console.error('Error storing subscription:', result.error);
       return NextResponse.json(
-        { error: 'Failed to store subscription' },
+        { error: 'Failed to store subscription', details: result.error.message },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: result.data });
   } catch (error) {
     console.error('Error in subscribe route:', error);
     return NextResponse.json(
@@ -53,19 +84,21 @@ export async function DELETE(request: NextRequest) {
   try {
     const { endpoint, userId } = await request.json();
 
-    if (!endpoint || !userId) {
+    if (!endpoint) {
       return NextResponse.json(
-        { error: 'Missing endpoint or userId' },
+        { error: 'Missing endpoint' },
         { status: 400 }
       );
     }
 
-    // Remove the subscription from the database
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .delete()
-      .eq('user_id', userId)
-      .eq('endpoint', endpoint);
+    // Remove by endpoint; optionally filter by userId if provided
+    let query = supabase.from('push_subscriptions').delete().eq('endpoint', endpoint);
+    if (userId) {
+      // Match either path
+      query = query.or(`user_id.eq.${userId},external_user_id.eq.${userId}`);
+    }
+
+    const { error } = await query;
 
     if (error) {
       console.error('Error removing subscription:', error);

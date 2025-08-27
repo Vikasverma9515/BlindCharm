@@ -27,6 +27,7 @@ import { Roboto } from 'next/font/google'
 import { Anton } from 'next/font/google'
 import { boldonse, righteous, specialGothic } from '@/app/fonts'
 import { supabase } from '@/lib/supabase'
+import FloatingContactButton from '../contact/FloatingContactButton'
 
 
 const anton = Anton({
@@ -302,6 +303,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                 icon={<HelpCircle size={26} />}
                 isActive={isActive('/how-it-works')}
               /></span> */}
+              {/* <FloatingContactButton /> */}
               
               </>
             )}

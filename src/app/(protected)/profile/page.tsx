@@ -50,6 +50,7 @@ import FaceVerification from '@/components/verification/FaceVerification'
 import { VerifiedBadges } from '@/components/badge/VerifiedBadge'
 import CollegeVerification from '@/components/profile/CollegeVerification'
 import CollegeVerifiedBadge from '@/components/ui/CollegeVerifiedBadge'
+import QuickContactButtons from '@/components/contact/QuickContactButtons'
 
 interface UserProfile {
   id: string;
@@ -517,162 +518,22 @@ export default function ProfilePage() {
       <SimpleTopNav pageName="My Profile" />
 
 
-      <div className="space-y-6">
-        {/* Other profile sections */}
-
-        <CollegeVerification />
-
-        {/* Show badge if verified */}
-        {user.college_verified && (
-          <CollegeVerifiedBadge
-            collegeName={user.college_name}
-            size="lg"
-          />
-        )}
+      <div className="mt-2 p-2  dark:bg-gray-700/50 rounded-xl ">
+        {/* <h5 className="font-medium text-gray-900 dark:text-white mb-3 text-center">
+                    💬 Help Us Improve
+                  </h5> */}
+        <QuickContactButtons />
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 lg:mt-4 ">
+                          Your feedback helps us make BlindCharm better!
+                        </p>
       </div>
 
 
-      {/* <BlindCharmVerification /> */}
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-3xl font-bold text-center mb-8">Account Verification</h1>
-
-          {/* Verification Status Cards */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-
-            {/* College Verification Card */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">College Verification</h2>
-                <span className="px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">
-                  Coming Soon
-                </span>
-              </div>
-              <p className="text-gray-600 mb-4">
-                Verify your college email to get a verified student badge and connect with people from your university.
-              </p>
-              <button
-                className="w-full bg-gray-300 text-gray-500 py-2 rounded-lg cursor-not-allowed"
-                disabled
-              >
-                College Verification (Coming Soon)
-              </button>
-            </div>
-            {/* Face Verification Card - Simplified */}
-            {/* Add this verification section somewhere in your profile page */}
-            <div className="w-full max-w-3xl mx-auto pb-4 dark:bg-gray-900/50 rounded-2xl mt-6">
-              <div className="bg-white/25 dark:bg-gray-900/50 border dark:border-gray-700 backdrop-blur-lg rounded-3xl overflow-hidden shadow-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-blue-500 p-2 rounded-lg">
-                      <Shield className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Face Verification
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Verify your identity for a trusted profile
-                      </p>
-                    </div>
-                  </div>
-
-                  {profile?.face_verified ? (
-                    <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 flex items-center">
-                      <Check className="w-4 h-4 mr-1" />
-                      Verified
-                    </span>
-                  ) : (
-                    <span className="px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">
-                      Not Verified
-                    </span>
-                  )}
-                </div>
-
-                {profile?.face_verified ? (
-                  <div className="space-y-3">
-                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-                      <p className="text-green-800 dark:text-green-300 font-medium">✓ Face Verified</p>
-                      <p className="text-green-600 dark:text-green-400 text-sm">
-                        Your profile is verified and trusted
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowFaceVerification(true)}
-                      className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                    >
-                      Re-verify Face
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowFaceVerification(true)}
-                    className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
-                    disabled={!profile?.profile_picture}
-                  >
-                    <Camera className="w-5 h-5" />
-                    <span>{profile?.profile_picture ? 'Verify My Face' : 'Add Profile Picture First'}</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Face Verification Modal */}
-            {showFaceVerification && profile?.profile_picture && (
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                  <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Face Verification</h3>
-                    <button
-                      onClick={() => setShowFaceVerification(false)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl font-bold"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <FaceVerification
-                    profilePhotoUrl={profile.profile_picture}
-                    onVerificationComplete={handleVerificationComplete}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-
-
-
-          {/* Benefits Section */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Verification Benefits</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <h3 className="font-medium text-green-600">Face Verified Benefits:</h3>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Verified badge on your profile</li>
-                  <li>• Higher trust from other users</li>
-                  <li>• Priority in match recommendations</li>
-                  <li>• Access to verified-only features</li>
-                  <li>• Reduced fake profile encounters</li>
-                </ul>
-              </div>
-              <div className="space-y-3">
-                <h3 className="font-medium text-blue-600">College Verified Benefits:</h3>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• College badge on your profile</li>
-                  <li>• Connect with college peers</li>
-                  <li>• College-based filtering</li>
-                  <li>• Campus event notifications</li>
-                  <li>• Student community access</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <main className="min-h-screen pt-0 pb-4 md:pt-0 md:pb-8 bg-gray-50 dark:bg-gray-900 transition-all duration-500">
-        <div className="max-w-md mx-auto px-4 py-6 md:max-w-2xl md:pt-8 space-y-6">
+        <div className="max-w-md mx-auto px-4 py-1 md:max-w-2xl md:pt-8 space-y-6">
+
+
 
           {/* Error Message */}
           {error && (
@@ -1010,6 +871,105 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+
+            <div>
+              <h3 className="text-lg flex items-center justify-center font-semibold text-gray-900 dark:text-white">
+                Account Verification
+              </h3>
+            </div>
+            <div className="w-full max-w-3xl mx-auto pb-4 dark:bg-gray-900/50 rounded-2xl mt-6">
+              <div className="bg-white/25 dark:bg-gray-900/50 border dark:border-gray-700 backdrop-blur-lg rounded-3xl overflow-hidden  p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-blue-500 p-2 rounded-lg">
+                      <Shield className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Face Verification
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Verify your identity for a trusted profile
+                      </p>
+                    </div>
+                  </div>
+
+                  {profile?.face_verified ? (
+                    <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 flex items-center">
+                      <Check className="w-4 h-4 mr-1" />
+                      Verified
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">
+                      Not Verified
+                    </span>
+                  )}
+                </div>
+
+                {profile?.face_verified ? (
+                  <div className="space-y-3">
+                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                      <p className="text-green-800 dark:text-green-300 font-medium">✓ Face Verified</p>
+                      <p className="text-green-600 dark:text-green-400 text-sm">
+                        Your profile is verified and trusted
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowFaceVerification(true)}
+                      className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      Re-verify Face
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowFaceVerification(true)}
+                    className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
+                    disabled={!profile?.profile_picture}
+                  >
+                    <Camera className="w-5 h-5" />
+                    <span>{profile?.profile_picture ? 'Verify My Face' : 'Add Profile Picture First'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Face Verification Modal */}
+            {showFaceVerification && profile?.profile_picture && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Face Verification</h3>
+                    <button
+                      onClick={() => setShowFaceVerification(false)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <FaceVerification
+                    profilePhotoUrl={profile.profile_picture}
+                    onVerificationComplete={handleVerificationComplete}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-6 pb-4">
+              {/* Other profile sections */}
+
+              <CollegeVerification />
+
+              {/* Show badge if verified */}
+              {user.college_verified && (
+                <CollegeVerifiedBadge
+                  collegeName={user.college_name}
+                  size="lg"
+                />
+              )}
+            </div>
+
+
 
             {/* Quick Stats Cards */}
             <div className="grid grid-cols-3 gap-3 mb-6">
@@ -1709,8 +1669,8 @@ export default function ProfilePage() {
             </motion.div>
 
           </div>
-        </div>
-      </main>
+        </div >
+      </main >
 
       <SimpleBottomNav />
     </>

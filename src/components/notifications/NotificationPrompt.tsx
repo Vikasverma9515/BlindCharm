@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Heart, MessageCircle } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { useAuth } from '@/hooks/useAuth';
+import { useSession } from 'next-auth/react';
+import { useFirebaseAuth } from '@/providers/FirebaseAuthProvider';
 
 interface NotificationPromptProps {
   onClose?: () => void;
@@ -15,7 +16,10 @@ const NotificationPrompt: React.FC<NotificationPromptProps> = ({
   onClose, 
   autoShow = true 
 }) => {
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const { user: fbUser } = useFirebaseAuth();
+  const userId = session?.user?.id || fbUser?.uid || null;
+
   const {
     isSupported,
     isSubscribed,
@@ -38,7 +42,7 @@ const NotificationPrompt: React.FC<NotificationPromptProps> = ({
         permission.default && 
         !hasBeenPrompted && 
         !isDismissed &&
-        user) {
+        userId) {
       // Show prompt after a short delay
       const timer = setTimeout(() => {
         setIsVisible(true);
@@ -46,7 +50,7 @@ const NotificationPrompt: React.FC<NotificationPromptProps> = ({
       
       return () => clearTimeout(timer);
     }
-  }, [autoShow, isSupported, isSubscribed, permission.default, user]);
+  }, [autoShow, isSupported, isSubscribed, permission.default, userId]);
 
   const handleEnable = async () => {
     const success = await subscribe();

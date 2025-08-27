@@ -1,7 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useSession } from 'next-auth/react';
+import { useFirebaseAuth } from '@/providers/FirebaseAuthProvider';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { NotificationService } from '@/lib/notifications';
 
@@ -22,7 +23,11 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const { user: fbUser } = useFirebaseAuth();
+  const userId = session?.user?.id || fbUser?.uid || null;
+  const userName = (session?.user as any)?.name || fbUser?.displayName || undefined;
+
   const {
     isSupported,
     isSubscribed,
@@ -38,13 +43,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   }, [isSubscribed, permission.granted]);
 
   const enableNotifications = async (): Promise<boolean> => {
-    if (!user) return false;
+    if (!userId) return false;
     
     const success = await subscribe();
     if (success) {
       setIsEnabled(true);
       // Send welcome notification
-      await NotificationService.sendWelcomeNotification(user.id, user.user_metadata?.name);
+      await NotificationService.sendWelcomeNotification(userId, userName);
     }
     return success;
   };
@@ -58,10 +63,10 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   };
 
   const sendMatchNotification = async (matchId: string, matchName?: string): Promise<void> => {
-    if (!user || !isEnabled) return;
+    if (!userId || !isEnabled) return;
     
     try {
-      await NotificationService.sendMatchNotification(user.id, matchId, matchName);
+      await NotificationService.sendMatchNotification(userId, matchId, matchName);
     } catch (error) {
       console.error('Failed to send match notification:', error);
     }
@@ -72,20 +77,20 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     senderName: string, 
     message: string
   ): Promise<void> => {
-    if (!user || !isEnabled) return;
+    if (!userId || !isEnabled) return;
     
     try {
-      await NotificationService.sendMessageNotification(user.id, matchId, senderName, message);
+      await NotificationService.sendMessageNotification(userId, matchId, senderName, message);
     } catch (error) {
       console.error('Failed to send message notification:', error);
     }
   };
 
   const sendLobbyNotification = async (lobbyName: string, lobbyId?: string): Promise<void> => {
-    if (!user || !isEnabled) return;
+    if (!userId || !isEnabled) return;
     
     try {
-      await NotificationService.sendLobbyNotification(user.id, lobbyName, lobbyId);
+      await NotificationService.sendLobbyNotification(userId, lobbyName, lobbyId);
     } catch (error) {
       console.error('Failed to send lobby notification:', error);
     }
