@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { 
   MessageCircle, 
@@ -34,6 +34,8 @@ interface CommentsDrawerProps {
 export function CommentsDrawer({ children, whisperId, commentsCount, onComment }: CommentsDrawerProps) {
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
   const [comments, setComments] = useState<WhisperComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -43,6 +45,17 @@ export function CommentsDrawer({ children, whisperId, commentsCount, onComment }
   useEffect(() => {
     if (open && whisperId) {
       loadComments();
+      // Move focus into the drawer to avoid aria-hidden ancestor issues
+      const t = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 0);
+      return () => clearTimeout(t);
+    } else {
+      // When closing, restore focus to the last focused trigger if still in the DOM
+      const t = setTimeout(() => {
+        lastFocusedRef.current?.focus?.();
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [open, whisperId]);
 
@@ -109,7 +122,19 @@ export function CommentsDrawer({ children, whisperId, commentsCount, onComment }
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        {children}
+        <div
+          onMouseDown={(e) => {
+            // Track the element that had focus before opening
+            lastFocusedRef.current = (e.currentTarget as HTMLElement);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              lastFocusedRef.current = (e.currentTarget as HTMLElement);
+            }
+          }}
+        >
+          {children}
+        </div>
       </DrawerTrigger>
       <DrawerContent className="max-h-[90vh] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
         <div className="mx-auto w-full max-w-md">
@@ -235,13 +260,14 @@ export function CommentsDrawer({ children, whisperId, commentsCount, onComment }
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <textarea
+                      ref={textareaRef}
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Write a comment..."
                       className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                       rows={2}
                       maxLength={500}
-                      onKeyPress={(e) => {
+                      onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
                           handleSubmitComment();

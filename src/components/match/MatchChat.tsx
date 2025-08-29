@@ -277,7 +277,7 @@ export default function MatchChat({ matchId, currentUserId, otherUserId }: Match
       )}
 
       {/* Scroll to Bottom Button */}
-      {showScrollToBottom && (
+      {/* {showScrollToBottom && (
         <div className="absolute bottom-20 right-4 z-10">
           <button
             onClick={scrollToBottom}
@@ -286,7 +286,7 @@ export default function MatchChat({ matchId, currentUserId, otherUserId }: Match
             <ChevronUp className="w-5 h-5 rotate-180" />
           </button>
         </div>
-      )}
+      )} */}
 
       {/* Messages */}
       <div 

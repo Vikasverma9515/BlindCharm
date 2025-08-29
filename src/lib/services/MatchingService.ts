@@ -426,7 +426,7 @@ export class MatchingService {
       const matches = [];
       const maxMatches = Math.min(males.length, females.length);
       console.log('🎯 Creating', maxMatches, 'matches');
-
+ 
       for (let i = 0; i < maxMatches; i++) {
         matches.push({
           user1_id: males[i].user_id,

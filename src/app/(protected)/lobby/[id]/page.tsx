@@ -553,7 +553,7 @@ const generateRandomName = (userId: string, gender?: string): string => {
     const currentSecond = now.getSeconds();
 
     // Match times: 11:00, 12:00, 15:00, 18:00, 21:00, 22:00
-    const matchHours = [11, 12, 15, 16, 18, 19, 20, 21, 22, 24];
+    const matchHours = [18];
 
     // Debug: Log current time every minute
     if (currentSecond === 0) {
@@ -946,7 +946,7 @@ const generateRandomName = (userId: string, gender?: string): string => {
   useEffect(() => {
     const updateMatchTime = () => {
       const now = new Date()
-      const hours = [11, 12, 15, 16, 18, 19, 20, 21, 22, 24]
+      const hours = [18]
       const nextHour = hours.find(h => h > now.getHours()) || hours[0]
       const nextMatch = new Date(now)
       nextMatch.setHours(nextHour, 0, 0, 0)

@@ -17,9 +17,15 @@ export class UserService {
         .from('profile-pictures')
         .getPublicUrl(fileName)
 
+      // If main profile photo changes, require re-verification
       await supabase
         .from('users')
-        .update({ profile_picture: publicUrl })
+        .update({ 
+          profile_picture: publicUrl,
+          face_verified: false,
+          face_verified_at: null,
+          face_verification_score: null
+        })
         .eq('id', userId)
 
       return publicUrl

@@ -358,9 +358,16 @@ export default function ProfilePage() {
       const publicUrl = data?.publicUrl;
 
       // Update user profile with new image URL
+      const updates: any = { [photoType]: publicUrl };
+      // If main profile photo changes, require re-verification
+      if (photoType === 'profile_picture') {
+        updates.face_verified = false;
+        updates.face_verified_at = null;
+        updates.face_verification_score = null;
+      }
       const { error: updateError } = await supabase
         .from('users')
-        .update({ [photoType]: publicUrl })
+        .update(updates)
         .eq('id', session.user.id);
 
       if (updateError) throw updateError;
@@ -518,7 +525,7 @@ export default function ProfilePage() {
       <SimpleTopNav pageName="My Profile" />
 
 
-      <div className="mt-2 p-2  dark:bg-gray-700/50 rounded-xl ">
+      <div className="mt-2 p-2  rounded-2xl ">
         {/* <h5 className="font-medium text-gray-900 dark:text-white mb-3 text-center">
                     💬 Help Us Improve
                   </h5> */}
@@ -530,7 +537,7 @@ export default function ProfilePage() {
 
 
 
-      <main className="min-h-screen pt-0 pb-4 md:pt-0 md:pb-8 bg-gray-50 dark:bg-gray-900 transition-all duration-500">
+      <main className="min-h-screen rounded-t-2xl pt-1 pb-4 md:pt-0 md:pb-8 bg-gray-50 dark:bg-gray-900 transition-all duration-500">
         <div className="max-w-md mx-auto px-4 py-1 md:max-w-2xl md:pt-8 space-y-6">
 
 
@@ -1524,12 +1531,15 @@ export default function ProfilePage() {
                   <div>
                     <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">Account</h4>
                     <div className="space-y-3">
-                      <SettingsItem
+                      
+                      <SettingsItem 
                         icon={<Bell className="w-5 h-5" />}
                         title="Notification Settings"
                         subtitle="Manage your notification preferences"
                         onClick={() => router.push('/settings/notifications')}
+                        
                       />
+                      
                       <SettingsItem
                         icon={<Eye className="w-5 h-5" />}
                         title="Privacy Settings"
@@ -1601,7 +1611,8 @@ export default function ProfilePage() {
                         danger
                       /> */}
                       <LogoutButton />
-
+                      <p className='text-sm text-red-600 dark:text-red-400'>Please turn off the notification before logging out</p>
+                     
 
                       {/* <DeleteAccountButton /> */}
 

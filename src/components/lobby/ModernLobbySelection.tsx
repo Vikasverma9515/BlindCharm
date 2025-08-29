@@ -588,7 +588,7 @@ export default function ModernLobbySelection() {
             {/* Mobile Header */}
             <div className="md:hidden space-y-2 ">
               <div className="">
-                
+
                 <div className={roboto.className}>
                   <h1 className={`${specialGothic.className} text-3xl font-bold tracking-tight text-neutral-850 dark:text-gray-100 mb-1 blindcharm-heading flex items-center`} >
                     Hello, {profile?.full_name || profile?.username || profile?.email || 'Guest'}
@@ -712,7 +712,7 @@ export default function ModernLobbySelection() {
 
 
           <div className='flex justify-center md:hidden size-1/2 m-auto'>
-            <div style={{ height: '250px', position: 'relative' }}>
+            <div style={{ height: '190px', position: 'relative' }}>
               <Carousel
                 baseWidth={350}
                 autoplay={true}
@@ -723,15 +723,15 @@ export default function ModernLobbySelection() {
               />
             </div>
           </div>
-          <div className="mt-0  dark:bg-gray-700/50 rounded-xl ">
-                  {/* <h5 className="font-medium text-gray-900 dark:text-white mb-3 text-center">
+          <div className="mt-0   rounded-xl ">
+            {/* <h5 className="font-medium text-gray-900 dark:text-white mb-3 text-center">
               💬 Help Us Improve
             </h5> */}
-                  <QuickContactButtons />
-                  {/* <p className="text-xs text-gray-500 dark:text-gray-400 text-center lg:mt-4 ">
+            <QuickContactButtons />
+            {/* <p className="text-xs text-gray-500 dark:text-gray-400 text-center lg:mt-4 ">
                     Your feedback helps us make BlindCharm better!
                   </p> */}
-                </div>
+          </div>
 
 
 
@@ -739,9 +739,7 @@ export default function ModernLobbySelection() {
           <div className="w-full">
             <OnboardingCards />
           </div>
-          {/* <div className="w-full">
-            <OnboardingCards />
-          </div> */}
+
 
           {/* Lobbies Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">

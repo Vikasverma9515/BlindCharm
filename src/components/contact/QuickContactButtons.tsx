@@ -16,7 +16,7 @@ export default function QuickContactButtons() {
       label: 'Feedback',
       icon: MessageCircle,
       // color: 'bg-blue-500 hover:bg-blue-600',
-      color: 'bg-black hover:bg-gray-800',
+      color: 'bg-black hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700' ,
       description: 'Share your thoughts'
     },
     {
@@ -24,7 +24,7 @@ export default function QuickContactButtons() {
       label: 'Report Bug',
       icon: Bug,
       // color: 'bg-red-500 hover:bg-red-600',
-      color: 'bg-black hover:bg-gray-800',
+      color: 'bg-black hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700',
       description: 'Found an issue?'
     },
     {
@@ -32,7 +32,7 @@ export default function QuickContactButtons() {
       label: 'Request Feature',
       icon: Lightbulb,
       // color: 'bg-yellow-500 hover:bg-yellow-600',
-      color: 'bg-black hover:bg-gray-800',
+      color: 'bg-black hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700',
       description: 'Suggest improvements'
     }
   ];

@@ -59,7 +59,7 @@ const DEFAULT_ITEMS: CarouselItem[] = [
 	},
 	{
 		title: "Step 3: Matchmaking",
-		description: "Inside the lobby, matchmaking happens at 12 PM and 6 PM daily. You can join anytime and wait for the next match session.",
+		description: "Inside the lobby, matchmaking happens at 6 PM daily. You can join anytime and wait for the next match session.",
 		id: 4,
 		icon: <FiUser className="h-[16px] w-[16px] text-white" />,
 	},
@@ -192,8 +192,8 @@ export default function Carousel({
 			ref={containerRef}
 			className={`relative overflow-hidden p-4 ${
 				round
-					? "rounded-full border border-white"
-					: "rounded-[24px] border border-[#222]"
+					? "rounded-full border border-white "
+					: "rounded-[24px] border dark:border-[#fff9f9] border-[#121212]"
 			}`}
 			style={{
 				width: `${baseWidth}px`,
@@ -240,11 +240,11 @@ export default function Carousel({
 							}}
 							// transition={effectiveTransition}
 						>
-							<div className={`${round ? "p-0 m-0" : "mb-1 p-2"}`}>
+							{/* <div className={`${round ? "p-0 m-0" : "mb-1 p-2"}`}>
 								<span className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#060010]">
 									{item.icon}
 								</span>
-							</div>
+							</div> */}
 							<div className="p-4">
 								<div className="mb-1 font-black text-lg text-white">
 									{item.title}
@@ -260,7 +260,7 @@ export default function Carousel({
 					round ? "absolute z-20 bottom-12 left-1/2 -translate-x-1/2" : ""
 				}`}
 			>
-				<div className="mt-2 flex w-[150px] justify-between px-8">
+				{/* <div className="mt-2 flex w-[150px] justify-between px-8">
 					{items.map((_, index) => (
 						<motion.div
 							key={index}
@@ -280,7 +280,7 @@ export default function Carousel({
 							transition={{ duration: 0.15 }}
 						/>
 					))}
-				</div>
+				</div> */}
 			</div>
 		</div>
 	);
