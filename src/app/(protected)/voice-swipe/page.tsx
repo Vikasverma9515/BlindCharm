@@ -78,18 +78,21 @@ export default function VoiceSwipePage() {
     if (!currentCard || !session?.user?.id) return;
 
     try {
-      const match = await VoiceService.swipeVoiceCard(
+      const result = await VoiceService.swipeVoiceCard(
         currentCard.id,
         direction,
         session.user.id
       );
 
-      if (match) {
-        setMatches(prev => [match, ...prev]);
-        toast.success('🎉 It\'s a match! You both liked each other\'s voices!', {
-          duration: 4000,
+      if (result) {
+        // Add to local voice matches list
+        setMatches(prev => [result.voiceMatch, ...prev]);
+        toast.success('🎉 It\'s a match! Opening chat...', {
+          duration: 2500,
           icon: '💫'
         });
+        // Navigate both users to private chat like Tinder/Bumble
+        router.push(`/chat/${result.chatMatchId}`);
       } else if (direction === 'right') {
         toast.success('Voice liked! 💜', { duration: 2000 });
       }

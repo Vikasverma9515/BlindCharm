@@ -251,7 +251,7 @@ export class VoiceService {
     voiceCardId: string, 
     swipeDirection: 'left' | 'right' | 'up', 
     swiperId: string
-  ): Promise<VoiceMatch | null> {
+  ): Promise<{ voiceMatch: VoiceMatch; chatMatchId: string } | null> {
     // Record the swipe
     const { error: swipeError } = await supabase
       .from('voice_card_swipes')
@@ -271,7 +271,7 @@ export class VoiceService {
     return null;
   }
 
-  private static async checkForMatch(voiceCardId: string, swiperId: string): Promise<VoiceMatch | null> {
+  private static async checkForMatch(voiceCardId: string, swiperId: string): Promise<{ voiceMatch: VoiceMatch; chatMatchId: string } | null> {
     // Get the voice card to find the owner
     const { data: voiceCard, error: cardError } = await supabase
       .from('voice_cards')
@@ -297,8 +297,8 @@ export class VoiceService {
     if (swipeError) throw swipeError;
 
     if (mutualSwipes && mutualSwipes.length > 0) {
-      // Create a match
-      const matchData = {
+      // Create a voice match record
+      const voiceMatchData = {
         user1_id: swiperId,
         user2_id: cardOwnerId,
         voice_card1_id: mutualSwipes[0].voice_card_id,
@@ -306,9 +306,9 @@ export class VoiceService {
         match_type: 'voice_connection' as const
       };
 
-      const { data: match, error: matchError } = await supabase
+      const { data: voiceMatch, error: voiceMatchError } = await supabase
         .from('voice_matches')
-        .insert(matchData)
+        .insert(voiceMatchData)
         .select(`
           *,
           user1:users!voice_matches_user1_id_fkey(id, username, full_name),
@@ -318,8 +318,24 @@ export class VoiceService {
         `)
         .single();
 
-      if (matchError) throw matchError;
-      return match;
+      if (voiceMatchError) throw voiceMatchError;
+
+      // Also create a standard chat match so we can route to private chat immediately
+      const { data: createdMatch, error: createMatchError } = await supabase
+        .from('matches')
+        .insert({
+          user1_id: swiperId,
+          user2_id: cardOwnerId,
+          status: 'active',
+          user1_revealed: false,
+          user2_revealed: false
+        })
+        .select('id')
+        .single();
+
+      if (createMatchError) throw createMatchError;
+
+      return { voiceMatch, chatMatchId: createdMatch.id };
     }
 
     return null;
