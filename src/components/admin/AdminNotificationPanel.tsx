@@ -44,6 +44,7 @@ interface NotificationStats {
   totalSent: number;
   totalFailed: number;
   totalUsers: number;
+  totalMatches: number;
   totalSubscriptions: number;
 }
 
@@ -57,7 +58,8 @@ const AdminNotificationPanel: React.FC = () => {
     totalSent: 0,
     totalFailed: 0,
     totalUsers: 0,
-    totalSubscriptions: 0
+    totalSubscriptions: 0,
+    totalMatches: 0
   });
 
   // Form state
@@ -82,9 +84,9 @@ const AdminNotificationPanel: React.FC = () => {
   } | null>(null);
 
   // Check if user is admin
-  const isAdmin = userIsAdmin || 
-                  session?.user?.email === 'admin@blindcharm.com' || 
-                  session?.user?.email === 'Blindcharm@gmail.com';
+  const isAdmin = userIsAdmin ||
+    session?.user?.email === 'admin@blindcharm.com' ||
+    session?.user?.email === 'Blindcharm@gmail.com';
 
   // Notification templates
   const templates: NotificationTemplate[] = [
@@ -158,7 +160,7 @@ const AdminNotificationPanel: React.FC = () => {
 
   const fetchAdminStatus = async () => {
     if (!session?.user?.id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('users')
@@ -189,14 +191,22 @@ const AdminNotificationPanel: React.FC = () => {
         console.error('Error fetching user count:', userError);
       }
 
-      // Get total subscriptions (for ALL users)
+      // ✅ Get total matches
+      const { count: matchCount, error: matchError } = await supabase
+        .from('matches')
+        .select('*', { count: 'exact', head: true });
+
+      if (matchError) {
+        console.error('Error fetching match count:', matchError);
+      }
+
+      // Get total subscriptions
       const { count: subCount, error: subError } = await supabase
         .from('push_subscriptions')
         .select('*', { count: 'exact', head: true });
 
       if (subError) {
         console.error('Error fetching subscription count:', subError);
-        setStats(prev => ({ ...prev, totalSubscriptions: 0 }));
       }
 
       // Get notification stats
@@ -218,7 +228,8 @@ const AdminNotificationPanel: React.FC = () => {
         totalUsers: userCount || 0,
         totalSubscriptions: subCount || 0,
         totalSent,
-        totalFailed
+        totalFailed,
+        totalMatches: matchCount || 0   // ✅ set matches here
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -226,10 +237,13 @@ const AdminNotificationPanel: React.FC = () => {
         totalUsers: 0,
         totalSubscriptions: 0,
         totalSent: 0,
-        totalFailed: 0
+        totalFailed: 0,
+        totalMatches: 0
       });
     }
   };
+
+
 
   const handleTemplateSelect = (template: NotificationTemplate) => {
     setNotificationForm(prev => ({
@@ -274,7 +288,7 @@ const AdminNotificationPanel: React.FC = () => {
           .from('users')
           .select('id')
           .gte('last_sign_in_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-        
+
         payload.userIds = activeUsers?.map(u => u.id) || [];
       }
 
@@ -289,12 +303,12 @@ const AdminNotificationPanel: React.FC = () => {
       }
 
       console.log('🚀 Sending notification with payload:', payload);
-      
+
       // Use relative URL to ensure correct port
       const apiUrl = '/api/notifications/send';
       console.log('🌐 Making request to:', apiUrl);
       console.log('🌍 Current location:', window.location.href);
-      
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -302,7 +316,7 @@ const AdminNotificationPanel: React.FC = () => {
       });
 
       console.log('📡 Response status:', response.status);
-      
+
       const result = await response.json();
       console.log('📨 Response data:', result);
 
@@ -313,7 +327,7 @@ const AdminNotificationPanel: React.FC = () => {
           sent: result.sent || 0,
           failed: result.failed || 0
         });
-        
+
         // Reset form
         setNotificationForm({
           title: '',
@@ -364,7 +378,7 @@ const AdminNotificationPanel: React.FC = () => {
   const updateAction = (index: number, field: string, value: string) => {
     setNotificationForm(prev => ({
       ...prev,
-      actions: prev.actions.map((action, i) => 
+      actions: prev.actions.map((action, i) =>
         i === index ? { ...action, [field]: value } : action
       )
     }));
@@ -385,10 +399,10 @@ const AdminNotificationPanel: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ test: true, timestamp: new Date().toISOString() })
       });
-      
+
       const result = await response.json();
       console.log('🧪 API Test Result:', result);
-      
+
       setSendResult({
         success: response.ok,
         message: response.ok ? 'API connection successful!' : 'API connection failed',
@@ -411,9 +425,9 @@ const AdminNotificationPanel: React.FC = () => {
       console.log('🔍 Debugging subscriptions...');
       const response = await fetch('/api/notifications/debug-subscriptions');
       const result = await response.json();
-      
+
       console.log('🔍 Subscription Debug Result:', result);
-      
+
       if (response.ok) {
         setSendResult({
           success: true,
@@ -471,11 +485,10 @@ const AdminNotificationPanel: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${
-                activeTab === tab.id
+              className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${activeTab === tab.id
                   ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
+                }`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
@@ -505,7 +518,18 @@ const AdminNotificationPanel: React.FC = () => {
                   <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
                     {stats.totalUsers}
                   </p>
+
                 </div>
+                <div className="bg-pink-50 dark:bg-pink-900/20 p-4 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Heart className="w-4 h-4 text-pink-600" />
+                    <span className="text-sm font-medium text-pink-600">Total Matches</span>
+                  </div>
+                  <p className="text-2xl font-bold text-pink-700 dark:text-pink-300">
+                    {stats.totalMatches}
+                  </p>
+                </div>
+
                 <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
                     <Bell className="w-4 h-4 text-green-600" />
@@ -676,7 +700,7 @@ const AdminNotificationPanel: React.FC = () => {
                       + Add Action
                     </button>
                   </div>
-                  
+
                   {notificationForm.actions.map((action, index) => (
                     <div key={index} className="flex gap-2 mb-2">
                       <input
@@ -723,7 +747,7 @@ const AdminNotificationPanel: React.FC = () => {
                     <Settings className="w-4 h-4" />
                     Test API
                   </motion.button>
-                  
+
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -762,11 +786,10 @@ const AdminNotificationPanel: React.FC = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`p-4 rounded-xl border ${
-                      sendResult.success
+                    className={`p-4 rounded-xl border ${sendResult.success
                         ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                         : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       {sendResult.success ? (
@@ -774,9 +797,8 @@ const AdminNotificationPanel: React.FC = () => {
                       ) : (
                         <XCircle className="w-5 h-5 text-red-600" />
                       )}
-                      <span className={`font-medium ${
-                        sendResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
-                      }`}>
+                      <span className={`font-medium ${sendResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
+                        }`}>
                         {sendResult.message}
                       </span>
                     </div>
@@ -841,7 +863,7 @@ const AdminNotificationPanel: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Notification Statistics
               </h3>
-              
+
               {/* Detailed Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-6 rounded-xl">
@@ -894,17 +916,17 @@ const AdminNotificationPanel: React.FC = () => {
                 <h4 className="font-medium text-gray-900 dark:text-white mb-4">Delivery Success Rate</h4>
                 <div className="flex items-center gap-4">
                   <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-3">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${stats.totalSent + stats.totalFailed > 0 
-                          ? (stats.totalSent / (stats.totalSent + stats.totalFailed)) * 100 
-                          : 0}%` 
+                      style={{
+                        width: `${stats.totalSent + stats.totalFailed > 0
+                          ? (stats.totalSent / (stats.totalSent + stats.totalFailed)) * 100
+                          : 0}%`
                       }}
                     />
                   </div>
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {stats.totalSent + stats.totalFailed > 0 
+                    {stats.totalSent + stats.totalFailed > 0
                       ? Math.round((stats.totalSent / (stats.totalSent + stats.totalFailed)) * 100)
                       : 0}%
                   </span>
@@ -924,7 +946,7 @@ const AdminNotificationPanel: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Notification Settings
               </h3>
-              
+
               <div className="space-y-4">
                 <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
