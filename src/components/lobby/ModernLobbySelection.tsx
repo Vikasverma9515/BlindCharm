@@ -224,20 +224,20 @@ export default function ModernLobbySelection() {
   const [showShareModal, setShowShareModal] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
-  // Add this function to generate share content
   const generateShareContent = (lobby: Lobby) => {
-    const lobbyUrl = `${window.location.origin}/join-lobby/${lobby.id}`
-
-    // More attractive text formatting
-    const message = `🎯✨ *${lobby.name}* on BlindCharm!
+  // Use environment variable or fallback
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blindcharm.com'
+  const lobbyUrl = `${baseUrl}/lobby/${lobby.id}`
+  
+  const message = `🎯✨ Join "${lobby.name}" on BlindCharm!
 
 💫 ${lobby.description || 'Connect with amazing people through authentic conversations'}
 
-🔥 *${lobby.participant_count + 10} people* are already vibing
-🎨 Theme: *${lobby.theme}*
+🔥 ${lobby.participant_count} people are already vibing
+🎨 Theme: ${lobby.theme}
 
-✨ *Why BlindCharm?*
-💕 join Lobby where you meet like minded people
+✨ Why BlindCharm?
+💕 Join lobby where you meet like minded people
 ❤️ Real connections, not superficial swipes
 🎭 Personality over photos
 💬 Anonymous chats that reveal true chemistry
@@ -245,10 +245,10 @@ export default function ModernLobbySelection() {
 🚀 Ready to join? Tap here:
 ${lobbyUrl}
 
-#BlindCharm #RealConnections #${lobby.theme.replace(' ', '')}`
-
-    return { message, url: lobbyUrl }
-  }
+#BlindCharm #RealConnections #${lobby.theme.replace(/\s+/g, '')}`
+  
+  return { message, url: lobbyUrl }
+}
 
   // Add share functions
   const shareToWhatsApp = (lobby: Lobby) => {
