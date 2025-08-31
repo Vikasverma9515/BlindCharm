@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Clock, Users, Heart, Coffee, Music, Book, Gamepad2, Camera, Palette, Dumbbell, Plus, ArrowRight, LogOut, Settings, User, HandMetal, HelpCircle } from 'lucide-react'
+import { Clock, Users, Heart, Coffee, Music, Book, Gamepad2, Camera, Palette, Dumbbell, Plus, ArrowRight, LogOut, Settings, User, HandMetal, HelpCircle, ChevronDown } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -18,7 +18,8 @@ import Carousel from '@/blocks/Components/Carousel/Carousel'
 import OnboardingCards from './OnboardingCards'
 import QuickContactButtons from '../contact/QuickContactButtons'
 import FloatingContactButton from '../contact/FloatingContactButton'
-
+import { Search, X } from 'lucide-react'
+import { Share2, Copy, MessageCircle, ExternalLink } from 'lucide-react'
 
 
 
@@ -214,6 +215,155 @@ export default function ModernLobbySelection() {
   const { data: session } = useSession()
   const router = useRouter()
   const [profile, setProfile] = useState<{ full_name?: string; username?: string; email?: string; gender?: string } | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filteredLobbies, setFilteredLobbies] = useState<Lobby[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
+
+
+  const [showShareModal, setShowShareModal] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  // Add this function to generate share content
+  const generateShareContent = (lobby: Lobby) => {
+    const lobbyUrl = `${window.location.origin}/join-lobby/${lobby.id}`
+
+    // More attractive text formatting
+    const message = `🎯✨ *${lobby.name}* on BlindCharm!
+
+💫 ${lobby.description || 'Connect with amazing people through authentic conversations'}
+
+🔥 *${lobby.participant_count + 10} people* are already vibing
+🎨 Theme: *${lobby.theme}*
+
+✨ *Why BlindCharm?*
+💕 join Lobby where you meet like minded people
+❤️ Real connections, not superficial swipes
+🎭 Personality over photos
+💬 Anonymous chats that reveal true chemistry
+
+🚀 Ready to join? Tap here:
+${lobbyUrl}
+
+#BlindCharm #RealConnections #${lobby.theme.replace(' ', '')}`
+
+    return { message, url: lobbyUrl }
+  }
+
+  // Add share functions
+  const shareToWhatsApp = (lobby: Lobby) => {
+    const { message } = generateShareContent(lobby)
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, '_blank')
+  }
+
+  const copyShareLink = async (lobby: Lobby) => {
+    const { message } = generateShareContent(lobby)
+
+    try {
+      await navigator.clipboard.writeText(message)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = message
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  const shareNative = async (lobby: Lobby) => {
+    const { message, url } = generateShareContent(lobby)
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Join "${lobby.name}" on BlindCharm`,
+          text: message,
+          url: url
+        })
+      } catch (err) {
+        console.log('Share cancelled')
+      }
+    } else {
+      copyShareLink(lobby)
+    }
+  }
+
+
+  // Create search suggestions
+  const getSearchSuggestions = () => {
+    const suggestions = new Set<string>()
+
+    // Add all lobby names
+    activeLobbies.forEach(lobby => {
+      suggestions.add(lobby.name)
+      suggestions.add(lobby.theme)
+    })
+
+    // Add popular themes that might not have active lobbies
+    const popularThemes = ['Dating', 'Coffee Chat', 'Music Lovers', 'Gaming', 'Book Club', 'Photography', 'Art & Design', 'Fitness']
+    popularThemes.forEach(theme => suggestions.add(theme))
+
+    // Filter based on search query
+    if (!searchQuery.trim()) {
+      return Array.from(suggestions).slice(0, 8) // Show top 8 when no query
+    }
+
+    return Array.from(suggestions)
+      .filter(item => item.toLowerCase().includes(searchQuery.toLowerCase()))
+      .slice(0, 6) // Show top 6 matches
+  }
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const suggestions = getSearchSuggestions()
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelectedSuggestionIndex(prev =>
+        prev < suggestions.length - 1 ? prev + 1 : prev
+      )
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex]) {
+        setSearchQuery(suggestions[selectedSuggestionIndex])
+        setShowSuggestions(false)
+        setSelectedSuggestionIndex(-1)
+      }
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false)
+      setSelectedSuggestionIndex(-1)
+    }
+  }
+
+  // Handle suggestion selection
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion)
+    setShowSuggestions(false)
+    setSelectedSuggestionIndex(-1)
+  }
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredLobbies(activeLobbies)
+    } else {
+      const filtered = activeLobbies.filter(lobby =>
+        lobby.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        lobby.theme.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (lobby.description && lobby.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+      setFilteredLobbies(filtered)
+    }
+  }, [activeLobbies, searchQuery])
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -227,6 +377,7 @@ export default function ModernLobbySelection() {
     }
     fetchProfile()
 
+
     // Check if this is a first-time user
     const hasSeenGuide = localStorage.getItem('blindcharm-seen-guide')
     if (!hasSeenGuide && session?.user?.id) {
@@ -236,6 +387,22 @@ export default function ModernLobbySelection() {
       setIsFirstTime(false)
     }
   }, [session])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('.search-container')) {
+        setShowSuggestions(false)
+        setSelectedSuggestionIndex(-1)
+      }
+    }
+
+    if (showSuggestions) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showSuggestions])
+
 
   useEffect(() => {
     let timer: NodeJS.Timeout
@@ -562,20 +729,20 @@ export default function ModernLobbySelection() {
                 </p>
               </div>
               <div className="flex items-center gap-10">
-                {isAdmin && (
-                  <>
-                    <AdminBadge size="sm" />
+                {/* {isAdmin && ( */}
+                <>
+                  {/* <AdminBadge size="sm" /> */}
 
-                    <ModernButton
-                      variant="primary"
-                      size="sm"
-                      onClick={() => setShowCreateModal(true)}
-                    >
-                      <Plus size={12} className="mr-2" />
-                      Create Lobby
-                    </ModernButton>
-                  </>
-                )}
+                  <ModernButton
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setShowCreateModal(true)}
+                  >
+                    <Plus size={12} className="mr-2" />
+                    Create Lobby
+                  </ModernButton>
+                </>
+                {/* )} */}
                 <div className="flex items-center space-x-2 bg-secondary-50 dark:bg-gray-800 px-4 py-2 rounded-full">
                   <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
                   <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
@@ -613,17 +780,17 @@ export default function ModernLobbySelection() {
                       <AdminBadge size="sm" />
                     </div>
                   )}
-                  {isAdmin && (
-                    <ModernButton
-                      variant="primary"
-                      size="sm"
-                      onClick={() => setShowCreateModal(true)}
-                      className="flex-1 mr-4"
-                    >
-                      {/* <Plus size={16} className="mr-2" /> */}
-                      Create Lobby
-                    </ModernButton>
-                  )}
+                  {/* {isAdmin && ( */}
+                  <ModernButton
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex-1 mr-4"
+                  >
+                    {/* <Plus size={16} className="mr-2" /> */}
+                    Create Lobby
+                  </ModernButton>
+                  {/* )} */}
                   <div className="flex items-center space-x-1 bg-lime-200 dark:bg-gray-800 px-2 py-2 rounded-full">
                     <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
                     <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
@@ -637,7 +804,7 @@ export default function ModernLobbySelection() {
                   <div className="flex items-center space-x-2 bg-lime-50 dark:bg-gray-800 px-4 py-2 rounded-full">
                     <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
                     <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
-                      {activeLobbies.length} active
+                      {activeLobbies.length} Lobbies
                     </span>
                   </div>
                 </div>
@@ -645,70 +812,148 @@ export default function ModernLobbySelection() {
             </div>
           </div>
 
-          {/* Quick Guide Section */}
-          {/* <ModernCard className={`bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border-primary-200 dark:border-primary-700 ${isFirstTime ? 'ring-2 ring-primary-300 dark:ring-primary-600' : ''}`}>
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center">
-                  <HelpCircle size={24} className="text-white" />
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-neutral-850 dark:text-gray-100 mb-2">
-                  New to BlindCharm? Here's how it works:
-                </h3>
-                <div className="grid md:grid-cols-3 gap-4 text-sm text-neutral-700 dark:text-gray-300">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs">1</div>
-                    <span>Join a lobby that matches your interests</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs">2</div>
-                    <span>Chat anonymously with other members</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs">3</div>
-                    <span>Connect based on personality, not photos</span>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center gap-3">
-                  <Link 
-                    href="/how-it-works"
-                    className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium text-sm transition-colors"
+          {/* Enhanced Search Section with Dropdown */}
+          <div className="relative">
+            <div className="relative">
+              <Search size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 z-10" />
+              <input
+                type="text"
+                placeholder="Search or browse all lobbies..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleKeyDown}
+                className="w-full pl-11 pr-20 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-transparent text-neutral-850 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm shadow-sm transition-all duration-200"
+              />
+
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                {/* Show All Button */}
+                <button
+                  onClick={() => {
+                    setShowSuggestions(!showSuggestions)
+                    setSearchQuery('')
+                  }}
+                  className="text-gray-400 hover:text-primary-500 transition-colors p-1 rounded"
+                  title="Browse all lobbies"
+                >
+                  <ChevronDown size={16} className={`transform transition-transform ${showSuggestions ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Clear Button */}
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('')
+                      setShowSuggestions(false)
+                    }}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
                   >
-                    <span>Learn more about BlindCharm</span>
-                    <ArrowRight size={16} />
-                  </Link>
-                </div>
+                    <X size={16} />
+                  </button>
+                )}
               </div>
             </div>
-          </ModernCard> */}
 
-          {/* ScrollStack Section */}
-          {/* <div className="w-full max-w-3xl mx-auto my-8"> */}
-          {/* <ScrollStack>
-              <div className="flex space-x-6 overflow-x-auto pb-4">
-                <ScrollStackItem>
-                  <div className="min-w-[250px] bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-6">
-                    <h2 className="font-bold text-lg mb-2">Card 1</h2>
-                    <p>This is the first card in the stack</p>
-                  </div>
-                </ScrollStackItem>
-                <ScrollStackItem>
-                  <div className="min-w-[250px] bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-6">
-                    <h2 className="font-bold text-lg mb-2">Card 2</h2>
-                    <p>This is the second card in the stack</p>
-                  </div>
-                </ScrollStackItem>
-                <ScrollStackItem>
-                  <div className="min-w-[250px] bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-6">
-                    <h2 className="font-bold text-lg mb-2">Card 3</h2>
-                    <p>This is the third card in the stack</p>
-                  </div>
-                </ScrollStackItem>
+            {/* Dropdown Suggestions */}
+            {showSuggestions && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg z-50 max-h-60 overflow-y-auto">
+                {(() => {
+                  const suggestions = getSearchSuggestions()
+
+                  if (suggestions.length === 0) {
+                    return (
+                      <div className="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm">
+                        No matches found
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="py-2">
+                      {/* Section Headers */}
+                      {!searchQuery && (
+                        <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          Browse All Lobbies
+                        </div>
+                      )}
+
+                      {suggestions.map((suggestion, index) => {
+                        const isLobbyName = activeLobbies.some(lobby => lobby.name === suggestion)
+                        const isTheme = activeLobbies.some(lobby => lobby.theme === suggestion)
+
+                        // Fix: Calculate total participants, not lobby count
+                        const participantCount = activeLobbies
+                          .filter(lobby => lobby.name === suggestion || lobby.theme === suggestion)
+                          .reduce((total, lobby) => total + lobby.participant_count, 0)
+
+                        // Get matching lobbies count for themes (useful for themes with multiple lobbies)
+                        const matchingLobbiesCount = activeLobbies.filter(lobby =>
+                          lobby.name === suggestion || lobby.theme === suggestion
+                        ).length
+
+                        return (
+                          <button
+                            key={`${suggestion}-${index}`}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-between group ${selectedSuggestionIndex === index ? 'bg-primary-50 dark:bg-primary-900/20' : ''
+                              }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex-shrink-0">
+                                {isLobbyName ? (
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                ) : (
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                )}
+                              </div>
+                              <div>
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  {suggestion}
+                                </span>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {isLobbyName ? 'Lobby name' : `Theme category ${matchingLobbiesCount > 1 ? `(${matchingLobbiesCount} lobbies)` : ''}`}
+                                </div>
+                              </div>
+                            </div>
+
+                            {participantCount > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-gray-400">
+                                <Users size={12} />
+                                <span>{participantCount}</span>
+                              </div>
+                            )}
+                          </button>
+                        )
+                      })}
+
+                      {/* Quick Actions */}
+                      <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                        <button
+                          onClick={() => {
+                            setSearchQuery('')
+                            setShowSuggestions(false)
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          ✨ Show all lobbies
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
-            </ScrollStack> */}
-          {/* </div> */}
+            )}
+
+            {/* Compact Results Summary */}
+            {searchQuery && !showSuggestions && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 px-2">
+                {filteredLobbies.length === 0
+                  ? `No results for "${searchQuery}"`
+                  : `${filteredLobbies.length} found`
+                }
+              </p>
+            )}
+          </div>
 
 
           <div className='flex justify-center md:hidden size-1/2 m-auto'>
@@ -743,7 +988,8 @@ export default function ModernLobbySelection() {
 
           {/* Lobbies Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {[...activeLobbies]
+            {/* {[...activeLobbies] */}
+            {[...filteredLobbies]
               .sort((a, b) => {
                 if (a.id === userJoinedLobbyId) return -1;
                 if (b.id === userJoinedLobbyId) return 1;
@@ -854,7 +1100,7 @@ export default function ModernLobbySelection() {
                           {lobby.description || 'Join the conversation and meet new people!'}
                         </p>
 
-                        {/* Action Area */}
+                        {/* Action Area
                         <div className="flex items-center justify-between">
                           {isJoined ? (
                             <>
@@ -901,6 +1147,78 @@ export default function ModernLobbySelection() {
                               </div>
                             </div>
                           )}
+                        </div> */}
+                        {/* Action Area - Updated with Share Button */}
+                        <div className="flex items-center justify-between">
+                          {isJoined ? (
+                            <>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center shadow-md">
+                                  <ArrowRight size={18} className="text-white" />
+                                </div>
+                                <div>
+                                  <span className="text-primary-600 dark:text-primary-400 font-bold text-base block">Enter Lobby</span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">Tap anywhere to enter</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {/* Share Button */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setShowShareModal(lobby.id)
+                                  }}
+                                  className="p-2.5 text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-all duration-200"
+                                  title="Share lobby"
+                                >
+                                  <Share2 size={18} />
+                                </button>
+                                {/* Leave Button */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleLeaveLobby(lobby.id)
+                                  }}
+                                  className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all duration-200"
+                                  disabled={isLoading}
+                                >
+                                  <LogOut size={18} />
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ${canJoin ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                                  {isLoading ? (
+                                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                                  ) : (
+                                    <Plus size={18} className="text-white" />
+                                  )}
+                                </div>
+                                <div>
+                                  <span className={`font-bold text-base block transition-colors duration-200 ${canJoin ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'}`}>
+                                    {isLoading ? 'Joining...' : 'Join Lobby'}
+                                  </span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {canJoin ? 'Tap anywhere to join' : 'Already in another lobby'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Share Button for non-joined lobbies */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setShowShareModal(lobby.id)
+                                }}
+                                className="p-2.5 text-gray-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-full transition-all duration-200"
+                                title="Share lobby"
+                              >
+                                <Share2 size={18} />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -908,6 +1226,195 @@ export default function ModernLobbySelection() {
                 )
               })}
           </div>
+          {/* Enhanced Share Modal */}
+          {showShareModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowShareModal(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {(() => {
+                  const lobby = activeLobbies.find(l => l.id === showShareModal)
+                  if (!lobby) return null
+
+                  const themeConfig = getThemeConfig(lobby.theme)
+                  const IconComponent = themeConfig.icon
+
+                  return (
+                    <>
+                      {/* Preview Section */}
+                      <div className="mb-6">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 text-center">
+                          Share Preview
+                        </h2>
+
+                        {/* WhatsApp-style Preview */}
+                        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
+                          <div className="bg-white rounded-xl p-4 shadow-sm">
+                            {/* Mock link preview */}
+                            <div className="flex items-start gap-3">
+                              <div className={`w-16 h-16 ${themeConfig.bgColor} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                                <IconComponent size={24} className={themeConfig.iconColor} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-sm text-gray-900 mb-1 line-clamp-2">
+                                  🎯 Join "{lobby.name}" on BlindCharm!
+                                </h3>
+                                <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+                                  💫 {lobby.description || 'Connect through personality, not photos'} • 🔥 {lobby.participant_count} members
+                                </p>
+                                <span className="text-xs text-gray-400">blindcharm.com</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {lobby.participant_count > 0 && (
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="flex -space-x-2">
+                              {Array.from({ length: Math.min(lobby.participant_count, 5) }).map((_, i) => (
+                                <div
+                                  key={i}
+                                  className="w-8 h-8 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold"
+                                >
+                                  {String.fromCharCode(65 + i)} {/* A, B, C, etc. */}
+                                </div>
+                              ))}
+                              {lobby.participant_count > 5 && (
+                                <div className="w-8 h-8 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center text-gray-600 text-xs font-bold">
+                                  +{lobby.participant_count - 5}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">are already chatting</span>
+                          </div>
+                        )}
+
+                        {/* Message preview */}
+                        <div className="bg-gray-50 rounded-2xl p-4">
+                          <div className="text-sm">
+                            <div className="font-medium text-gray-900 mb-2">Your message:</div>
+                            <div className="text-gray-700 whitespace-pre-line text-xs leading-relaxed">
+                              {`🎯✨ *${lobby.name}* on BlindCharm!
+
+💫 ${lobby.description || 'Connect with amazing people'}
+
+🔥 *${lobby.participant_count} people* already vibing
+🎨 Theme: *${lobby.theme}*
+
+✨ Real connections, not superficial swipes
+🎭 Personality over photos
+
+🚀 Join now!`}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Share Options */}
+                      <div className="space-y-3">
+                        {/* WhatsApp Share */}
+                        <button
+                          onClick={() => {
+                            shareToWhatsApp(lobby)
+                            setShowShareModal(null)
+                          }}
+                          className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-2xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        >
+                          <MessageCircle size={24} />
+                          <div className="text-left flex-1">
+                            <div className="font-semibold">Share on WhatsApp</div>
+                            <div className="text-sm opacity-90">Beautiful link preview included</div>
+                          </div>
+                          <ExternalLink size={16} />
+                        </button>
+
+                        {/* Copy Link */}
+                        <button
+                          onClick={() => copyShareLink(lobby)}
+                          className="w-full flex items-center gap-4 p-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 rounded-2xl transition-colors"
+                        >
+                          <Copy size={24} />
+                          <div className="text-left flex-1">
+                            <div className="font-semibold">
+                              {copied ? '✅ Copied!' : 'Copy Rich Message'}
+                            </div>
+                            <div className="text-sm opacity-70">
+                              {copied ? 'Formatted message copied' : 'Copy with emojis & formatting'}
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* Instagram Stories / Social */}
+                        <button
+                          onClick={() => {
+                            // Copy the OG image URL for social sharing
+                            const ogUrl = `${window.location.origin}/api/og-lobby?name=${encodeURIComponent(lobby.name)}&theme=${encodeURIComponent(lobby.theme)}&count=${lobby.participant_count}`
+                            navigator.clipboard.writeText(ogUrl)
+                          }}
+                          className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl transition-all"
+                        >
+                          <Camera size={24} />
+                          <div className="text-left flex-1">
+                            <div className="font-semibold">Social Media</div>
+                            <div className="text-sm opacity-90">Copy image for Instagram/stories</div>
+                          </div>
+                        </button>
+                      </div>
+
+                      {/* Close */}
+                      <button
+                        onClick={() => setShowShareModal(null)}
+                        className="w-full mt-6 py-3 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )
+                })()}
+              </motion.div>
+            </motion.div>
+          )}
+          {/* Updated Empty State */}
+          {filteredLobbies.length === 0 && !error && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20"
+            >
+              <div className="w-24 h-24 bg-primary-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                {searchQuery ? (
+                  <Search className="h-12 w-12 text-primary-500" />
+                ) : (
+                  <Users className="h-12 w-12 text-primary-500" />
+                )}
+              </div>
+              <h3 className="text-2xl font-bold text-neutral-850 mb-3">
+                {searchQuery ? 'No matching lobbies' : 'No active lobbies'}
+              </h3>
+              <p className="text-neutral-750 max-w-md mx-auto leading-relaxed">
+                {searchQuery
+                  ? `Try adjusting your search terms or browse all available lobbies.`
+                  : 'Check your internet connection. New lobbies are created regularly throughout the day.'
+                }
+              </p>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="mt-4 px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-full transition-colors"
+                >
+                  Clear Search
+                </button>
+              )}
+            </motion.div>
+          )}
 
           {/* Empty State */}
           {activeLobbies.length === 0 && !error && (
@@ -951,5 +1458,6 @@ export default function ModernLobbySelection() {
         </motion.div>
       </Link>
     </div>
+
   )
 }

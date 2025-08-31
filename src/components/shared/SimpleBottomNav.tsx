@@ -220,8 +220,12 @@ export default function SimpleBottomNav() {
                 href="/matches"
                 icon={<MessageCircleHeart size={26} />}
                 isActive={isActive('/matches')}
-              // notificationCount={counts.total}
               />
+              {/* <NavItem
+                href="/likes-you"
+                icon={<Heart size={26} />}
+                isActive={isActive('/likes-you')}
+              /> */}
               <NavItem
                 href="/whispers"
                 icon={<VenetianMask size={26} />}

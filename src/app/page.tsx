@@ -676,7 +676,7 @@ export default function Home() {
                         ease: "linear" // Changed from easeInOut for smoothness
                       }}
                     >
-                      Find Love
+                      Talk First
                     </motion.span>
 
                     <motion.span
@@ -685,7 +685,7 @@ export default function Home() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.8, delay: 0.5 }}
                     >
-                      Beyond Looks
+                      Reveal Later
                     </motion.span>
                   </motion.h1>
 

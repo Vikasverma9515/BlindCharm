@@ -188,22 +188,6 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   const MESSAGES_PER_PAGE = 20; // Load 20 messages at a time
 
 
-  // // Add this function if missing
-  // const handleManualChallenge = async () => {
-  //   console.log('🎯 Manual challenge button clicked!');
-
-  //   const randomChallenge = getRandomChallenge();
-  //   console.log('🎲 Random challenge selected:', randomChallenge);
-
-  //   try {
-  //     console.log('📤 Attempting to create challenge...');
-  //     await createVoiceChallenge(randomChallenge.prompt, randomChallenge.timeLimit);
-  //     console.log('✅ Challenge created successfully!');
-  //   } catch (error) {
-  //     console.error('❌ Failed to create challenge:', error);
-  //     alert('Failed to create voice challenge. Please try again.');
-  //   }
-  // };
 
   const [showRevealedBanner, setShowRevealedBanner] = useState(() => {
     // Check localStorage on initial load - make it match-specific
@@ -298,60 +282,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
 
 
-  // Fetch reveal status and profiles
-  // const fetchRevealStatus = async () => {
-  //   if (!matchId || !session?.user?.id) return;
 
-  //   try {
-  //     // First, fetch the match reveal status
-  //     const { data: matchData, error: matchError } = await supabase
-  //       .from('matches')
-  //       .select('user1_id, user2_id, user1_revealed, user2_revealed')
-  //       .eq('id', matchId)
-  //       .single();
-
-  //     if (matchError) {
-  //       console.error('Error fetching match data:', matchError);
-  //       return;
-  //     }
-  //     if (!matchData) return;
-
-  //     const isCurrentUser1 = matchData.user1_id === session.user.id;
-  //     setIsUser1(isCurrentUser1);
-  //     setHasRevealed(isCurrentUser1 ? matchData.user1_revealed : matchData.user2_revealed);
-  //     setBothRevealed(matchData.user1_revealed && matchData.user2_revealed);
-
-  //     // Then, fetch user profiles separately only if both have revealed
-  //     if (matchData.user1_revealed && matchData.user2_revealed) {
-  //       const { data: userData, error: userError } = await supabase
-  //         .from('users')
-  //         .select(`
-  //         id, username, profile_picture, bio, interests, age, education, gender,
-  //         full_name, height, occupation, languages, hobbies, looking_for, 
-  //         personality_tags, lifestyle_tags, location, photos, dob
-  //       `)
-  //         .in('id', [matchData.user1_id, matchData.user2_id]);
-
-  //       if (userError) {
-  //         console.error('Error fetching user data:', userError);
-  //         return;
-  //       }
-  //       if (!userData) return;
-
-  //       const user1Data = userData.find(u => u.id === matchData.user1_id);
-  //       const user2Data = userData.find(u => u.id === matchData.user2_id);
-
-  //       setMyProfile((isCurrentUser1 ? user1Data : user2Data) || null);
-  //       setOtherUserProfile((isCurrentUser1 ? user2Data : user1Data) || null);
-  //     } else {
-  //       // Clear profiles if not both revealed
-  //       setMyProfile(null);
-  //       setOtherUserProfile(null);
-  //     }
-  //   } catch (err) {
-  //     console.error('Error in fetchRevealStatus:', err);
-  //   }
-  // };
   // Update the fetchRevealStatus function
   const fetchRevealStatus = async () => {
     if (!matchId || !session?.user?.id) return;
@@ -555,36 +486,6 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
     }
   };
 
-  // REPLACE with this updated version:
-  // const handleManualChallenge = async () => {
-  //   console.log('🎯 Manual challenge button clicked!');
-
-  //   if (!match || !session?.user?.id) {
-  //     alert('Cannot create challenge - missing match or user data');
-  //     return;
-  //   }
-
-  //   // Determine the other user (recipient of the challenge)
-  //   const recipientId = match.user1_id === session.user.id ? match.user2_id : match.user1_id;
-  //   const recipientName = bothRevealed && otherUserProfile?.username
-  //     ? otherUserProfile.username
-  //     : 'your match';
-
-  //   const randomChallenge = getRandomChallenge();
-  //   console.log('🎲 Random challenge selected for', recipientName, ':', randomChallenge);
-
-  //   try {
-  //     console.log('📤 Creating challenge for recipient:', recipientId);
-  //     await createVoiceChallenge(randomChallenge.prompt, randomChallenge.timeLimit, recipientId);
-  //     console.log('✅ Challenge created successfully!');
-
-  //     // Show success message
-  //     // alert(`Challenge sent to ${recipientName}! 🎯`);
-  //   } catch (error) {
-  //     console.error('❌ Failed to create challenge:', error);
-  //     alert('Failed to create voice challenge. Please try again.');
-  //   }
-  // };
 
   const handleManualChallenge = async () => {
     console.log('🎯 Manual challenge button clicked!');
@@ -806,106 +707,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
         message={successMessage}
         onClose={() => setShowSuccessPopup(false)}
       />
-      {/* Chat Header with safe area support */}
-      {/* <div className="bg-white border-b border-gray-200 dark:bg-black px-4 py-3 flex items-center justify-between fixed top-0 left-0 right-0 z-50 ">
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => router.push('/matches')}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white rounded-full transition-colors"
-          >
-            <svg className="w-5 h-5 text-gray-600 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              {bothRevealed && otherUserProfile?.profile_picture ? (
-                <img
-                  src={otherUserProfile.profile_picture}
-                  alt={otherUserProfile.username}
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
-                />
-              ) : (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex border dark:text-amber-50 border-red-500 items-center justify-center">
-                  <span className="text-white font-semibold text-sm sm:text-base">
-                    {bothRevealed && otherUserProfile?.username
-                      ? otherUserProfile.username[0].toUpperCase()
-                      : '?'}
-                  </span>
-                </div>
-              )}
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border border-white"></div>
-            </div>
-
-            <div className="min-w-0">
-              <h1 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
-                {bothRevealed && otherUserProfile?.username
-                  ? otherUserProfile.full_name
-                  : 'Anonymous Match'}
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {bothRevealed ? 'Online' : 'Identity hidden'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-1 sm:space-x-2">
-          {!hasRevealed ? (
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <button
-                  onClick={() => setShowTooltip(!showTooltip)}
-                  className="w-5 h-5 flex items-center justify-center rounded-full bg-yellow-300 text-black text-xs font-bold hover:bg-yellow-400 transition-colors">
-                  ?
-                </button>
-
-                {showTooltip && (
-                  <div className="absolute top-8 z-20 w-64 px-3 py-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-md dark:bg-gray-800 dark:text-white left-1/2 transform -translate-x-1/2">
-                    You're chatting anonymously for now. When you're ready, tap <span className="font-semibold text-red-500">Reveal</span>.
-                    <br />
-                    <span className="italic text-gray-500 dark:text-gray-300">
-                      Both people must tap Reveal to see each other's profiles.
-                    </span>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={handleReveal}
-                className="bg-red-500 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition-colors"
-              >
-                Reveal
-              </button>
-            </div>
-          ) : !bothRevealed ? (
-            <div className="flex items-center space-x-1 sm:space-x-2">
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-gray-500 dark:text-white hidden sm:inline">Waiting...</span>
-              <span className="text-xs text-gray-500 dark:text-white sm:hidden">...</span>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowProfile(!showProfile)}
-              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${showProfile
-                ? 'bg-red-500 text-white hover:bg-red-600'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-lime-500 dark:text-white dark:hover:bg-gray-600'
-                }`}
-            >
-              <span className="hidden sm:inline">{showProfile ? 'Hide Profile' : 'View Profile'}</span>
-              <span className="sm:hidden">{showProfile ? 'Hide' : 'View 👀'}</span>
-            </button>
-          )}
-          <ChatActionsMenu
-            onBlock={() => setShowBlockModal(true)}
-            otherUserName={
-              bothRevealed && otherUserProfile?.username
-                ? otherUserProfile.username
-                : 'this user'
-            }
-          />
-        </div>
-      </div> */}
+    
       {/* Chat Header with safe area support */}
       <div className="bg-white border-b border-gray-200 dark:bg-black px-4 py-3 flex items-center justify-between fixed top-0 left-0 right-0 z-50 ">
         <div className="flex items-center space-x-3">
@@ -1137,19 +939,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
             </div>
           </div>
         )}
-{/* 
-        {bothRevealed && (
-          <div className="bg-green-50 border-b border-green-200 px-4 py-2">
-            <div className="flex items-center justify-center space-x-2">
-              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <p className="text-green-700 text-sm font-medium">
-                Both identities revealed! You can now see each other's profiles.
-              </p>
-            </div>
-          </div>
-        )} */}
+
         {bothRevealed && showRevealedBanner && (
           <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/30 dark:via-emerald-900/30 dark:to-teal-900/30 border-b border-green-200 dark:border-green-700">
             <div className="px-4 py-2.5">
@@ -1242,17 +1032,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
           girlFaces={girlFaces}
           faceIndex={faceIndex}
         />
-        {/* Add this after MatchMessages and before Message Input */}
-        {/* {currentChallenge && !showChallengeRecorder && (
-          <div className="px-4">
-            <ChallengeCard
-              prompt={currentChallenge.challenge_prompt}
-              timeLimit={currentChallenge.time_limit}
-              onAccept={handleAcceptChallenge}
-              onSkip={handleSkipChallenge}
-            />
-          </div>
-        )} */}
+        
         {/* // Update your challenge display in the main component */}
         {currentChallenge && !showChallengeRecorder && (
           <div className="px-4">
@@ -1269,20 +1049,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
           </div>
         )}
 
-        {/* {currentChallenge && !showChallengeRecorder && (
-          <div className="px-4">
-            <EnhancedChallengeCard
-              challenge={currentChallenge}
-              currentUserId={session?.user?.id || ''}
-              matchUserId={otherUser?.id || ''}
-              onAccept={() => {
-                acceptChallenge(currentChallenge.id); // Pass the challengeId
-                setShowChallengeRecorder(true);
-              }}
-              onSkip={() => skipChallenge(currentChallenge.id)} // Pass the challengeId
-            />
-          </div>
-        )} */}
+        
 
         {showChallengeRecorder && currentChallenge && (
           <div className="px-4">
@@ -1437,270 +1204,6 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
 
 
-// // Enhanced Profile Card Component - Updated version
-// function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {
-//   if (!user) return null;
-
-//   const calculateAge = (dob?: string): number | null => {
-//     if (!dob) return null;
-//     const birthDate = new Date(dob);
-//     const today = new Date();
-//     let age = today.getFullYear() - birthDate.getFullYear();
-//     const monthDiff = today.getMonth() - birthDate.getMonth();
-//     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-//       age--;
-//     }
-//     return age;
-//   };
-
-//   const formatLocation = (location?: string | { city: string; country: string }): string | null => {
-//     if (!location) return null;
-//     if (typeof location === 'string') return location;
-//     if (typeof location === 'object' && location.city && location.country) {
-//       return `${location.city}, ${location.country}`;
-//     }
-//     return null;
-//   };
-
-//   const age = calculateAge(user.dob);
-//   const locationStr = formatLocation(user.location);
-
-//   return (
-//     <div className="bg-purple-400 dark:bg-black border border-gray-200 dark:border-gray-100 rounded-2xl shadow-lg overflow-hidden">
-//       {/* Header with main photo - Responsive with adaptive height */}
-//       <div className="relative bg-purple-400 dark:bg-black overflow-hidden">
-//         {user.profile_picture ? (
-//           // Mobile: Fixed height, Desktop: Adaptive height
-//           <div className="relative">
-//             {/* Mobile version - fixed height */}
-//             <div className="block md:hidden relative h-100 sm:h-72">
-//               <div
-//                 className="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-300 hover:scale-105"
-//                 style={{
-//                   backgroundImage: `url(${user.profile_picture})`,
-//                   backgroundSize: 'cover',
-//                   backgroundPosition: 'center center'
-//                 }}
-//               />
-//             </div>
-
-//             {/* Desktop version - adaptive height */}
-//             <div className="hidden md:block">
-//               <img
-//                 src={user.profile_picture}
-//                 alt={user.full_name || user.username}
-//                 className="w-full h-auto object-contain max-h-[70vh] transition-transform duration-300 hover:scale-105"
-//                 style={{
-//                   minHeight: '400px',
-//                   maxHeight: '70vh',
-//                   objectFit: 'contain'
-//                 }}
-//                 onError={(e) => {
-//                   // Fallback if image fails to load
-//                   const target = e.target as HTMLImageElement;
-//                   target.style.display = 'none';
-//                   const fallbackDiv = target.nextElementSibling as HTMLElement;
-//                   if (fallbackDiv) fallbackDiv.style.display = 'flex';
-//                 }}
-//               />
-//               {/* Fallback for desktop */}
-//               <div className="w-full h-96 flex items-center justify-center" style={{ display: 'none' }}>
-//                 <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-//                   <span className="text-white text-4xl font-bold">
-//                     {user.username?.[0]?.toUpperCase() || '?'}
-//                   </span>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         ) : (
-//           // No profile picture - show placeholder
-//           <div className="h-100 sm:h-72 md:h-96 lg:h-[32rem] xl:h-[28rem] w-full flex items-center justify-center">
-//             <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-//               <span className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">
-//                 {user.username?.[0]?.toUpperCase() || '?'}
-//               </span>
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Overlay with name and location */}
-//         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-5 md:p-6 xl:p-8">
-//           <h1 className="text-white font-blindcharm-tech text-xl sm:text-2xl md:text-3xl xl:text-4xl mb-1 leading-tight drop-shadow-lg">
-//             {user.full_name || user.username}
-//             {age && <span className="text-lg sm:text-xl md:text-2xl xl:text-3xl font-normal ml-2">{age}</span>}
-//           </h1>
-//           {locationStr && (
-//             <div className="flex items-center text-white/90 text-xs sm:text-sm md:text-base font-blindcharm-logo">
-//               <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-//                 <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-//               </svg>
-//               <span className="truncate drop-shadow-sm">{locationStr}</span>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-
-//       <div className="p-4 sm:p-5 md:p-6 xl:p-8 space-y-4 sm:space-y-5 md:space-y-6 xl:space-y-8">
-//         {/* Bio */}
-//         {user.bio && (
-//           <div>
-//             <h3 className="text-base sm:text-lg font-blindcharm-tech text-gray-900 dark:text-lime-300 mb-2">About</h3>
-//             <p className="text-gray-700 dark:text-white leading-relaxed text-sm sm:text-base">{user.bio}</p>
-//           </div>
-//         )}
-
-//         {/* Basic Info */}
-//         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 xl:gap-6">
-//           {user.height && (
-//             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-//               <div className="flex items-center">
-//                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
-//                 </svg>
-//                 <div className="min-w-0">
-//                   <p className="text-xs text-gray-500 dark:text-white">Height</p>
-//                   <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base truncate">{user.height} cm</p>
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-
-//           {user.occupation && (
-//             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-//               <div className="flex items-center">
-//                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 002 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2V8" />
-//                 </svg>
-//                 <div className="min-w-0">
-//                   <p className="text-xs text-gray-500 dark:text-white">Work</p>
-//                   <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base truncate">{user.occupation}</p>
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-
-//           {user.education && (
-//             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-//               <div className="flex items-center">
-//                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-//                 </svg>
-//                 <div className="min-w-0">
-//                   <p className="text-xs text-gray-500 dark:text-white">Education</p>
-//                   <p className="font-medium text-gray-900 dark:text-gray-300 text-sm sm:text-base">{user.education}</p>
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-//         </div>
-
-//         {/* Interests */}
-//         {user.interests && user.interests.length > 0 && (
-//           <div>
-//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Interests</h3>
-//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-//               {user.interests.map((interest: string, index: number) => (
-//                 <span
-//                   key={index}
-//                   className="bg-red-100 dark:bg-red-600 dark:text-white text-red-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-//                 >
-//                   {interest}
-//                 </span>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Personality Tags */}
-//         {user.personality_tags && user.personality_tags.length > 0 && (
-//           <div>
-//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Personality</h3>
-//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-//               {user.personality_tags.map((tag: string, index: number) => (
-//                 <span
-//                   key={index}
-//                   className="bg-blue-100 text-blue-700 dark:bg-blue-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-//                 >
-//                   {tag}
-//                 </span>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Lifestyle Tags */}
-//         {user.lifestyle_tags && user.lifestyle_tags.length > 0 && (
-//           <div>
-//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Lifestyle</h3>
-//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-//               {user.lifestyle_tags.map((tag: string, index: number) => (
-//                 <span
-//                   key={index}
-//                   className="bg-green-100 text-green-700 dark:bg-green-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-//                 >
-//                   {tag}
-//                 </span>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Languages */}
-//         {user.languages && user.languages.length > 0 && (
-//           <div>
-//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 font-blindcharm-tech dark:text-lime-300 mb-2 sm:mb-3">Languages</h3>
-//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-//               {user.languages.map((language: string, index: number) => (
-//                 <span
-//                   key={index}
-//                   className="bg-purple-100 text-purple-700 dark:bg-purple-700 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-//                 >
-//                   {language}
-//                 </span>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Hobbies */}
-//         {user.hobbies && user.hobbies.length > 0 && (
-//           <div>
-//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Hobbies</h3>
-//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-//               {user.hobbies.map((hobby: string, index: number) => (
-//                 <span
-//                   key={index}
-//                   className="bg-yellow-100 text-yellow-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-//                 >
-//                   {hobby}
-//                 </span>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Looking For */}
-//         {user.looking_for && user.looking_for.length > 0 && (
-//           <div>
-//             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-lime-300 font-blindcharm-tech mb-2 sm:mb-3">Looking For</h3>
-//             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-//               {user.looking_for.map((item: string, index: number) => (
-//                 <span
-//                   key={index}
-//                   className="bg-pink-100 text-pink-700 dark:bg-pink-600 dark:text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
-//                 >
-//                   {item}
-//                 </span>
-//               ))}
-//             </div>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
 
 // Enhanced Profile Card Component - Updated version with Verification
 function EnhancedProfileCard({ user }: { user: ExtendedUserProfile }) {

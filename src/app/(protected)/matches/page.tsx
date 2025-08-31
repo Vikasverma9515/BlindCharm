@@ -225,10 +225,12 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Heart, Volume2, Play, Pause, Plus } from 'lucide-react';
 import Image from 'next/image';
 import SimpleTopNav from '@/components/shared/SimpleTopNav';
 import SimpleBottomNav from '@/components/shared/SimpleBottomNav';
+import { VoiceService } from '@/lib/services/VoiceService';
+import toast from 'react-hot-toast';
 
 interface MatchPreview {
   id: string;
@@ -246,15 +248,33 @@ interface MatchPreview {
   status: string; // Add status to track match state
 }
 
+interface IncomingLike {
+  likeId: string;
+  created_at: string;
+  liker_id: string;
+  liker: { id: string; username?: string; full_name?: string };
+  their_card_id: string;
+  their_card: {
+    id: string;
+    audio_url: string;
+    audio_duration: number;
+    mood_tags: string[];
+    prompt?: { id: string; prompt_text: string };
+  };
+}
+
 export default function MatchesPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [matches, setMatches] = useState<MatchPreview[]>([]);
+  const [incomingLikes, setIncomingLikes] = useState<IncomingLike[]>([]);
+  const [playingLikeId, setPlayingLikeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!session?.user?.id) return;
     fetchMatches();
+    // fetchIncomingLikes();
     
     // Set up real-time subscription for match updates
     const channel = supabase
@@ -268,8 +288,8 @@ export default function MatchesPage() {
           filter: `user1_id=eq.${session.user.id}`
         },
         () => {
-          console.log('Match updated for user1');
           fetchMatches();
+          // fetchIncomingLikes();
         }
       )
       .on(
@@ -281,8 +301,8 @@ export default function MatchesPage() {
           filter: `user2_id=eq.${session.user.id}`
         },
         () => {
-          console.log('Match updated for user2');
           fetchMatches();
+          // fetchIncomingLikes();
         }
       )
       .subscribe();
@@ -293,10 +313,17 @@ export default function MatchesPage() {
     // eslint-disable-next-line
   }, [session?.user?.id]);
 
+  // const fetchIncomingLikes = async () => {
+  //   try {
+  //     const data = await VoiceService.getIncomingLikes(session!.user!.id);
+  //     setIncomingLikes(data);
+  //   } catch (e) {
+  //     console.error('Failed to load incoming likes', e);
+  //   }
+  // };
+
   const fetchMatches = async () => {
     try {
-      console.log('🔍 Fetching matches for user:', session?.user?.id);
-      
       const { data: matchData, error } = await supabase
         .from('matches')
         .select(`
@@ -321,28 +348,16 @@ export default function MatchesPage() {
           )
         `)
         .or(`user1_id.eq.${session?.user?.id},user2_id.eq.${session?.user?.id}`)
-        // Filter out blocked matches
         .neq('status', 'blocked')
         .is('blocked_by', null)
-        // Only show active/matched status
         .in('status', ['active', 'matched'])
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching matches:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log(`✅ Found ${matchData?.length || 0} active matches`);
-
-      // Additional client-side filtering as safety net
       const filteredMatches = (matchData || []).filter(match => 
-        match.status !== 'blocked' && 
-        !match.blocked_by &&
-        !match.blocked_at
+        match.status !== 'blocked' && !match.blocked_by && !match.blocked_at
       );
-
-      console.log(`✅ After filtering: ${filteredMatches.length} matches`);
 
       const transformedMatches = await Promise.all(filteredMatches.map(async (match) => {
         const isUser1 = match.user1_id === session?.user?.id;
@@ -350,7 +365,6 @@ export default function MatchesPage() {
         const otherUserObj = Array.isArray(otherUser) ? otherUser[0] : otherUser;
         const bothRevealed = match.user1_revealed && match.user2_revealed;
 
-        // Fetch last message for this match
         const { data: lastMessageData } = await supabase
           .from('match_messages')
           .select('content, created_at, type')
@@ -358,7 +372,6 @@ export default function MatchesPage() {
           .order('created_at', { ascending: false })
           .limit(1);
 
-        // Format last message content based on type
         let lastMessageContent = '';
         if (lastMessageData && lastMessageData.length > 0) {
           const message = lastMessageData[0];
@@ -447,8 +460,84 @@ export default function MatchesPage() {
           </div>
         </div>
 
-        {/* Matches List */}
+        {/* Matches List + Likes You */}
         <div className="max-w-4xl mx-auto">
+          {/* Likes You section - visible always for testing */}
+          {/* <div className="px-5 mt-5">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                    <Heart className="w-4 h-4 text-red-500" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Likes You</h3>
+                </div>
+                <button
+                  onClick={() => router.push('/voice-profile')}
+                  className="text-xs px-3 py-1 bg-purple-500 hover:bg-purple-600 text-white rounded-lg inline-flex items-center space-x-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Create Voice Card</span>
+                </button>
+              </div>
+
+              {incomingLikes.length === 0 ? (
+                <p className="text-sm text-gray-600 dark:text-gray-400">No one has liked your voice yet. Create a voice card to get started!</p>
+              ) : (
+                <div className="space-y-3">
+                  {incomingLikes.map(like => (
+                    <div key={like.likeId} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                          <Volume2 className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{like.liker?.username || 'Anonymous'}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{like.their_card?.prompt?.prompt_text || 'Voice prompt'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            if (playingLikeId === like.likeId) { setPlayingLikeId(null); return; }
+                            setPlayingLikeId(like.likeId);
+                            const audio = new Audio(like.their_card.audio_url);
+                            audio.play();
+                            audio.addEventListener('ended', () => setPlayingLikeId(null));
+                          }}
+                          className="w-9 h-9 rounded-full bg-purple-500 hover:bg-purple-600 text-white flex items-center justify-center"
+                          aria-label="Play"
+                        >
+                          {playingLikeId === like.likeId ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+                        </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const result = await VoiceService.likeBack(like.liker_id, session!.user!.id);
+                              if (result) {
+                                toast.success("It's a match! Opening chat...", { icon: '💫' });
+                                router.push(`/chat/${result.chatMatchId}`);
+                              } else {
+                                toast.success('Liked back!');
+                                // fetchIncomingLikes();
+                              }
+                            } catch (e) {
+                              console.error('Failed to like back', e);
+                              toast.error('Could not like back');
+                            }
+                          }}
+                          className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
+                        >
+                          Like back
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div> */}
+
           {matches.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-96 px-4">
               <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">

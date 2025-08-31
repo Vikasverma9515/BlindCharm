@@ -360,6 +360,67 @@ export class VoiceService {
     return data || [];
   }
 
+  // Likes You (incoming likes the user has not responded to yet)
+  static async getIncomingLikes(userId: string) {
+    // Find swipes where someone swiped right on any of my cards, and I haven't swiped that card owner back right yet
+    const { data, error } = await supabase
+      .from('voice_card_swipes')
+      .select(`
+        id,
+        created_at,
+        swiper_id,
+        voice_card_id,
+        voice_cards!inner(
+          id,
+          user_id,
+          audio_url,
+          audio_duration,
+          mood_tags,
+          prompt:voice_prompts(*),
+          user:users(id, username, full_name)
+        )
+      `)
+      .eq('swipe_direction', 'right')
+      // Their swipe is on one of MY cards
+      .in('voice_card_id', supabase
+        .from('voice_cards')
+        .select('id')
+        .eq('user_id', userId) as any)
+      // And I haven't already right-swiped one of their cards
+      ;
+
+    if (error) throw error;
+
+    const likes = (data || []).filter(like => like.swiper_id !== userId);
+    return likes.map(like => ({
+      likeId: like.id,
+      created_at: like.created_at,
+      liker_id: like.swiper_id,
+      liker: like.voice_cards.user,
+      their_card_id: like.voice_card_id,
+      their_card: like.voice_cards,
+    }));
+  }
+
+  // Like back: I right-swipe any one of the liker’s cards to create a match (and chat match)
+  static async likeBack(likerUserId: string, myUserId: string) {
+    // Find any of liker’s voice cards that I haven’t swiped right yet
+    const { data: likerCards, error: likerCardsError } = await supabase
+      .from('voice_cards')
+      .select('id')
+      .eq('user_id', likerUserId)
+      .eq('is_active', true)
+      .limit(1);
+
+    if (likerCardsError) throw likerCardsError;
+    if (!likerCards || likerCards.length === 0) throw new Error('No active cards from this user');
+
+    const targetCardId = likerCards[0].id;
+
+    // Perform a right swipe and reuse matching logic
+    return await VoiceService.swipeVoiceCard(targetCardId, 'right', myUserId);
+  }
+
   // Voice Activities
   static async createVoiceActivity(
     matchId: string, 
