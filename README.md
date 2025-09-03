@@ -1,39 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+🌟 BlindCharm – Anonymous Blind Dating & Confession Platform
+BlindCharm is a progressive web application (PWA) that enables users to connect anonymously, share confessions, and build genuine connections through matchmaking lobbies and real-time chat.
+🚀 Features
+🔐 Authentication & Verification – Secure login, with dual verification (Photo & Live Camera).
+💬 Real-Time Lobby System – Users interact in public lobbies, then get matched at scheduled cycles (12 AM, 3 AM, 6 AM, etc.).
+👫 Private Chat with Progressive Profile Reveal – Profiles are revealed on both consent to encourage meaningful conversations.
+🎮 MindMatch Arena – Fun, Q/A games in the lobby to make it more interactive.
+🔔 Push Notifications (PWA) – Alerts for matches, chats and profile reveals.
+📝 Confessions & Whispers – Anonymous sharing with a safe and moderated environment.
+🛠️ Tech Stack
+Frontend: Next.js, React, TailwindCSS, Framer Motion
+Backend: Supabase (Database, Functions), Firebase (Auth) Next.js API Routes
+Database: PostgreSQL (via Supabase)
+Authentication: Firebase Auth, NextAuth
+Other: PWA setup, Push Notifications
 
 
-## deploy on hostinger 1 2
+⚙️ How It Works
+Users join the lobby and engage in discussions.
+At scheduled matchmaking cycles, pairs are created based on availability, interests, and MindMatch scores.
+Users are redirected to a private chat where their profile reveals when both agres.
+Confessions & Whispers allow anonymous interaction, fostering open expression.
+
+🧑‍💻 Installation & Setup
+
+# Clone repo
+git clone https://github.com/your-username/blindcharm.git  
+
+# Navigate to project folder
+cd blindcharm  
+
+# Install dependencies
+npm install  
+
+# Setup environment variables in .env.local
+NEXT_PUBLIC_SUPABASE_URL=your-url  
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key  
+
+# Run development server
+npm run dev  
+
+🤝 Contributing
+Contributions, issues, and feature requests are welcome!
+Feel free to fork the repo and submit a pull request.
+📧 Contact
+Author: Vikas
+LinkedIn: https://www.linkedin.com/in/vikas-verma-264103275/
+Email: vikasverma951582@gmail.com
