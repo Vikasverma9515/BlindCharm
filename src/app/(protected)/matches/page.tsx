@@ -170,9 +170,7 @@
 //                     ) : (
 //                       <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center">
 //                         <span className="text-white font-semibold text-lg">
-//                           {match.bothRevealed && match.otherUser.username 
-//                             ? match.otherUser.username[0].toUpperCase() 
-//                             : '?'}
+//                           {match.otherUser.username[0].toUpperCase()}
 //                         </span>
 //                       </div>
 //                     )}
@@ -428,11 +426,48 @@ export default function MatchesPage() {
         return;
       }
 
+      // Mark the match as seen before navigating
+      if (session && session.user && session.user.id) {
+        await supabase
+          .from('matches')
+          .update({ seen: true })
+          .eq('id', matchId)
+          .eq('user_id', session.user.id);
+      }
+
       router.push(`/matches/${matchId}`);
     } catch (error) {
       console.error('Error navigating to match:', error);
     }
   };
+
+  // Check for unseen matches count (for badge or notification)
+  useEffect(() => {
+    const checkUnseenMatches = async () => {
+      if (!session?.user?.id) return;
+
+      try {
+        const { count, error } = await supabase
+          .from('matches')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', session.user.id)
+          .eq('seen', false);
+
+        if (error) {
+          console.error('Error fetching unseen matches count:', error);
+          return;
+        }
+
+        // Update state or context with the unseen matches count
+        // For example, you can set a global state or context value here
+        console.log('Unseen matches count:', count);
+      } catch (err) {
+        console.error('Error checking unseen matches:', err);
+      }
+    };
+
+    checkUnseenMatches();
+  }, [session?.user?.id, supabase]);
 
   if (loading) {
     return (

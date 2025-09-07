@@ -150,6 +150,52 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
     }
   }, [messages, loading, isInitialLoad]);
 
+  // Redirect both users when a connect request is accepted
+  useEffect(() => {
+    if (!currentUser?.id || !lobbyId) return;
+
+    const channelName = `lobby_connect_${lobbyId}_${Date.now()}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'lobby_connect_requests',
+          filter: `lobby_id=eq.${lobbyId}`
+        },
+        async (payload: any) => {
+          try {
+            const req = payload.new;
+            if (req.status !== 'accepted') return;
+            if (req.from_user_id !== currentUser.id && req.to_user_id !== currentUser.id) return;
+
+            // Find the created match for this pair in this lobby
+            const { data: match } = await supabase
+              .from('matches')
+              .select('id')
+              .or(`and(user1_id.eq.${req.from_user_id},user2_id.eq.${req.to_user_id}),and(user1_id.eq.${req.to_user_id},user2_id.eq.${req.from_user_id}))`)
+              .eq('lobby_id', req.lobby_id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+
+            if (match?.id) {
+              window.location.href = `/matches/${match.id}`;
+            }
+          } catch (e) {
+            console.error('Connect redirect failed', e);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try { channel.unsubscribe(); } catch { }
+    };
+  }, [currentUser?.id, lobbyId]);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser?.id || !newMessage.trim()) return;
@@ -206,6 +252,22 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-800 transition-colors duration-300 relative">
+      {/* Incoming connect requests */}
+      {currentUser?.id && (
+        // @ts-ignore - client component import
+        <div>
+          {(() => {
+            // Dynamic import wrapper to avoid SSR issues
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const [Comp, setComp] = (require('react') as any).useState(null)
+              // eslint-disable-next-line react-hooks/rules-of-hooks
+              ; (require('react') as any).useEffect(() => {
+                import('./ConnectRequests').then(m => setComp(() => m.default))
+              }, [])
+            return Comp ? <Comp lobbyId={lobbyId} currentUserId={currentUser.id!} /> : null
+          })()}
+        </div>
+      )}
       {/* Load More Messages Button */}
       {showLoadMore && (
         <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
@@ -294,14 +356,14 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
                         // alt={message.user.username}
                         alt={generateRandomName(message.user_id, message.user?.gender)}
                         className={`w-8 h-8 rounded-full object-cover ring-2 ring-primary-200 transition-all duration-300 ${shouldBlur
-                            ? 'blur-[1px] opacity-85'
-                            : ''
+                          ? 'blur-[1px] opacity-85'
+                          : ''
                           }`}
                       />
                     ) : (
                       <div className={`w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-sm shadow-soft transition-all duration-300 ${shouldBlur
-                          ? 'blur-[1px] opacity-85'
-                          : ''
+                        ? 'blur-[1px] opacity-85'
+                        : ''
                         }`}>
                         {/* {message.user.username[0]?.toUpperCase() || 'U'} */}
                         ☕︎
@@ -327,10 +389,34 @@ export default function LobbyChat({ lobbyId, currentUser, participants }: LobbyC
 
                     {/* Message Bubble */}
                     <div className={`rounded-2xl px-4 py-3 shadow-soft ${isOwnMessage
-                        ? 'bg-primary-500 text-white rounded-br-md'
-                        : 'bg-gray-100 dark:bg-gray-700 text-neutral-850 dark:text-gray-100 rounded-bl-md border border-gray-200 dark:border-gray-600'
+                      ? 'bg-primary-500 text-white rounded-br-md'
+                      : 'bg-gray-100 dark:bg-gray-700 text-neutral-850 dark:text-gray-100 rounded-bl-md border border-gray-200 dark:border-gray-600'
                       }`}>
                       <p className="break-words leading-relaxed text-sm">{message.content}</p>
+                      {/* Connect CTA for others' messages */}
+                      {!isOwnMessage && currentUser?.id && (
+                        <button
+                          className="mt-2 text-xs bg-primary-600 hover:bg-primary-700 text-white px-3 py-1 rounded-full"
+                          onClick={async () => {
+                            try {
+                              const { ConnectService } = await import('@/lib/services/ConnectService')
+                              const res = await ConnectService.requestConnect(lobbyId, currentUser.id!, message.user_id)
+                              if (res.created) {
+                                // Optional toast could be plugged here
+                                alert(`Sent connect request to ${message.user.username}`)
+                              } else {
+                                // Optional toast: request already pending
+                                alert(`You already have a pending connect request with ${message.user.username}`)
+                              }
+                            } catch (e) {
+                              console.error(e)
+                              alert('Failed to send connect request')
+                            }
+                          }}
+                        >
+                          Connect privately
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

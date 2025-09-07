@@ -12,14 +12,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS last_verification_attempt TIMESTAMP W
 CREATE INDEX IF NOT EXISTS idx_users_verification_status ON users(verification_status);
 CREATE INDEX IF NOT EXISTS idx_users_is_verified ON users(is_verified);
 
--- Add RLS policies for verification data
--- Users can view their own verification status
-CREATE POLICY IF NOT EXISTS "Users can view own verification status" ON users
-    FOR SELECT USING (auth.uid() = id);
-
--- Users can update their own verification data
-CREATE POLICY IF NOT EXISTS "Users can update own verification data" ON users
-    FOR UPDATE USING (auth.uid() = id);
+-- RLS policies intentionally omitted because app uses Firebase Auth.
+-- Access should be performed via server-side (service key) through RPC functions.
+-- If needed later, implement custom policies that don't rely on auth.uid().
 
 -- Function to update verification status
 CREATE OR REPLACE FUNCTION update_verification_status(
@@ -28,6 +23,11 @@ CREATE OR REPLACE FUNCTION update_verification_status(
     verification_info JSONB DEFAULT '{}'
 ) RETURNS BOOLEAN AS $$
 BEGIN
+    -- Ensure the user exists (Firebase Auth is used, no auth.uid())
+    IF NOT EXISTS (SELECT 1 FROM users u WHERE u.id = user_id) THEN
+        RETURN FALSE;
+    END IF;
+
     UPDATE users 
     SET 
         verification_status = new_status,
@@ -41,5 +41,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Grant execute permission to authenticated users
-GRANT EXECUTE ON FUNCTION update_verification_status TO authenticated;
+-- Restrict execute permission to service role (server-side only)
+REVOKE ALL ON FUNCTION update_verification_status(UUID, VARCHAR, JSONB) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION update_verification_status(UUID, VARCHAR, JSONB) TO service_role;

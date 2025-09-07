@@ -20,6 +20,7 @@ import QuickContactButtons from '../contact/QuickContactButtons'
 import FloatingContactButton from '../contact/FloatingContactButton'
 import { Search, X } from 'lucide-react'
 import { Share2, Copy, MessageCircle, ExternalLink } from 'lucide-react'
+import ConnectRequests from './ConnectRequests'
 
 
 
@@ -225,11 +226,11 @@ export default function ModernLobbySelection() {
   const [copied, setCopied] = useState(false)
 
   const generateShareContent = (lobby: Lobby) => {
-  // Use environment variable or fallback
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blindcharm.com'
-  const lobbyUrl = `${baseUrl}/lobby/${lobby.id}`
-  
-  const message = `🎯✨ Join "${lobby.name}" on BlindCharm!
+    // Use environment variable or fallback
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blindcharm.com'
+    const lobbyUrl = `${baseUrl}/lobby/${lobby.id}`
+
+    const message = `🎯✨ Join "${lobby.name}" on BlindCharm!
 
 💫 ${lobby.description || 'Connect with amazing people through authentic conversations'}
 
@@ -246,9 +247,9 @@ export default function ModernLobbySelection() {
 ${lobbyUrl}
 
 #BlindCharm #RealConnections #${lobby.theme.replace(/\s+/g, '')}`
-  
-  return { message, url: lobbyUrl }
-}
+
+    return { message, url: lobbyUrl }
+  }
 
   // Add share functions
   const shareToWhatsApp = (lobby: Lobby) => {
@@ -347,9 +348,27 @@ ${lobbyUrl}
 
   // Handle suggestion selection
   const handleSuggestionClick = (suggestion: string) => {
-    setSearchQuery(suggestion)
-    setShowSuggestions(false)
-    setSelectedSuggestionIndex(-1)
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    setSelectedSuggestionIndex(-1);
+
+    // Find lobby by name or theme
+    const matchedLobby = activeLobbies.find(
+      lobby => lobby.name === suggestion || lobby.theme === suggestion
+    );
+
+    if (matchedLobby) {
+      if (userJoinedLobbyId === matchedLobby.id) {
+        // Already joined this lobby, navigate
+        router.push(`/lobby/${matchedLobby.id}`);
+      } else if (userJoinedLobbyId === null) {
+        // Not in any lobby, join
+        handleJoinLobby(matchedLobby.id);
+      } else {
+        // Already in another lobby, navigate to that lobby
+        router.push(`/lobby/${userJoinedLobbyId}`);
+      }
+    }
   }
 
   useEffect(() => {
@@ -743,6 +762,15 @@ ${lobbyUrl}
                   </ModernButton>
                 </>
                 {/* )} */}
+                <div className="flex items-center gap-2">
+                  {session?.user?.id && activeLobbies.map(lobby => (
+                    <ConnectRequests
+                      key={lobby.id}
+                      lobbyId={lobby.id}
+                      currentUserId={session.user.id}
+                    />
+                  ))}
+                </div>
                 <div className="flex items-center space-x-2 bg-secondary-50 dark:bg-gray-800 px-4 py-2 rounded-full">
                   <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
                   <span className="text-sm text-neutral-750 dark:text-gray-300 font-medium">
@@ -761,6 +789,10 @@ ${lobbyUrl}
                     Hello, {profile?.full_name || profile?.username || profile?.email || 'Guest'}
                     <HandMetal size={24} className="ml-2" />
                   </h1>
+                  {/* {session?.user?.id && userJoinedLobbyId && ( */}
+                  {session?.user?.id && userJoinedLobbyId && (
+                    <ConnectRequests lobbyId={userJoinedLobbyId} currentUserId={session.user.id} />
+                  )}
 
                 </div>
                 <p className="text-neutral-750 dark:text-gray-400 text-sm font-elegant">
@@ -1018,7 +1050,6 @@ ${lobbyUrl}
                     transition={{ delay: index * 0.1 }}
                     className="group"
                   >
-                    {/* Modern Card with Floating Content */}
                     <div
                       className={`
                         relative group transition-all duration-300 cursor-pointer
@@ -1026,6 +1057,8 @@ ${lobbyUrl}
                       `}
                       onClick={handleCardClick}
                     >
+
+
                       {/* Image/Icon Section */}
                       <div className={`
                         relative aspect-[16/9] overflow-hidden rounded-3xl shadow-lg
@@ -1074,8 +1107,13 @@ ${lobbyUrl}
                               <span className="text-sm font-semibold">{lobby.participant_count} members</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                              <span className="text-white/90 text-sm font-semibold">Live</span>
+
+                              {/* Notification Bell */}
+                              {session?.user?.id && (
+                                <div className="absolute top-4 right-4 z-20 scale-70">
+                                  <ConnectRequests lobbyId={lobby.id} currentUserId={session.user.id} />
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

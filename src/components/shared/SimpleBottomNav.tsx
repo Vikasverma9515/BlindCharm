@@ -1,127 +1,3 @@
-// // src/components/shared/SimpleBottomNav.tsx
-// 'use client'
-
-// import Link from 'next/link'
-// import { usePathname } from 'next/navigation'
-// import { useSession } from 'next-auth/react'
-// import { 
-//   Home, 
-//   Users, 
-//   Heart, 
-//   MessageCircle, 
-//   User,
-//   LogIn,
-//   UserPlus
-// } from 'lucide-react'
-
-// export default function SimpleBottomNav() {
-//   const pathname = usePathname()
-//   const { data: session, status } = useSession()
-
-//   // Don't show on desktop
-//   const isActive = (path: string) => {
-//     if (path === '/lobby' && pathname.startsWith('/lobby')) return true
-//     return pathname === path
-//   }
-
-//   // Prevent hydration mismatch
-//   if (status === 'loading') {
-//     return null
-//   }
-
-//   return (
-//     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-amber-400 backdrop-blur-md border-t border-gray-200 shadow-lg md:hidden">
-//       <div className="flex justify-around items-center h-15 px-2">
-//         {session ? (
-//           <>
-//             <Link
-//               href="/lobby"
-//               className={`flex flex-col items-center justify-center flex-1 py-0.5 px-0.5 rounded-lg transition-all duration-200 ${
-//                 isActive('/lobby')
-//                   ? 'text-red-600 bg-red-50'
-//                   : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
-//               }`}
-//             >
-//               <Users size={20} />
-//               <span className="text-xs mt-1 font-medium">Lobby</span>
-//             </Link>
-//             <Link
-//               href="/matches"
-//               className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-all duration-200 ${
-//                 isActive('/matches')
-//                   ? 'text-red-600 bg-red-50'
-//                   : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
-//               }`}
-//             >
-//               <Heart size={20} />
-//               <span className="text-xs mt-1 font-medium">Matches</span>
-//             </Link>
-//             <Link
-//               href="/whispers"
-//               className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-all duration-200 ${
-//                 isActive('/whispers')
-//                   ? 'text-red-600 bg-red-50'
-//                   : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
-//               }`}
-//             >
-//               <MessageCircle size={20} />
-//               <span className="text-xs mt-1 font-medium">Whispers</span>
-//             </Link>
-//             <Link
-//               href="/profile"
-//               className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-all duration-200 ${
-//                 isActive('/profile')
-//                   ? 'text-red-600 bg-red-50'
-//                   : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
-//               }`}
-//             >
-//               <User size={20} />
-//               <span className="text-xs mt-1 font-medium">Profile</span>
-//             </Link>
-//           </>
-//         ) : (
-//           <>
-//             <Link
-//               href="/"
-//               className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-all duration-200 ${
-//                 isActive('/')
-//                   ? 'text-red-600 bg-red-50'
-//                   : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
-//               }`}
-//             >
-//               <Home size={20} />
-//               <span className="text-xs mt-1 font-medium">Home</span>
-//             </Link>
-//             <Link
-//               href="/login"
-//               className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-all duration-200 ${
-//                 isActive('/login')
-//                   ? 'text-red-600 bg-red-50'
-//                   : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
-//               }`}
-//             >
-//               <LogIn size={20} />
-//               <span className="text-xs mt-1 font-medium">Login</span>
-//             </Link>
-//             <Link
-//               href="/register"
-//               className={`flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-all duration-200 ${
-//                 isActive('/register')
-//                   ? 'text-red-600 bg-red-50'
-//                   : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
-//               }`}
-//             >
-//               <UserPlus size={20} />
-//               <span className="text-xs mt-1 font-medium">Sign Up</span>
-//             </Link>
-//           </>
-//         )}
-//       </div>
-//     </nav>
-//   )
-// }
-
-
 // src/components/shared/SimpleBottomNav.tsx
 'use client'
 
@@ -143,7 +19,16 @@ import {
   VenetianMask,
   MessageCircleHeart,
   Mic,
-  HelpCircle
+  HelpCircle,
+  AtomIcon,
+  LucideMove3D,
+  LucideShovel,
+  EggFriedIcon,
+  Airplay,
+  UserCircle,
+  FireExtinguisher,
+  HelpCircleIcon,
+
 } from 'lucide-react'
 import LogoutButton from '../auth/LogoutButton'
 // import { useNotifications } from '@/hooks/useNotifications'
@@ -160,13 +45,50 @@ export default function SimpleBottomNav() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [connectPendingCount, setConnectPendingCount] = useState<number>(0)
   // const { counts } = useNotifications()
+  const [newMatchesCount, setNewMatchesCount] = useState<number>(0)
 
   const isActive = (path: string) => {
     if (path === '/lobby' && pathname.startsWith('/lobby')) return true
     if (path === '/voice-swipe' && pathname.startsWith('/voice-swipe')) return true
     return pathname === path
   }
+
+  useEffect(() => {
+    let channel: any
+
+    const loadNewMatches = async () => {
+      if (!session?.user?.id) return
+      try {
+        const { count, error } = await supabase
+          .from('matches')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', session.user.id)
+          .eq('seen', false)
+        if (error) throw error
+        setNewMatchesCount(count ?? 0)
+      } catch (e) {
+        console.error('new matches count failed', e)
+      }
+    }
+
+    loadNewMatches()
+
+    if (session?.user?.id) {
+      channel = supabase
+        .channel(`matches_dot_${session.user.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'matches', filter: `user_id=eq.${session.user.id}` }, () => {
+          loadNewMatches()
+        })
+        .subscribe()
+    }
+
+    return () => {
+      try { channel?.unsubscribe() } catch { }
+    }
+  }, [session?.user?.id])
+
 
   // Fetch user profile data for avatar
   useEffect(() => {
@@ -192,6 +114,41 @@ export default function SimpleBottomNav() {
     }
   }, [session])
 
+  // Pending connect requests dot indicator
+  useEffect(() => {
+    let channel: any
+
+    const loadCounts = async () => {
+      if (!session?.user?.id) return
+      try {
+        const { count, error } = await supabase
+          .from('lobby_connect_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('to_user_id', session.user.id)
+          .eq('status', 'pending')
+        if (error) throw error
+        setConnectPendingCount(count ?? 0)
+      } catch (e) {
+        console.error('connect pending count failed', e)
+      }
+    }
+
+    loadCounts()
+
+    if (session?.user?.id) {
+      channel = supabase
+        .channel(`lobby_connect_dot_${session.user.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'lobby_connect_requests', filter: `to_user_id=eq.${session.user.id}` }, () => {
+          loadCounts()
+        })
+        .subscribe()
+    }
+
+    return () => {
+      try { channel?.unsubscribe() } catch { }
+    }
+  }, [session?.user?.id])
+
   if (status === 'loading') return null
 
   return (
@@ -210,21 +167,44 @@ export default function SimpleBottomNav() {
                 href="/lobby"
                 icon={<ShieldUser size={26} />}
                 isActive={isActive('/lobby')}
+                notificationCount={connectPendingCount}
               />
               {/* <NavItem
                 href="/voice-swipe"
                 icon={<Mic size={26} />}
                 isActive={isActive('/voice-swipe')}
               /> */}
+              {/* <NavItem
+                href="/matches"
+                icon={<MessageCircleHeart size={26} />}
+                isActive={isActive('/matches')}
+              /> */}
               <NavItem
                 href="/matches"
                 icon={<MessageCircleHeart size={26} />}
                 isActive={isActive('/matches')}
+                notificationCount={newMatchesCount}
               />
               {/* <NavItem
                 href="/likes-you"
                 icon={<Heart size={26} />}
                 isActive={isActive('/likes-you')}
+              /> */}
+              {/* <Link
+                href="/ai-friend"
+                className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${pathname === '/ai-friend'
+                    ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  }`}
+              >
+                <EggFriedIcon size={24} />
+                <span className="text-xs mt-1 font-medium">AI Friend</span>
+              </Link> */}
+              {/* <NavItem
+                href="/ai-friend"
+                icon={<EggFriedIcon size={26} />}
+                isActive={isActive('/ai-friend')}
+                
               /> */}
               <NavItem
                 href="/whispers"
@@ -310,9 +290,9 @@ const NavItem = ({ href, icon, isActive, notificationCount }: NavItemProps) => {
         >
           {icon}
         </div>
-        {/* {notificationCount && notificationCount > 0 && (
-          // <NotificationBadge count={NotificationStatus} size="sm" />
-        )} */}
+        {typeof notificationCount === 'number' && notificationCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+        )}
 
       </motion.div>
     </Link>
