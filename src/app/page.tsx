@@ -1,1188 +1,420 @@
-// src/app/page.tsx
-'use client'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Heart, MessageCircle, Users, Sparkles, ArrowRight, Star, Zap, X, Coffee, Music, Book, Camera, Mic } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import SimpleTopNav from '@/components/shared/SimpleTopNav'
-import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
-import Footer from '@/components/shared/Footer'
-import CardSwap, { Card } from '@/components/ui/CardSwap'
-import InfiniteScroll from '@/components/ui/InfiniteScroll'
-import PixelCard from '@/blocks/Components/PixelCard/PixelCard'
-import DynamicBackground from '@/components/shared/DynamicBackground'
-import BackgroundPattern from '@/components/shared/BackgroundPattern'
-import CuteFaceBubble2 from '@/components/ui/CuteFaceBubble2'
-import NotificationPrompt from '@/components/notifications/NotificationPrompt'
-import AnnouncementBar from '@/components/announcement/AnnouncementBar'
-import HeroSection from '@/components/LandingPage/HeroSection'
-import HeroInstallButton from '@/components/HeroInstallButton'
+'use client';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ChevronRight, Check } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-// const LobbyCardSwap = () => {
-//   return (
+const BACKGROUND_IMAGES = [
+  "/photos/p1.jpg",
+  "/photos/p2.jpg",
+  "/photos/p3.jpg",
+  "/photos/p4.jpg",
+  "/photos/p5.jpg",
+  "/photos/p6.jpg",
+  "/photos/p7.jpg",
+  "/photos/p8.jpg",
+  "/photos/p9.jpg",
+  "/photos/p10.jpg"
+];
 
-//     <div className="w-full h-[600px] sm:h-[500px] lg:h-[600px] flex items-center justify-start -ml-20 sm:justify-center sm:ml-0">
-//       <CardSwap
-//         cardDistance={40}
-//         verticalDistance={50}
-//         delay={5000}
-//         pauseOnHover={true}
-//         width={280}
-//         height={380}
-//         easing="elastic"
-//       >
-//         <Card className="bg-gradient-to-br from-amber-400 to-orange-500 border-white/20 shadow-2xl">
-//           <div className="h-full p-4 sm:p-6 flex flex-col text-white">
-//             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-//               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-//                 <Coffee className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-//               </div>
-//               <div>
-//                 <h3 className="text-lg sm:text-xl font-bold">Though Roulette</h3>
-//                 <p className="text-white/80 text-xs sm:text-sm">Brainwaves & Banter</p>
-//               </div>
-//             </div>
-//             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-//               Quick prompts. Savage takes. Get matched by mindset 🌀🧠
-//             </p>
-//             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
-//               {["Casual", "Morning", "Coffee"].map(tag => (
-//                 <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
-//                   {tag}
-//                 </span>
-//               ))}
-//             </div>
-//             <div className="flex items-center justify-between mb-3 sm:mb-4">
-//               <div className="flex items-center gap-2">
-//                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-//                 <span className="text-white/80 text-xs sm:text-sm">25 members</span>
-//               </div>
-//               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
-//             </div>
-//             <motion.button
-//               whileHover={{ scale: 1.05 }}
-//               whileTap={{ scale: 0.95 }}
-//               className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
-//             >
+export default function LandingPage() {
+  const router = useRouter();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-//               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-//               Join Lobby
-//             </motion.button>
-//           </div>
-//         </Card>
-
-//         <Card className="bg-gradient-to-br from-purple-500 to-pink-500 border-white/20 shadow-2xl">
-//           <div className="h-full p-4 sm:p-6 flex flex-col text-white">
-//             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-//               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-//                 <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-//               </div>
-//               <div>
-//                 <h3 className="text-lg sm:text-xl font-bold">AfterGlow Talks</h3>
-//                 <p className="text-white/80 text-xs sm:text-sm">Midnight Cravings</p>
-//               </div>
-//             </div>
-//             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-//               1 AM vibes, no small talk. Get deep, get dark, get real 🌒💬
-//             </p>
-//             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
-//               {["Music", "Creative", "Sharing"].map(tag => (
-//                 <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
-//                   {tag}
-//                 </span>
-//               ))}
-//             </div>
-//             <div className="flex items-center justify-between mb-3 sm:mb-4">
-//               <div className="flex items-center gap-2">
-//                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-//                 <span className="text-white/80 text-xs sm:text-sm">21 members</span>
-//               </div>
-//               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
-//             </div>
-//             <motion.button
-//               whileHover={{ scale: 1.05 }}
-//               whileTap={{ scale: 0.95 }}
-//               className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
-//             >
-//               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-//               Join Lobby
-//             </motion.button>
-//           </div>
-//         </Card>
-
-//         <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 border-white/20 shadow-2xl">
-//           <div className="h-full p-4 sm:p-6 flex flex-col text-white">
-//             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-//               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-//                 <Book className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-//               </div>
-//               <div>
-//                 <h3 className="text-lg sm:text-xl font-bold">Persona Pop</h3>
-//                 <p className="text-white/80 text-xs sm:text-sm">Flirt. Fake. Fantasize.</p>
-//               </div>
-//             </div>
-//             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-//               Step into a new skin. Slide into character. Who do you wanna be tonight? 🎭✨
-//             </p>
-//             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
-//               {["Books", "Literature", "Deep"].map(tag => (
-//                 <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
-//                   {tag}
-//                 </span>
-//               ))}
-//             </div>
-//             <div className="flex items-center justify-between mb-3 sm:mb-4">
-//               <div className="flex items-center gap-2">
-//                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-//                 <span className="text-white/80 text-xs sm:text-sm">24 members</span>
-//               </div>
-//               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
-//             </div>
-//             <motion.button
-//               whileHover={{ scale: 1.05 }}
-//               whileTap={{ scale: 0.95 }}
-//               className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
-//             >
-//               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-//               Join Lobby
-//             </motion.button>
-//           </div>
-//         </Card>
-
-//         <Card className="bg-gradient-to-br from-cyan-400 to-teal-500 border-white/20 shadow-2xl">
-//           <div className="h-full p-4 sm:p-6 flex flex-col text-white">
-//             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-//               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-//                 <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-//               </div>
-//               <div>
-//                 <h3 className="text-lg sm:text-xl font-bold">Chill & Spill</h3>
-//                 <p className="text-white/80 text-xs sm:text-sm">Low-Key Energy</p>
-//               </div>
-//             </div>
-//             <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-//               Come as you are. Mood swings welcome. Let it out 💭🌫️
-//             </p>
-//             <div className="flex gap-1 sm:gap-2 flex-wrap mb-3 sm:mb-4">
-//               {["Art", "Visual", "Creative"].map(tag => (
-//                 <span key={tag} className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">
-//                   {tag}
-//                 </span>
-//               ))}
-//             </div>
-//             <div className="flex items-center justify-between mb-3 sm:mb-4">
-//               <div className="flex items-center gap-2">
-//                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-//                 <span className="text-white/80 text-xs sm:text-sm">10 members</span>
-//               </div>
-//               <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
-//             </div>
-//             <motion.button
-//               whileHover={{ scale: 1.05 }}
-//               whileTap={{ scale: 0.95 }}
-//               className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
-//             >
-//               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-//               Join Lobby
-//             </motion.button>
-//           </div>
-//         </Card>
-//       </CardSwap>
-//     </div>
-//   );
-// };
-const LobbyCardSwap = () => {
-  return (
-    <div className="w-full h-[600px] sm:h-[500px] lg:h-[600px] flex items-center justify-start -ml-20 sm:justify-center sm:ml-0">
-      <CardSwap
-        cardDistance={40}
-        verticalDistance={50}
-        delay={5000}
-        pauseOnHover={true}
-        width={280}
-        height={380}
-        easing="elastic"
-      >
-        {/* Card 1 - Fitness */}
-        <Card className="bg-black border-2 border-gray-800 shadow-2xl overflow-hidden rounded-3xl">
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=600&fit=crop&crop=center')`
-            }}
-          />
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30" />
-
-          <div className="h-full p-4 sm:p-6 flex flex-col text-white relative z-10">
-            {/* Category Badge & Live Status */}
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <span className="bg-green-500 text-black px-3 py-1 rounded-full text-xs font-bold">
-                Fitness
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-white/60 text-xs">Live</span>
-              </div>
-            </div>
-
-            {/* Title */}
-            <div className="mb-3 sm:mb-4">
-              <h3 className="text-lg sm:text-xl font-black text-white mb-1 tracking-tight drop-shadow-lg">BLIND CHARM</h3>
-              <p className="text-green-400/90 text-xs sm:text-sm font-medium">Talk first 💬 reveal later</p>
-            </div>
-
-            {/* Description */}
-            <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Connect through personality first, looks later
-            </p>
-
-            {/* Members & Status */}
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm font-medium">3 members</span>
-              </div>
-              <span className="text-white/60 text-xs">Launching soon...</span>
-            </div>
-
-            {/* Join Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg"
-            >
-              <span className="text-red-500 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">+</span>
-              Join Lobby
-            </motion.button>
-            <p className="text-center text-white/60 text-xs mt-2">Tap anywhere to join</p>
-          </div>
-        </Card>
-
-        {/* Card 2 - Dating */}
-        <Card className="bg-black border-2 border-gray-800 shadow-2xl overflow-hidden rounded-3xl">
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-40"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=600&fit=crop&crop=center')`
-            }}
-          />
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/40" />
-
-          <div className="h-full p-4 sm:p-6 flex flex-col text-white relative z-10">
-            {/* Category Badge & Live Status */}
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">
-                Dating
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-white/60 text-xs">Live</span>
-              </div>
-            </div>
-
-            {/* Title */}
-            <div className="mb-3 sm:mb-4">
-              <h3 className="text-lg sm:text-xl font-black text-white mb-1 tracking-tight drop-shadow-lg">SURPRISE LOBBY</h3>
-              <p className="text-yellow-400/90 text-xs sm:text-sm font-medium">Surprise Lobby</p>
-            </div>
-
-            {/* Description */}
-            <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Get ready to be surprised..
-            </p>
-
-            {/* Members & Status */}
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm font-medium">4 members</span>
-              </div>
-            </div>
-
-            {/* Join Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg"
-            >
-              <span className="text-red-500 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">+</span>
-              Join Lobby
-            </motion.button>
-            <p className="text-center text-white/60 text-xs mt-2">Tap anywhere to join</p>
-          </div>
-        </Card>
-
-        {/* Card 3 - Friends */}
-        <Card className="bg-black border-2 border-gray-800 shadow-2xl overflow-hidden rounded-3xl">
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-35"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=600&fit=crop&crop=center')`
-            }}
-          />
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30" />
-
-          <div className="h-full p-4 sm:p-6 flex flex-col text-white relative z-10">
-            {/* Category Badge & Live Status */}
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                Dating
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-white/60 text-xs">Live</span>
-              </div>
-            </div>
-
-            {/* Title */}
-            <div className="mb-3 sm:mb-4">
-              <h3 className="text-lg sm:text-xl font-black text-white mb-1 tracking-tight drop-shadow-lg">MY FRIEND CIRCLE</h3>
-              <p className="text-blue-400/90 text-xs sm:text-sm font-medium">Friends</p>
-            </div>
-
-            {/* Description */}
-            <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              My cute friend circle...
-            </p>
-
-            {/* Members & Status */}
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm font-medium">0 members</span>
-              </div>
-            </div>
-
-            {/* Join Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg"
-            >
-              <span className="text-red-500 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">+</span>
-              Join Lobby
-            </motion.button>
-            <p className="text-center text-white/60 text-xs mt-2">Tap anywhere to join</p>
-          </div>
-        </Card>
-
-        {/* Card 4 - Study Group */}
-        <Card className="bg-black border-2 border-gray-800 shadow-2xl overflow-hidden rounded-3xl">
-          {/* Background Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400&h=600&fit=crop&crop=center')`
-            }}
-          />
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/40" />
-
-          <div className="h-full p-4 sm:p-6 flex flex-col text-white relative z-10">
-            {/* Category Badge & Live Status */}
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <span className="bg-emerald-500 text-black px-3 py-1 rounded-full text-xs font-bold">
-                Coffee Chat
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-white/60 text-xs">Live</span>
-              </div>
-            </div>
-
-            {/* Title */}
-            <div className="mb-3 sm:mb-4">
-              <h3 className="text-sm sm:text-lg font-black text-white mb-1 tracking-tight leading-tight drop-shadow-lg">
-                GROUP STUDY MAI PADHAI NAHI HOTI HAI
-              </h3>
-              <p className="text-emerald-400/90 text-xs sm:text-sm font-medium">Group Study</p>
-            </div>
-
-            {/* Description */}
-            <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-1">
-              Jisko bhi lagta hia group study mai padhai hoti hai.....
-            </p>
-
-            {/* Members & Status */}
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                <span className="text-white/80 text-xs sm:text-sm font-medium">0 members</span>
-              </div>
-            </div>
-
-            {/* Join Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg"
-            >
-              <span className="text-red-500 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">+</span>
-              Join Lobby
-            </motion.button>
-            <p className="text-center text-white/60 text-xs mt-2">Tap anywhere to join</p>
-          </div>
-        </Card>
-
-      </CardSwap>
-    </div>
-  );
-};
-
-export default function Home() {
-  const [isVisible, setIsVisible] = useState(false)
-
+  // Slideshow Effect
   useEffect(() => {
-    setIsVisible(true)
-  }, [])
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % BACKGROUND_IMAGES.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+
 
   return (
+    <div className="min-h-screen bg-black text-white font-serif selection:bg-pink-500/30">
+      {/* Background Slideshow */}
+      <AnimatePresence mode="popLayout">
+        <motion.div
+          key={currentImageIndex}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5 }}
 
-    <div className="  relative min-h-screen overflow-hidden transition-colors duration-300 ">
-      <SimpleTopNav />
+          className="fixed inset-0 z-0"
+        >
+          <Image
+            src={BACKGROUND_IMAGES[currentImageIndex]}
+            alt="Background"
+            fill
+            className="object-cover opacity-60"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/90" />
+        </motion.div>
+      </AnimatePresence>
 
-      <div className=" px-2 pt-2 pb-15 md:pt-4 md:pb-0 lg:pt-4 lg:pb-0 sm:pb-3">
-        <main className="relative">
-          {/* Hero Section */}
-          {/* <Silk
-          speed={5}
-          scale={2}
-          color="#7B7481"
-          noiseIntensity={2}
-          rotation={0}
-        /> */}
+      {/* Content Content - Z-Index 10 */}
+      <div className="relative z-10 h-[100dvh] flex flex-col px-6 pb-8 pt-12 sm:py-10 sticky top-0">
 
-          {/* <BackgroundPattern /> */}
-          {/* Main Hero Section */}
-          <AnnouncementBar />
+        {/* Logo Area - Top Left */}
+        <div className="flex-none">
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="flex items-center gap-3"
+          >
+            <div className="relative w-15 h-15">
+              <Image
+                src="/logo3.png"
+                alt="BlindCharm Logo"
+                fill
+                className="object-contain rounded-xl"
+                priority
+              />
+            </div>
+            <h1 className="text-4xl font-bold tracking-tighter" style={{ fontFamily: 'var(--font-outfit)' }}>
+              BlindCharm
+            </h1>
+          </motion.div>
+        </div>
 
-          <section className="relative min-h-screen rounded-2xl flex items-center justify-center px-4 md:px-8 bg-gradient-to-br from-[#8966f1] via-[#4718d5] to-[#4f09d3] dark:bg-gradient-to-br dark:from-[#661eee] dark:via-[#9c7ff2] dark:to-[#8966f1] transition-colors duration-300 overflow-hidden">
+        {/* Spacer to push content down */}
+        <div className="flex-1" />
 
-            {/* Animated Connection Lines - Only performance optimizations */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                <motion.path
-                  d="M100,200 Q300,100 500,300 T900,200"
-                  stroke="rgba(255,255,255,0.1)"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeDasharray="5,5"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{
-                    pathLength: [0, 1, 0],
-                    opacity: [0, 1, 0]
-                  }}
-                  transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: "linear" // Changed from easeInOut to linear for smoothness
-                  }}
-                  style={{ willChange: 'stroke-dashoffset, opacity' }} // Added for GPU acceleration
-                />
-                <motion.path
-                  d="M200,400 Q400,200 600,500 T1000,300"
-                  stroke="rgba(255,255,255,0.08)"
-                  strokeWidth="1"
-                  fill="none"
-                  strokeDasharray="3,3"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{
-                    pathLength: [0, 1, 0],
-                    opacity: [0, 0.4, 0]
-                  }}
-                  transition={{
-                    duration: 10,
-                    repeat: Infinity,
-                    ease: "linear", // Changed from easeInOut to linear for smoothness
-                    delay: 3
-                  }}
-                  style={{ willChange: 'stroke-dashoffset, opacity' }} // Added for GPU acceleration
-                />
-              </svg>
+        {/* Main Action Area - Bottom Aligned */}
+        <div className="flex-none flex flex-col w-full max-w-lg mx-auto relative">
+
+          {/* Landing Content - Always rendered to maintain layout height */}
+          <motion.div
+            animate={{ opacity: 1, scale: 1, y: 0, pointerEvents: 'auto' }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="space-y-6"
+          >
+            <div className="space-y-4 mb-4">
+              <h2 className="text-6xl sm:text-7xl font-bold leading-[0.9] tracking-tight" style={{ fontFamily: 'var(--font-outfit)' }}>
+                Charm <br /> comes <br />
+                <span className="italic font-normal text-pink-500" style={{ fontFamily: 'var(--font-playfair)' }}>
+                  first.
+                </span>
+              </h2>
+              <p className="text-base text-white/80 font-medium" style={{ fontFamily: 'var(--font-outfit)' }}>
+                Love is blind. Chemistry is real.
+              </p>
             </div>
 
-            {/* Floating Particles - Only performance optimizations */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {[...Array(20)].map((_, i) => (
-                <motion.div
-                  key={`particle-${i}`}
-                  className="absolute w-1 h-1 bg-white/30 rounded-full"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    willChange: 'transform, opacity' // Added for GPU acceleration
-                  }}
-                  animate={{
-                    y: [0, -100, 0],
-                    x: [0, Math.random() * 50 - 25, 0],
-                    opacity: [0, 1, 0],
-                    scale: [0, 1, 0]
-                  }}
-                  transition={{
-                    duration: 8 + Math.random() * 4,
-                    repeat: Infinity,
-                    delay: Math.random() * 8,
-                    ease: "linear" // Changed from easeInOut to linear for smoothness
-                  }}
-                />
-              ))}
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/login')}
+                className="w-full py-4 rounded-full bg-white text-black font-bold text-lg hover:bg-gray-100 transition-transform active:scale-95 shadow-xl"
+                style={{ fontFamily: 'var(--font-outfit)' }}
+              >
+                Create account
+              </button>
             </div>
 
-            {/* Floating Message Bubbles - Only performance optimizations */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {/* Chat Bubble 1 */}
-              <motion.div
-                className="absolute scale-70 lg:scale-100 lg:top-20 lg:left-10 top-2 left-5 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30"
-                style={{ willChange: 'transform, opacity' }} // Added for GPU acceleration
-                initial={{ opacity: 0, y: 20, x: -20 }}
-                animate={{
-                  opacity: [0, 1, 1, 0],
-                  y: [20, 0, 0, -20],
-                  x: [-20, 0, 0, 20]
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  delay: 1,
-                  ease: "linear" // Changed for smoothness
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-pink-400 rounded-full flex items-center justify-center">
-                    <Heart className="w-3 h-3 text-white" />
-                  </div>
-                  <span className="text-white text-sm font-medium">Hey there! 💕</span>
-                </div>
-              </motion.div>
-
-              {/* Chat Bubble 2 */}
-              <motion.div
-                className="absolute scale-70 lg:scale-100 lg:top-32 lg:right-16 top-3 right-8 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30"
-                style={{ willChange: 'transform, opacity' }} // Added for GPU acceleration
-                initial={{ opacity: 0, y: -20, x: 20 }}
-                animate={{
-                  opacity: [0, 1, 1, 0],
-                  y: [-20, 0, 0, 20],
-                  x: [20, 0, 0, -20]
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  delay: 3,
-                  ease: "linear" // Changed for smoothness
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-purple-400 rounded-full flex items-center justify-center">
-                    <MessageCircle className="w-3 h-3 text-white" />
-                  </div>
-                  <span className="text-white text-sm font-medium">Let's connect! ✨</span>
-                </div>
-              </motion.div>
-
-              {/* Chat Bubble 3 */}
-              <motion.div
-                className="absolute bottom-20 left-200 bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30"
-                style={{ willChange: 'transform, opacity' }} // Added for GPU acceleration
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: [0, 1, 1, 0],
-                  scale: [0.8, 1, 1, 0.8],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  delay: 5,
-                  ease: "linear" // Changed for smoothness
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-blue-400 rounded-full flex items-center justify-center">
-                    <Users className="w-3 h-3 text-white" />
-                  </div>
-                  <span className="text-white text-sm font-medium">Join the fun! 🎉</span>
-                </div>
-              </motion.div>
+            <div className="text-center pt-2">
+              <p className="text-xs text-white/50 leading-relaxed pb-4" style={{ fontFamily: 'var(--font-outfit)' }}>
+                By tapping "Create account", you agree to our{' '}
+                <Link href="/terms" className="underline hover:text-white transition-colors">Terms of Service</Link>
+                {' '}and{' '}
+                <Link href="/privacy" className="underline hover:text-white transition-colors">Privacy Policy</Link>.
+              </p>
+              <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">
+                Photos from Unsplash
+              </p>
             </div>
+          </motion.div>
+        </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-16 md:pt-8 lg:pt-0">
-              <div className="text-center lg:text-left relative">
-                {/* Glow effect behind text */}
-                <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent rounded-3xl blur-xl"></div>
+        {/* Removed Separate Footer Section as it's now integrated */}
+      </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8 }}
-                  className="relative z-10"
-                  style={{ willChange: 'transform, opacity' }} // Added for GPU acceleration
-                >
+      {/* Desktop Only Expanded Sections */}
+      <div className="relative z-20 bg-black hidden md:block">
 
-                  <motion.div
-                    className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-full px-6 py-2 mb-8"
-                    style={{ willChange: 'box-shadow' }} // Added for GPU acceleration
-                    animate={{
-                      boxShadow: [
-                        '0 0 20px rgba(255,255,255,0.1)',
-                        '0 0 30px rgba(255,255,255,0.2)',
-                        '0 0 20px rgba(255,255,255,0.1)'
-                      ]
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "linear" // Changed from easeInOut for smoothness
-                    }}
-                  >
-
-                    <motion.div
-                      style={{ willChange: 'transform' }} // Added for GPU acceleration
-                      animate={{ rotate: [0, 360] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                    </motion.div>
-
-                    <span className="text-sm font-bold tracking-wide">NEW WAY TO CONNECT</span>
-                  </motion.div>
-
-                  <motion.h1
-                    className="text-5xl md:text-7xl font-black mb-6 text-white leading-tight"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                  >
-                    <motion.span
-                      className="block"
-                      style={{ willChange: 'text-shadow' }} // Added for GPU acceleration
-                      animate={{
-                        textShadow: [
-                          '0 0 20px rgba(255,255,255,0.5)',
-                          '0 0 40px rgba(255,255,255,0.8)',
-                          '0 0 20px rgba(255,255,255,0.5)'
-                        ]
-                      }}
-                      transition={{
-                        duration: 4,
-                        repeat: Infinity,
-                        ease: "linear" // Changed from easeInOut for smoothness
-                      }}
-                    >
-                      Talk First
-                    </motion.span>
-
-                    <motion.span
-                      className="block bg-gradient-to-r from-pink-300 via-rose-300 to-red-300 bg-clip-text text-transparent"
-                      initial={{ opacity: 0, x: -30 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.8, delay: 0.5 }}
-                    >
-                      Reveal Later
-                    </motion.span>
-                  </motion.h1>
-
-                  <motion.p
-                    className="text-xl text-white/90 mb-8 leading-relaxed"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.7 }}
-                  >
-                    Join our innovative lobby system where personalities match first. Experience dating that starts with
-                    <motion.span
-                      className="text-pink-300 font-semibold"
-                      style={{ willChange: 'color' }} // Added for GPU acceleration
-                      animate={{
-                        color: ['#f9a8d4', '#fbbf24', '#34d399', '#60a5fa', '#f9a8d4']
-                      }}
-                      transition={{
-                        duration: 5,
-                        repeat: Infinity,
-                        ease: "linear" // Changed from easeInOut for smoothness
-                      }}
-                    >
-                      {' '}genuine connections
-                    </motion.span>.
-                  </motion.p>
-
-                  <motion.div
-                    className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.9 }}
-                  >
-                    {/* <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ duration: 0.15 }} // Reduced from 0.3 for smoother interaction
-                    >
-                      <Link
-                        href="/register"
-                        className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 via-red-500 to-rose-500 hover:from-pink-600 hover:via-red-600 hover:to-rose-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transition-all duration-200 overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                        <motion.div
-                          style={{ willChange: 'transform' }} // Added for GPU acceleration
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Heart className="w-5 h-5 relative z-10" />
-                        </motion.div>
-                        <span className="relative z-10">Join the Lobby</span>
-                        <motion.div
-                          className="relative z-10"
-                          style={{ willChange: 'transform' }} // Added for GPU acceleration
-                          animate={{ x: [0, 5, 0] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <ArrowRight className="w-5 h-5" />
-                        </motion.div>
-                      </Link>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ duration: 0.15 }} // Reduced from 0.3 for smoother interaction
-                    >
-                      <Link
-                        href="/how-it-works"
-                        className="group inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-200"
-                      >
-                        <motion.div
-                          style={{ willChange: 'transform' }} // Added for GPU acceleration
-                          animate={{ rotate: [0, 360] }}
-                          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                        >
-                          <Sparkles className="w-5 h-5" />
-                        </motion.div>
-                        How it Works
-                      </Link>
-                    </motion.div> */}
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    >
-                      <Link
-                        href="/login"
-                        className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 text-white px-10 py-4 rounded-3xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
-                      >
-                        {/* Animated gradient background */}
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-pink-400/20 to-purple-400/20"
-                          animate={{
-                            x: ["-100%", "100%"],
-                          }}
-                          transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                        />
-
-                        {/* Pulsing glow */}
-                        <div className="absolute inset-0 bg-white/10 rounded-3xl group-hover:bg-white/20 transition-all duration-300" />
-
-                        <div className="relative z-10 flex items-center gap-3">
-                          <motion.div
-                            className="relative"
-                            whileHover={{ rotate: [0, -10, 10, 0] }}
-                            transition={{ duration: 0.5 }}
-                          >
-                            <Heart className="w-6 h-6 fill-current" />
-                            <motion.div
-                              className="absolute -inset-2 bg-pink-300 rounded-full"
-                              animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0, 0.3] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                            />
-                          </motion.div>
-                          <span className="font-black tracking-wide">Join the Magic</span>
-                          <motion.div
-                            animate={{ x: [0, 3, 0] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          >
-                            <ArrowRight className="w-5 h-5" />
-                          </motion.div>
-                        </div>
-                      </Link>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    >
-                      <Link
-                        href="/how-it-works"
-                        className="group relative inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white px-10 py-4 rounded-3xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
-                      >
-                        <motion.div
-                          animate={{
-                            rotate: [0, 360],
-                            scale: [1, 1.2, 1]
-                          }}
-                          transition={{
-                            rotate: { duration: 8, repeat: Infinity, ease: "linear" },
-                            scale: { duration: 2, repeat: Infinity }
-                          }}
-                        >
-                          <Sparkles className="w-5 h-5" />
-                        </motion.div>
-                        <span className="font-black tracking-wide">Discover How</span>
-                      </Link>
-                      {/* <HeroInstallButton className="w-full sm:w-auto" /> */}
-                      
-                    </motion.div>
-                    {/* <div className="mt-4">
-                      <HeroInstallButton />
-                      </div> */}
-                  </motion.div>
-                </motion.div>
-              </div>
-
-              {/* EXACT ORIGINAL CARD SECTION - ZERO CHANGES TO POSITIONING */}
-              <div className="relative flex justify-center lg:justify-end sm:mt-8 lg:mt-0">
-                {/* Enhanced Card Area Background */}
-                <div className="absolute inset-0 -m-8 pointer-events-none">
-                  {/* Rotating gradient ring */}
-                  <motion.div
-                    className="absolute inset-0 rounded-full opacity-30"
-                    style={{
-                      background: 'conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent, rgba(255,255,255,0.1), transparent)',
-                      willChange: 'transform' // Added for GPU acceleration
-                    }}
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  />
-
-                  {/* Pulsing glow effect */}
-                  {/* <motion.div
-          className="absolute inset-4 bg-gradient-to-r from-pink-500/5 via-purple-500/5 to-blue-500/5 rounded-full blur-2xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.4, 0.2]
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        /> */}
-                </div>
-
-                {/* EXACT ORIGINAL CARD POSITIONING - ABSOLUTELY NO CHANGES */}
-                <div className="relative z-10 scale-90 lg:scale-100 lg:mt-[-1rem] 
-      sm: ml-20            
-      md:mr-70                    
-      lg:ml-[px] lg:mr-auto       
-     ">
-                  <LobbyCardSwap />
-                </div>
+        {/* Mission Section */}
+        <section className="py-32 px-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ amount: 0.2 }}
+                className="text-5xl lg:text-7xl font-bold leading-tight"
+                style={{ fontFamily: 'var(--font-outfit)' }}
+              >
+                Connection <br />
+                <span className="text-pink-500 italic font-normal" style={{ fontFamily: 'var(--font-playfair)' }}>Real Vibes.</span>
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ amount: 0.2 }}
+                transition={{ delay: 0.2 }}
+                className="text-xl text-white/70 leading-relaxed max-w-lg"
+                style={{ fontFamily: 'var(--font-outfit)' }}
+              >
+                Experience dating without the doubt. Swipe on 100% verified profiles and find people who match your energy, right now.
+                Real people, real vibes, real time.
+              </motion.p>
+            </div>
+            <div className="relative h-[600px] w-full rounded-3xl overflow-hidden group">
+              <Image
+                src="/photos/p8.jpg"
+                alt="Connection"
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-8 left-8">
+                <p className="text-2xl font-bold italic" style={{ fontFamily: 'var(--font-playfair)' }}>Verified Vibes Only.</p>
               </div>
             </div>
+          </div>
+        </section>
 
-          </section>
- 
+        {/* The BlindCharm Way - Redesigned */}
+        <section className="py-24 bg-zinc-900 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-pink-900/10 blur-3xl pointer-events-none" />
 
-          {/* Why Choose BlindCharm Section */}
-          <section className=" rounded-2xl py-20 px-4 md:px-8 bg-[#ffffff]  dark:bg-gray-800 transition-colors duration-300">
-            <div className="max-w-7xl mx-auto">
-              <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-                {/* Left Content */}
-                <div className="w-full lg:pr-8">
-                  <motion.div
-                    initial={{ opacity: 0, x: -50 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8 }}
-                    viewport={{ once: true }}
-                  >
-                    <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full px-6 py-2 mb-6">
-                      <Sparkles className="w-4 h-4" />
-                      <span className="text-sm font-bold">WHY BLINDCHARM?</span>
-                    </div>
-
-                    <h2 className="text-4xl md:text-5xl font-bold text-black dark:text-gray-100 mb-6">
-                      Love Beyond
-                      <span className="block text-red-600 dark:text-red-400">First Impressions</span>
-                    </h2>
-
-                    <p className="text-xl text-gray-700 dark:text-gray-300 mb-8 leading-relaxed">
-                      Experience dating that prioritizes personality over photos. Connect with people who share your values, interests, and dreams.
-                    </p>
-
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-8 w-full">
-                      <div className="bg-white dark:bg-gray-700 rounded-2xl p-4 sm:p-6 text-center shadow-lg border border-red-200 dark:border-red-800">
-                        <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1">Anonymous</div>
-                        <div className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm font-semibold">Whispers</div>
-                      </div>
-                      <div className="bg-white dark:bg-gray-700 rounded-2xl p-4 sm:p-6 text-center shadow-lg border border-red-200 dark:border-red-800">
-                        <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1">Verified</div>
-                        <div className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm font-semibold">Users</div>
-                      </div>
-                    </div>
-
-                    <Link
-                      href="/login"
-                      className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                    >
-                      <Heart className="w-5 h-5" />
-                      Start Your Journey
-                      <ArrowRight className="w-5 h-5" />
-                    </Link>
-                  </motion.div>
-                </div>
-
-                {/* Right Content - Infinite Scroll */}
-                <div className="relative w-full mt-8 lg:mt-0 flex items-center justify-center">
-                  <div className="rounded-2xl border-2 border-red-200 dark:border-red-800 dark:bg-gray-900 overflow-hidden shadow-lg w-full max-w-md">
-                    <motion.div
-                      initial={{ opacity: 0, x: 50 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.8, delay: 0.2 }}
-                      viewport={{ once: true }}
-                      className="flex justify-center w-full"
-                    >
-                      <div style={{ height: '500px', position: 'relative', width: '100%' }}>
-                        <InfiniteScroll
-                          items={[
-                            {
-                              content: (
-                                <div className="bg-blue-400 dark:bg-gray-700 rounded-2xl p-4 sm:p-6 shadow-lg border border-red-200 dark:border-red-800 mx-4">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-full flex items-center justify-center">
-                                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                    </div>
-                                    <div>
-                                      <h3 className="font-bold text-black dark:text-gray-100 text-sm sm:text-base">Deep Conversations</h3>
-                                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Meaningful connections</p>
-                                    </div>
-                                  </div>
-                                  <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
-                                    Skip the small talk. Our platform encourages conversations that reveal your true personality.
-                                  </p>
-                                </div>
-                              )
-                            },
-                            {
-                              content: (
-                                <div className="bg-purple-400 dark:bg-gray-700 rounded-2xl p-4 sm:p-6 shadow-lg border border-red-200 dark:border-red-800 mx-4">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-full flex items-center justify-center">
-                                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                    </div>
-                                    <div>
-                                      <h3 className="font-bold text-black dark:text-gray-100 text-sm sm:text-base">Smart Matching</h3>
-                                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">AI-powered compatibility</p>
-                                    </div>
-                                  </div>
-                                  <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
-                                    Our algorithm matches you based on personality compatibility, not just photos.
-                                  </p>
-                                </div>
-                              )
-                            },
-                            {
-                              content: (
-                                <div className="bg-yellow-400 dark:bg-gray-700 rounded-2xl p-4 sm:p-6 shadow-lg border border-red-200 dark:border-red-800 mx-4">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-full flex items-center justify-center">
-                                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                    </div>
-                                    <div>
-                                      <h3 className="font-bold text-black dark:text-gray-100 text-sm sm:text-base">Safe Community</h3>
-                                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Verified & moderated</p>
-                                    </div>
-                                  </div>
-                                  <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
-                                    Join a verified community of genuine people looking for real connections.
-                                  </p>
-                                </div>
-                              )
-                            },
-                            {
-                              content: (
-                                <div className="bg-green-400 dark:bg-gray-700 rounded-2xl p-4 sm:p-6 shadow-lg border border-red-200 dark:border-red-800 mx-4">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-full flex items-center justify-center">
-                                      <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                    </div>
-                                    <div>
-                                      <h3 className="font-bold text-black dark:text-gray-100 text-sm sm:text-base">Authentic Love</h3>
-                                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Real relationships</p>
-                                    </div>
-                                  </div>
-                                  <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
-                                    Find love that goes beyond physical attraction and builds lasting connections.
-                                  </p>
-                                </div>
-                              )
-                            },
-                            {
-                              content: (
-                                <div className="bg-fuchsia-400 dark:bg-gray-700 rounded-2xl p-4 sm:p-6 shadow-lg border border-red-200 dark:border-red-800 mx-4">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-full flex items-center justify-center">
-                                      <Star className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                    </div>
-                                    <div>
-                                      <h3 className="font-bold text-black dark:text-gray-100 text-sm sm:text-base">Success Stories</h3>
-                                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Proven results</p>
-                                    </div>
-                                  </div>
-                                  <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
-                                    Join thousands of couples who found their perfect match through BlindCharm.
-                                  </p>
-                                </div>
-                              )
-                            },
-                            {
-                              content: (
-                                <div className="bg-white dark:bg-gray-700 rounded-2xl p-4 sm:p-6 shadow-lg border border-red-200 dark:border-red-800 mx-4">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-full flex items-center justify-center">
-                                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                    </div>
-                                    <div>
-                                      <h3 className="font-bold text-black dark:text-gray-100 text-sm sm:text-base">Unique Experience</h3>
-                                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Revolutionary approach</p>
-                                    </div>
-                                  </div>
-                                  <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
-                                    Experience dating reimagined with our innovative lobby-based matching system.
-                                  </p>
-                                </div>
-                              )
-                            }
-                          ]}
-                          width="100%"
-                          maxHeight="500px"
-                          itemMinHeight={100}
-                          isTilted={true}
-                          tiltDirection="left"
-                          autoplay={true}
-                          autoplaySpeed={0.8}
-                          autoplayDirection="down"
-                          pauseOnHover={true}
-                        />
-                      </div>
-                    </motion.div>
-                  </div>
-                </div>
-              </div>
+          <div className="max-w-7xl mx-auto px-6 space-y-32 relative z-10">
+            <div className="text-center space-y-6 mb-20">
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ amount: 0.2 }}
+                className="text-4xl md:text-6xl font-bold"
+                style={{ fontFamily: 'var(--font-outfit)' }}
+              >
+                The <span className="text-pink-500 italic" style={{ fontFamily: 'var(--font-playfair)' }}>BlindCharm</span> Experience.
+              </motion.h2>
+              <p className="text-white/60 text-lg max-w-2xl mx-auto">
+                Dating, elevated. Real, Safe, and Spontaneous.
+              </p>
             </div>
-          </section>
 
-          {/* CTA Section - Ready to Find Your Perfect Match */}
-          <section className="relative overflow-hidden bg-gradient-to-b from-black via-gray-900 to-black py-24 px-4 md:px-8 rounded-t-3xl">
-            {/* Glow Orbs */}
-            {/* <div className="absolute -top-40 -left-40 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div> */}
-
-            <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 place-items-center">
-              {/* Left: Text */}
+            {/* Feature 1: Verified Only */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <motion.div
-                initial={{ opacity: 0, x: -40 }}
+                initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ amount: 0.3 }}
                 transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-                className="text-center lg:text-left max-w-xl"
+                className="space-y-6"
               >
-                <div className="flex items-center justify-center font-blindcharm-tech lg:justify-start gap-2 text-pink-400 text-sm font-semibold uppercase tracking-widest mb-4">
-                  Find Love, Without the Swipe Fatigue
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center border border-white/10 mb-8">
+                  <span className="text-3xl">🛡️</span>
                 </div>
-
-                <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-white mb-6">
-                  Blind Dates, <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">Reimagined</span>
-                </h1>
-
-                <p className="text-lg text-gray-300 mb-8">
-                  Meet someone amazing without the endless scrolling. BlindCharm connects you to real people who match your vibe — not just your profile picture.
+                <h3 className="text-4xl md:text-5xl font-bold leading-tight" style={{ fontFamily: 'var(--font-outfit)' }}>
+                  Verified <br />
+                  <span className="text-pink-500 italic" style={{ fontFamily: 'var(--font-playfair)' }}>Only.</span>
+                </h3>
+                <p className="text-xl text-white/70 leading-relaxed">
+                  Zero bots. Zero catfishes. Every single profile is phone-verified so you can trust who you're talking to.
+                  Real people, guaranteed.
                 </p>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  {/* <button className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-medium rounded-full shadow-lg hover:scale-105 transition-transform">
-                    Start My Blind Date
-                  </button> */}
-                  <Link
-                    href="/login"
-                    className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 hover:from-pink-700 hover:via-purple-700 hover:to-blue-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <Heart className="w-5 h-5 relative z-10" />
-                    <span className="relative z-10">Join BlindCharm</span>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="group inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300"
-                  >
-                    <Sparkles className="w-5 h-5" />
-                    Learn More
-                  </Link>
-                  {/* <button className="px-6 py-3 bg-white/10 text-white font-medium rounded-full border border-white/20 hover:bg-white/20 transition">
-                    How It Works
-                  </button> */}
-                </div>
               </motion.div>
 
-              {/* Right: Visual */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                viewport={{ once: true }}
-                className="relative w-full max-w-md"
+                viewport={{ amount: 0.3 }}
+                transition={{ duration: 0.8 }}
+                className="relative h-[500px] w-full rounded-3xl overflow-hidden group border border-white/10 shadow-2xl"
               >
-                {/* Glow Behind */}
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-500/30 to-purple-500/30 rounded-[2rem] blur-2xl scale-110"></div>
-
-                {/* Main Card */}
-                <div className="relative bg-black/40 backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden">
-                  <div className="p-8 text-center">
-                    <Sparkles className="w-10 h-10 text-pink-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">Your Match is Waiting</h3>
-                    <p className="text-gray-400 mb-6">
-                      We keep it mysterious — your profile is hidden until you both reveal. Experience the thrill of a blind date without the pressure of photos.
-                    </p>
-                    {/* <Link
-                    href="/register"
-                    className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 hover:from-pink-700 hover:via-purple-700 hover:to-blue-700 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl hover:shadow-pink-500/25 transform hover:scale-105 transition-all duration-300 overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <Heart className="w-5 h-5 relative z-10" />
-                    <span className="relative z-10">Join BlindCharm</span>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
-                  </Link> */}
-                  </div>
-                </div>
-
-                {/* Floating Element */}
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ repeat: Infinity, duration: 3 }}
-                  className="absolute -top-8 -right-8 w-20 h-20 bg-pink-400/40 rounded-full blur-xl"
-                ></motion.div>
+                <Image src="/photos/p5.jpg" alt="Verified" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               </motion.div>
             </div>
-          </section>
-        </main>
 
-        <Footer />
+            {/* Feature 2: Vibe Check */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ amount: 0.3 }}
+                transition={{ duration: 0.8 }}
+                className="relative h-[500px] w-full rounded-3xl overflow-hidden group border border-white/10 shadow-2xl order-2 lg:order-1"
+              >
+                <Image src="/photos/p9.jpg" alt="Vibe Check" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ amount: 0.3 }}
+                transition={{ duration: 0.8 }}
+                className="space-y-6 order-1 lg:order-2 lg:pl-12"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center border border-white/10 mb-8">
+                  <span className="text-3xl">⚡</span>
+                </div>
+                <h3 className="text-4xl md:text-5xl font-bold leading-tight" style={{ fontFamily: 'var(--font-outfit)' }}>
+                  Vibe <br />
+                  <span className="text-yellow-500 italic" style={{ fontFamily: 'var(--font-playfair)' }}>Check.</span>
+                </h3>
+                <p className="text-xl text-white/70 leading-relaxed">
+                  Find someone for the moment. Whether it's a spontaneous coffee or a deep midnight drive, match on mood and energy.
+                </p>
+              </motion.div>
+            </div>
+
+            {/* Feature 3: Swipe & Match */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ amount: 0.3 }}
+                transition={{ duration: 0.8 }}
+                className="space-y-6"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center border border-white/10 mb-8">
+                  <span className="text-3xl">🔥</span>
+                </div>
+                <h3 className="text-4xl md:text-5xl font-bold leading-tight" style={{ fontFamily: 'var(--font-outfit)' }}>
+                  Swipe <br />
+                  <span className="text-purple-500 italic" style={{ fontFamily: 'var(--font-playfair)' }}>& Match.</span>
+                </h3>
+                <p className="text-xl text-white/70 leading-relaxed">
+                  The interface you know, with the safety you deserve. Connect instantly when the vibe is mutual. No games, just sparks.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ amount: 0.3 }}
+                transition={{ duration: 0.8 }}
+                className="relative h-[500px] w-full rounded-3xl overflow-hidden group border border-white/10 shadow-2xl"
+              >
+                <Image src="/photos/p3.jpg" alt="Swipe" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+              </motion.div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* Safety Principles */}
+        <section className="py-32 px-8 bg-black">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div className="order-2 lg:order-1 relative h-[600px] rounded-3xl overflow-hidden">
+                <Image
+                  src="/photos/p6.jpg"
+                  alt="Safety"
+                  fill
+                  className="object-cover opacity-80"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent" />
+                <div className="absolute bottom-12 left-12 max-w-sm">
+                  <blockquote className="text-2xl font-light italic text-white/90" style={{ fontFamily: 'var(--font-playfair)' }}>
+                    "Finally, a place where I feel like a person, not a product."
+                  </blockquote>
+                  <p className="mt-4 text-pink-400 font-bold">— Sarah K.</p>
+                </div>
+              </div>
+              <div className="order-1 lg:order-2 space-y-12">
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ amount: 0.2 }}
+                >
+                  <h2 className="text-4xl md:text-5xl font-bold mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
+                    Real by <br />
+                    <span className="text-zinc-500">Design.</span>
+                  </h2>
+                  <p className="text-lg text-white/60">
+                    We built BlindCharm to be the definitive modern dating app. Safe, verified, and strictly for real connections.
+                  </p>
+                </motion.div>
+
+                <div className="space-y-8">
+                  {[
+                    { title: "100% Verified Users", desc: "Phone verification means you're talking to a real human." },
+                    { title: "Moment-Based Matching", desc: "Find people who want what you want, right now." },
+                    { title: "Secure & Private", desc: "Your data is yours. We just help you connect." }
+                  ].map((item, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ amount: 0.2 }}
+                      transition={{ delay: 0.2 + (i * 0.1) }}
+                      className="flex gap-6"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 text-pink-500">
+                        <Check size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold mb-1" style={{ fontFamily: 'var(--font-outfit)' }}>{item.title}</h3>
+                        <p className="text-white/50">{item.desc}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Gallery Grid */}
+        <section className="py-20 px-4 bg-zinc-950">
+          <div className="max-w-7xl mx-auto space-y-16">
+            <div className="text-center space-y-4">
+              <h3 className="text-4xl font-bold" style={{ fontFamily: 'var(--font-outfit)' }}>Vibe Check</h3>
+              <p className="text-white/60" style={{ fontFamily: 'var(--font-outfit)' }}>See what happens when you let go.</p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 h-[800px] overflow-hidden">
+              {/* Masonry-ish grid layout manually composed */}
+              <div className="space-y-4 relative -top-12">
+                <div className="h-64 relative rounded-xl overflow-hidden"><Image src="/photos/p1.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="h-96 relative rounded-xl overflow-hidden"><Image src="/photos/p2.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="h-64 relative rounded-xl overflow-hidden"><Image src="/photos/p3.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+              </div>
+              <div className="space-y-4 relative top-8">
+                <div className="h-80 relative rounded-xl overflow-hidden"><Image src="/photos/p4.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="h-64 relative rounded-xl overflow-hidden"><Image src="/photos/p5.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="h-80 relative rounded-xl overflow-hidden"><Image src="/photos/p6.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+              </div>
+              <div className="space-y-4 relative -top-4">
+                <div className="h-72 relative rounded-xl overflow-hidden"><Image src="/photos/p7.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="h-80 relative rounded-xl overflow-hidden"><Image src="/photos/p9.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="h-64 relative rounded-xl overflow-hidden"><Image src="/photos/p10.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+              </div>
+              <div className="space-y-4 relative top-12 hidden lg:block">
+                <div className="h-64 relative rounded-xl overflow-hidden"><Image src="/photos/p3.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="h-96 relative rounded-xl overflow-hidden"><Image src="/photos/p5.jpg" alt="Vibe" fill className="object-cover hover:scale-110 transition-transform duration-500" /></div>
+              </div>
+            </div>
+
+            {/* CTA in Footer */}
+            <div className="text-center pt-20 pb-10">
+              <h2 className="text-5xl font-bold mb-8" style={{ fontFamily: 'var(--font-outfit)' }}>Ready to dive in?</h2>
+              <button
+                onClick={() => router.push('/login')}
+                className="px-8 py-4 bg-white text-black rounded-full font-bold text-xl hover:bg-gray-200 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+                style={{ fontFamily: 'var(--font-outfit)' }}
+              >
+                Start your journey
+              </button>
+              <div className="flex justify-center gap-6 mt-12 text-sm text-white/40">
+                <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+                <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+                <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
+              </div>
+              <p className="mt-8 text-xs text-white/20">© 2024 BlindCharm. All rights reserved.</p>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <SimpleBottomNav />
-
-      {/* Notification Prompt */}
-      <NotificationPrompt />
     </div>
   )
 }

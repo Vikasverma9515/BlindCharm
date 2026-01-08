@@ -4,7 +4,7 @@
 // import './globals.css'
 // import FloatingShapes from '@/components/shared/FloatingShapes'
 // import BackgroundPattern from '@/components/shared/BackgroundPattern'
-// import Navbar from '@/components/shared/Navbar'
+// import ModernNavbar from '@/components/shared/ModernNavbar'
 // import ErrorBoundary from '@/components/ErrorBoundary'
 // import FloatingLogo from '@/components/FloatingLogo'
 
@@ -83,65 +83,90 @@
 // }
 
 
-// src/app/layout.tsx
+import { Viewport } from 'next';
 import AuthProvider from '@/providers/SessionProvider'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import './globals.css'
-import FloatingShapes from '@/components/shared/FloatingShapes'
 import BackgroundPattern from '@/components/shared/BackgroundPattern'
-import Navbar from '@/components/shared/Navbar'
 import ErrorBoundary from '@/components/ErrorBoundary'
-import FloatingLogo from '@/components/FloatingLogo'
-import PWAInstallPrompt from '@/components/PWAInstallPrompt'
-// import { inter, poppins, montserrat, playfair, dancing, quicksand, nunito, comfortaa, raleway } from './fonts'
 import {
-  // Local fonts
   boldonse, bitcountGrid, specialGothic,
-  // Google fonts
   inter, poppins, montserrat, playfair, dancing, quicksand, nunito, comfortaa, raleway,
-  // Unique fonts for BlindCharm
   caveat, righteous, fredoka, outfit, spaceGrotesk, orbitron, kalam, pacifico
 } from './fonts'
 import { Toaster } from 'sonner';
 import { NotificationProvider } from '@/components/notifications/NotificationProvider';
 import { FirebaseAuthProvider } from '@/providers/FirebaseAuthProvider'
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#000000',
+};
 
 export const metadata = {
-  metadataBase: new URL("https://blindcharm.com"), // ✅ set your production domain
-  title: "BlindCharm - Blind Matchmaking App",
-  description: "Find meaningful connections through blind chats and vibe-based matchmaking.",
+  metadataBase: new URL("https://blindcharm.com"),
+  title: "BlindCharm - AI-First Social Discovery",
+  description: "Experience authentic connections with Hero Avatars and Galaxy View. The AI-first dating app where charm comes first.",
+  applicationName: "BlindCharm",
+  appleWebApp: {
+    capable: true,
+    title: "BlindCharm",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  manifest: "/site.webmanifest",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
     shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
-  manifest: "/site.webmanifest",
   openGraph: {
-    title: "BlindCharm",
-    description: "A new way to connect through blind matchmaking.",
+    title: "BlindCharm - AI-First Social Discovery",
+    description: "Connect authentically with Hero Avatars and verified vibes. The next generation of social discovery, powered by AI.",
     url: "https://blindcharm.com",
     siteName: "BlindCharm",
     images: [
       {
-        url: "/og-image.png", // Next.js will resolve this with metadataBase → https://blindcharm.com/og-image.png
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "BlindCharm Logo",
+        alt: "BlindCharm - AI-First Dating",
       },
+      {
+        url: "/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "BlindCharm Icon",
+      }
     ],
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BlindCharm",
-    description: "Find meaningful connections through blind chats.",
-    images: ["/og-image.png"],
+    title: "BlindCharm - AI-First Social Discovery",
+    description: "Experience authentic connections with Hero Avatars and Galaxy View.",
+    images: ["/android-chrome-512x512.png"],
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "msapplication-config": "/browserconfig.xml",
+    "msapplication-TileColor": "#000000",
+    "msapplication-tap-highlight": "no",
   },
 };
-
-
 
 export default function RootLayout({
   children,
@@ -171,118 +196,45 @@ export default function RootLayout({
     pacifico.variable
   ].join(' ');
 
-
-  
   return (
-    <html lang="en">
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              "url": "https://blindcharm.com",
-              "logo": "https://blindcharm.com/android-chrome-512x512.png"
-            }),
-          }}
-        />
-
-        {/* PWA Meta Tags */}
-        <meta name="application-name" content="BlindCharm" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="BlindCharm" />
-        <meta name="description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-config" content="/browserconfig.xml" />
-        <meta name="msapplication-TileColor" content="#FF6B6B" />
-        <meta name="msapplication-tap-highlight" content="no" />
-        <meta name="theme-color" content="#FF6B6B" />
-
-        {/* Viewport */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-
-        {/* Icons */}
-        {/* <link rel="apple-touch-icon" href="/icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icon-152x152.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/icon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icon-16x16.png" />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="mask-icon" href="/icon.svg" color="#FF6B6B" />
-        <link rel="shortcut icon" href="/favicon.ico" /> */}
-
-        {/* Favicons */}
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
-        <link rel="manifest" href="/site.webmanifest" />
-
-
-        {/* Splash Screens for iOS */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-        {/* Font optimization */}
-        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-
-        {/* Open Graph / Facebook */}
-        {/* <meta property="og:type" content="website" />
-        <meta property="og:title" content="BlindCharm - Anonymous Dating App" />
-        <meta property="og:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
-        <meta property="og:image" content="/icon-512x512.png" /> */}
-
-        {/* Twitter */}
-        {/* <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:title" content="BlindCharm - Anonymous Dating App" />
-        <meta property="twitter:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
-        <meta property="twitter:image" content="/icon-512x512.png" /> */}
-
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="BlindCharm - Anonymous Dating App" />
-        <meta property="og:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
-        <meta property="og:image" content="/android-chrome-512x512.png" />
-
-        {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:title" content="BlindCharm - Anonymous Dating App" />
-        <meta property="twitter:description" content="Connect with people through personality, not just photos. Anonymous dating reimagined." />
-        <meta property="twitter:image" content="/android-chrome-512x512.png" />
-
-      </head>
-
-
-
-      {/* <body className={`${inter.className} ${boldonse.variable} ${bitcountGrid.variable} ${specialGothic.variable} ${poppins.variable} ${montserrat.variable} ${playfair.variable} ${dancing.variable} ${quicksand.variable} ${nunito.variable} ${comfortaa.variable} ${raleway.variable} ${caveat.variable} ${righteous.variable} ${fredoka.variable} ${outfit.variable} ${spaceGrotesk.variable} ${orbitron.variable} ${kalam.variable} ${pacifico.variable}`}> */}
+    <html lang="en" className="dark">
       <body className={fontClasses}>
-        <ThemeProvider >
-          <AuthProvider>
-            <FirebaseAuthProvider>
-              <NotificationProvider>
-                {/* <div className="flex flex-col min-h-screen relative  dark:bg-gray-900 transition-colors duration-300" > */}
-                <div className="light">
-                  {/* <Navbar /> */}
-                  <ErrorBoundary>
-                    {/* Main content area */}
-                    <div className="flex-1 relative">
-                      {children}
-                      <Toaster />
-                    </div>
-                  </ErrorBoundary>
-                  <PWAInstallPrompt />
-                </div>
-              </NotificationProvider>
-            </FirebaseAuthProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        {/* Desktop Background (Hidden on Mobile) */}
+        <div className="fixed inset-0 bg-zinc-950 -z-50 hidden md:flex items-center justify-center">
+          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#333_1px,transparent_1px)] [background-size:16px_16px]"></div>
+          <div className="text-zinc-800 font-mono text-xs tracking-widest uppercase">BlindCharm Mobile View</div>
+        </div>
+
+        {/* Mobile App Container */}
+        <div className="mx-auto max-w-[480px] min-h-screen bg-black relative shadow-2xl md:border-x md:border-white/5 flex flex-col">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "url": "https://blindcharm.com",
+                "logo": "https://blindcharm.com/android-chrome-512x512.png"
+              }),
+            }}
+          />
+          <ThemeProvider>
+            <AuthProvider>
+              <FirebaseAuthProvider>
+                <NotificationProvider>
+                  <div className="min-h-screen bg-black text-white flex flex-col">
+                    <ErrorBoundary>
+                      <div className="flex-1 relative flex flex-col">
+                        {children}
+                        <Toaster />
+                      </div>
+                    </ErrorBoundary>
+                  </div>
+                </NotificationProvider>
+              </FirebaseAuthProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </div>
       </body>
     </html>
   )

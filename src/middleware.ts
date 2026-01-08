@@ -16,18 +16,22 @@ export default withAuth(
     console.log('Middleware - Token:', req.nextauth.token)
 
     const isAuthenticated = !!req.nextauth.token
-    const isAuthPage = req.nextUrl.pathname.startsWith('/login') || 
-                      req.nextUrl.pathname.startsWith('/register')
+    const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
+      req.nextUrl.pathname.startsWith('/register')
     const isProfileSetup = req.nextUrl.pathname.startsWith('/profile/setup')
-    const isProtectedPage = req.nextUrl.pathname.startsWith('/lobby') || 
-                          req.nextUrl.pathname.startsWith('/profile') ||
-                          req.nextUrl.pathname.startsWith('/matches') ||
-                          req.nextUrl.pathname.startsWith('/whispers') ||
-                          req.nextUrl.pathname.startsWith('/chat')
+    const isProtectedPage = req.nextUrl.pathname.startsWith('/lobby') ||
+      req.nextUrl.pathname.startsWith('/profile') ||
+      req.nextUrl.pathname.startsWith('/matches') ||
+      req.nextUrl.pathname.startsWith('/whispers') ||
+      req.nextUrl.pathname.startsWith('/chat') ||
+      req.nextUrl.pathname.startsWith('/galaxy') ||
+      req.nextUrl.pathname.startsWith('/discovery') ||
+      req.nextUrl.pathname.startsWith('/companion') ||
+      req.nextUrl.pathname.startsWith('/join-lobby')
 
     // If user is authenticated and tries to access auth pages (login/register)
     if (isAuthenticated && isAuthPage) {
-      return NextResponse.redirect(new URL('/lobby', req.url))
+      return NextResponse.redirect(new URL('/galaxy', req.url))
     }
 
     // If user is not authenticated and tries to access protected pages
@@ -41,8 +45,8 @@ export default withAuth(
     callbacks: {
       authorized: ({ req, token }) => {
         // Allow public access to auth pages
-        if (req.nextUrl.pathname.startsWith('/login') || 
-            req.nextUrl.pathname.startsWith('/register')) {
+        if (req.nextUrl.pathname.startsWith('/login') ||
+          req.nextUrl.pathname.startsWith('/register')) {
           return true
         }
         // Require authentication for protected pages
@@ -60,6 +64,10 @@ export const config = {
     '/profile/:path*',
     '/matches/:path*',
     '/whispers/:path*',
-    '/chat/:path*'
+    '/chat/:path*',
+    '/galaxy/:path*',
+    '/discovery/:path*',
+    '/companion/:path*',
+    '/join-lobby/:path*'
   ]
 }

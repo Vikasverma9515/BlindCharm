@@ -60,6 +60,16 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
 
 
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!session?.user?.id) return
@@ -104,7 +114,11 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
       <motion.nav
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black backdrop-blur-xl border-b-4 border-primary-100/50 dark:border-gray-700/50 shadow-soft hidden md:block transition-colors duration-300 rounded-b-2xl "
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 rounded-b-2xl
+          ${isScrolled
+            ? 'bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b-4 border-primary-100/50 dark:border-gray-700/50 shadow-soft'
+            : 'bg-transparent border-transparent shadow-none'
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 rounded-[28px]  ">
           <div className="flex justify-between items-center h-16 px-5">
@@ -260,14 +274,15 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
         // initial={{ y: -100, opacity: 0 }}
         // animate={{ y: 0, opacity: 1 }}
         style={{ paddingTop: 'env(safe-area-inset-top)' }} // ✅ Safe area padding
-        className="top-0 left-0 right-0 z-50 
+        className={`fixed top-0 left-0 right-0 z-50 
              w-full 
-             backdrop-blur-xl 
-             border-b border-primary-100/50 dark:border-b-white 
-             shadow-soft md:hidden 
-             bg-white/50 dark:bg-black/50  
-             transition-colors duration-300 
-             rounded-b-2xl"
+             transition-all duration-300 
+             rounded-b-2xl
+             ${isScrolled
+            ? 'bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-primary-100/50 dark:border-b-white/10 shadow-soft'
+            : 'bg-transparent border-transparent'
+          }
+             md:hidden`}
       >
         <div className="flex justify-between items-center h-16 px-5 ">
           {/* Left side - Logo and Page Name */}
@@ -293,9 +308,9 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
             </Link>
             {pageName && (
               <>
-              
+
                 <span className="mx-2 text-primary-300 dark:text-primary-400">•</span>
-                
+
                 <span className={`${boldonse.className} text-sm font-semibold text-neutral-850 dark:text-gray-100`}>{pageName}</span>
                 <br />
                 {/* <span className=''> <NavItem
@@ -303,8 +318,8 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
                 icon={<HelpCircle size={26} />}
                 isActive={isActive('/how-it-works')}
               /></span> */}
-              {/* <FloatingContactButton /> */}
-              
+                {/* <FloatingContactButton /> */}
+
               </>
             )}
           </div>

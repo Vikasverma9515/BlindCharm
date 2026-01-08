@@ -1,7 +1,12 @@
 // lib/voice-upload.ts - Updated with size check
 import { supabase } from '@/lib/supabase'
 
-export async function uploadVoiceMessage(audioBlob: Blob, matchId: string, senderId: string) {
+export async function uploadVoiceMessage(
+  audioBlob: Blob, 
+  matchId: string, 
+  senderId: string,
+  bucketName: string = 'voice-messages'
+) {
   try {
     // Check file size before upload (max 1MB for voice messages)
     const maxSize = 1024 * 1024; // 1MB
@@ -20,11 +25,11 @@ export async function uploadVoiceMessage(audioBlob: Blob, matchId: string, sende
     const timestamp = Date.now()
     const fileName = `${matchId}/${senderId}/${timestamp}.${extension}`
     
-    console.log('🎤 Uploading voice message:', fileName, 'Size:', audioBlob.size, 'Type:', audioBlob.type)
+    console.log('🎤 Uploading voice message:', fileName, 'Size:', audioBlob.size, 'Type:', audioBlob.type, 'Bucket:', bucketName)
     
     // Upload to Supabase Storage with proper content type
     const { data, error } = await supabase.storage
-      .from('voice-messages')
+      .from(bucketName)
       .upload(fileName, audioBlob, {
         contentType: audioBlob.type || 'audio/webm',
         upsert: false,

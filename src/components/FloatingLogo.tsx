@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 
 interface LogoProps {
   id: number
@@ -31,14 +30,11 @@ const FloatingLogo: React.FC<LogoProps> = ({ size, x, y, duration, delay, direct
         willChange: 'transform, opacity, left, top',
       }}
     >
-      <Image
+      <img
         src="/logo2.png"
         alt="Floating Logo"
-        width={size}
-        height={size}
         style={{ width: '100%', height: '100%', userSelect: 'none', pointerEvents: 'none' }}
         draggable={false}
-        priority={false}
       />
     </div>
   )

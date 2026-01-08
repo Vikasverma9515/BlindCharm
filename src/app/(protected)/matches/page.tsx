@@ -117,7 +117,7 @@
 //   return (
 //     <>
 //       <SimpleTopNav pageName="Matches" />
-      
+
 //       <main className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
 //         {/* Header - Desktop only */}
 //         <div className="hidden md:block bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
@@ -176,7 +176,7 @@
 //                     )}
 //                     <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
 //                   </div>
-                  
+
 //                   <div className="flex-1 min-w-0">
 //                     <div className="flex items-baseline justify-between mb-1">
 //                       <h3 className="font-semibold text-gray-900 dark:text-lime-200 truncate">
@@ -189,7 +189,7 @@
 //                         })}
 //                       </span>
 //                     </div>
-                    
+
 //                     <div className="flex items-center justify-between">
 //                       {match.lastMessage ? (
 //                         <p className="text-sm text-gray-600 dark:text-gray-200 truncate">
@@ -210,7 +210,7 @@
 //           )}
 //         </div>
 //       </main>
-      
+
 //       <SimpleBottomNav />
 //     </>
 //   );
@@ -224,7 +224,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Heart, Volume2, Play, Pause, Plus } from 'lucide-react';
-import Image from 'next/image';
 import SimpleTopNav from '@/components/shared/SimpleTopNav';
 import SimpleBottomNav from '@/components/shared/SimpleBottomNav';
 import { VoiceService } from '@/lib/services/VoiceService';
@@ -273,7 +272,7 @@ export default function MatchesPage() {
     if (!session?.user?.id) return;
     fetchMatches();
     // fetchIncomingLikes();
-    
+
     // Set up real-time subscription for match updates
     const channel = supabase
       .channel('matches_updates')
@@ -353,7 +352,7 @@ export default function MatchesPage() {
 
       if (error) throw error;
 
-      const filteredMatches = (matchData || []).filter(match => 
+      const filteredMatches = (matchData || []).filter(match =>
         match.status !== 'blocked' && !match.blocked_by && !match.blocked_at
       );
 
@@ -427,13 +426,13 @@ export default function MatchesPage() {
       }
 
       // Mark the match as seen before navigating
-      if (session && session.user && session.user.id) {
-        await supabase
-          .from('matches')
-          .update({ seen: true })
-          .eq('id', matchId)
-          .eq('user_id', session.user.id);
-      }
+      // if (session && session.user && session.user.id) {
+      //   await supabase
+      //     .from('matches')
+      //     .update({ seen: true })
+      //     .eq('id', matchId)
+      //     .eq('user_id', session.user.id);
+      // }
 
       router.push(`/matches/${matchId}`);
     } catch (error) {
@@ -442,32 +441,32 @@ export default function MatchesPage() {
   };
 
   // Check for unseen matches count (for badge or notification)
-  useEffect(() => {
-    const checkUnseenMatches = async () => {
-      if (!session?.user?.id) return;
+  // useEffect(() => {
+  //   const checkUnseenMatches = async () => {
+  //     if (!session?.user?.id) return;
 
-      try {
-        const { count, error } = await supabase
-          .from('matches')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', session.user.id)
-          .eq('seen', false);
+  //     try {
+  //       const { count, error } = await supabase
+  //         .from('matches')
+  //         .select('id', { count: 'exact', head: true })
+  //         .eq('user_id', session.user.id)
+  //         .eq('seen', false);
 
-        if (error) {
-          console.error('Error fetching unseen matches count:', error);
-          return;
-        }
+  //       if (error) {
+  //         console.error('Error fetching unseen matches count:', error);
+  //         return;
+  //       }
 
-        // Update state or context with the unseen matches count
-        // For example, you can set a global state or context value here
-        console.log('Unseen matches count:', count);
-      } catch (err) {
-        console.error('Error checking unseen matches:', err);
-      }
-    };
+  //       // Update state or context with the unseen matches count
+  //       // For example, you can set a global state or context value here
+  //       console.log('Unseen matches count:', count);
+  //     } catch (err) {
+  //       console.error('Error checking unseen matches:', err);
+  //     }
+  //   };
 
-    checkUnseenMatches();
-  }, [session?.user?.id, supabase]);
+  //   checkUnseenMatches();
+  // }, [session?.user?.id, supabase]);
 
   if (loading) {
     return (
@@ -485,7 +484,7 @@ export default function MatchesPage() {
   return (
     <>
       <SimpleTopNav pageName="Matches" />
-      
+
       <main className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         {/* Header - Desktop only */}
         <div className="hidden md:block bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
@@ -598,31 +597,28 @@ export default function MatchesPage() {
                   <div
                     key={match.id}
                     onClick={() => handleMatchClick(match.id)}
-                    className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-indigo-600 cursor-pointer transition-colors bg-white dark:bg-indigo-700 rounded-2xl border-b-8 border-b-indigo-500 mb-4 ${
-                      index !== matches.length - 1 ? 'border-b border-gray-100' : 'border-b border-gray-100'
-                    }`}
+                    className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-indigo-600 cursor-pointer transition-colors bg-white dark:bg-indigo-700 rounded-2xl border-b-8 border-b-indigo-500 mb-4 ${index !== matches.length - 1 ? 'border-b border-gray-100' : 'border-b border-gray-100'
+                      }`}
                   >
                     <div className="relative flex-shrink-0 mr-3">
                       {match.bothRevealed && match.otherUser.profile_picture ? (
-                        <Image
+                        <img
                           src={match.otherUser.profile_picture}
                           alt={match.otherUser.username}
-                          width={48}
-                          height={48}
                           className="rounded-full object-cover w-12 h-12"
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center">
                           <span className="text-white font-semibold text-lg">
-                            {match.bothRevealed && match.otherUser.username 
-                              ? match.otherUser.username[0].toUpperCase() 
+                            {match.bothRevealed && match.otherUser.username
+                              ? match.otherUser.username[0].toUpperCase()
                               : '?'}
                           </span>
                         </div>
                       )}
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between mb-1">
                         <h3 className="font-semibold text-gray-900 dark:text-lime-200 truncate">
@@ -630,19 +626,19 @@ export default function MatchesPage() {
                         </h3>
                         <span className="text-xs text-gray-500 dark:text-gray-200 ml-2 flex-shrink-0">
                           {match.lastMessage ? (
-                            new Date(match.lastMessage.created_at).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric' 
+                            new Date(match.lastMessage.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric'
                             })
                           ) : (
-                            new Date(match.created_at).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric' 
+                            new Date(match.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric'
                             })
                           )}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         {match.lastMessage ? (
                           <p className="text-sm text-gray-600 dark:text-gray-200 truncate">
@@ -653,7 +649,7 @@ export default function MatchesPage() {
                             Tap to start chatting
                           </p>
                         )}
-                        
+
                         {/* Match status indicator (optional - you can remove this if not needed) */}
                         {match.status === 'matched' && (
                           <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 ml-2"></div>
@@ -662,12 +658,12 @@ export default function MatchesPage() {
                     </div>
                   </div>
                 ))}
-              </div>  
+              </div>
             </div>
           )}
         </div>
       </main>
-      
+
       <SimpleBottomNav />
     </>
   );

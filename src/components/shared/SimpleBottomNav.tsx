@@ -47,7 +47,7 @@ export default function SimpleBottomNav() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [connectPendingCount, setConnectPendingCount] = useState<number>(0)
   // const { counts } = useNotifications()
-  const [newMatchesCount, setNewMatchesCount] = useState<number>(0)
+  // const [newMatchesCount, setNewMatchesCount] = useState<number>(0)
 
   const isActive = (path: string) => {
     if (path === '/lobby' && pathname.startsWith('/lobby')) return true
@@ -55,39 +55,39 @@ export default function SimpleBottomNav() {
     return pathname === path
   }
 
-  useEffect(() => {
-    let channel: any
+  // useEffect(() => {
+  //   let channel: any
 
-    const loadNewMatches = async () => {
-      if (!session?.user?.id) return
-      try {
-        const { count, error } = await supabase
-          .from('matches')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', session.user.id)
-          .eq('seen', false)
-        if (error) throw error
-        setNewMatchesCount(count ?? 0)
-      } catch (e) {
-        console.error('new matches count failed', e)
-      }
-    }
+  //   const loadNewMatches = async () => {
+  //     if (!session?.user?.id) return
+  //     try {
+  //       const { count, error } = await supabase
+  //         .from('matches')
+  //         .select('id', { count: 'exact', head: true })
+  //         .eq('user_id', session.user.id)
+  //         .eq('seen', false)
+  //       if (error) throw error
+  //       setNewMatchesCount(count ?? 0)
+  //     } catch (e) {
+  //       console.error('new matches count failed', e)
+  //     }
+  //   }
 
-    loadNewMatches()
+  //   loadNewMatches()
 
-    if (session?.user?.id) {
-      channel = supabase
-        .channel(`matches_dot_${session.user.id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'matches', filter: `user_id=eq.${session.user.id}` }, () => {
-          loadNewMatches()
-        })
-        .subscribe()
-    }
+  //   if (session?.user?.id) {
+  //     channel = supabase
+  //       .channel(`matches_dot_${session.user.id}`)
+  //       .on('postgres_changes', { event: '*', schema: 'public', table: 'matches', filter: `user_id=eq.${session.user.id}` }, () => {
+  //         loadNewMatches()
+  //       })
+  //       .subscribe()
+  //   }
 
-    return () => {
-      try { channel?.unsubscribe() } catch { }
-    }
-  }, [session?.user?.id])
+  //   return () => {
+  //     try { channel?.unsubscribe() } catch { }
+  //   }
+  // }, [session?.user?.id])
 
 
   // Fetch user profile data for avatar
@@ -153,16 +153,21 @@ export default function SimpleBottomNav() {
 
   return (
     <motion.nav
-      // initial={{ y: 100 }}
-      // animate={{ y: 0 }}
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 md:hidden"
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-4 pt-2 bg-gradient-to-t from-black via-black/90 to-transparent pointer-events-none"
     >
 
-      <div className="bg-white/90 dark:bg-black backdrop-blur-xl rounded-[28px] shadow-soft border border-primary-100/50 dark:border-gray-200 border-t-2 p-4 w-[480px] rounded-b-none transition-colors duration-300  shadow-sm ">
+      <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3 shadow-2xl pointer-events-auto flex items-center gap-2">
         {/* backdrop-blur-md border-b border-gray-200 shadow-sm */}
         <div className="flex justify-between items-center px-18">
           {session ? (
             <>
+              <NavItem
+                href="/galaxy"
+                icon={<AtomIcon size={26} />}
+                isActive={isActive('/galaxy')}
+              />
               <NavItem
                 href="/lobby"
                 icon={<ShieldUser size={26} />}
@@ -183,28 +188,12 @@ export default function SimpleBottomNav() {
                 href="/matches"
                 icon={<MessageCircleHeart size={26} />}
                 isActive={isActive('/matches')}
-                notificationCount={newMatchesCount}
+              // notificationCount={newMatchesCount}
               />
               {/* <NavItem
                 href="/likes-you"
                 icon={<Heart size={26} />}
                 isActive={isActive('/likes-you')}
-              /> */}
-              {/* <Link
-                href="/ai-friend"
-                className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${pathname === '/ai-friend'
-                    ? 'text-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
-              >
-                <EggFriedIcon size={24} />
-                <span className="text-xs mt-1 font-medium">AI Friend</span>
-              </Link> */}
-              {/* <NavItem
-                href="/ai-friend"
-                icon={<EggFriedIcon size={26} />}
-                isActive={isActive('/ai-friend')}
-                
               /> */}
               <NavItem
                 href="/whispers"

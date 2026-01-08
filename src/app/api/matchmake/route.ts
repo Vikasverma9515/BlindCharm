@@ -86,6 +86,33 @@ export async function POST() {
       return NextResponse.json({ error: 'Failed to insert matches' }, { status: 500 });
     }
 
+    // Step 5: Send Push Notifications (Async)
+    const { sendPushNotification } = await import('@/lib/push-notifications');
+
+    // Notify all matched users
+    // We can do this in parallel
+    matches.forEach(match => {
+      // Notify User 1
+      sendPushNotification({
+        userIds: [match.user_id],
+        title: "New Match! ✨",
+        body: "You've been matched! Check out their profile.",
+        url: `/matches/${match.id}`,
+        matchId: match.id,
+        type: 'match'
+      });
+
+      // Notify User 2
+      sendPushNotification({
+        userIds: [match.user2_id],
+        title: "New Match! ✨",
+        body: "You've been matched! Check out their profile.",
+        url: `/matches/${match.id}`,
+        matchId: match.id,
+        type: 'match'
+      });
+    });
+
     return NextResponse.json({ message: `${matches.length} matches created`, matches });
   } catch (error) {
     console.error('Unexpected error in matchmaking:', error);

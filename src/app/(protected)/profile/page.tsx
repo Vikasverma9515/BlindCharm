@@ -33,7 +33,9 @@ import {
   Sun
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 import ImageUpload from '@/components/profile/ImageUpload'
+import VoiceRecorder from '@/components/profile/VoiceRecorder'
 import SimpleTopNav from '@/components/shared/SimpleTopNav'
 import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
 import ThemeToggle from '@/components/ui/ThemeToggle'
@@ -62,6 +64,7 @@ interface UserProfile {
   bio: string;
   interests: string[];
   profile_picture: string | null;
+  voice_url: string | null;
   additional_photo_1: string | null;
   additional_photo_2: string | null;
   is_admin?: boolean;
@@ -489,6 +492,30 @@ export default function ProfilePage() {
     setEditForm(prev => ({ ...prev, [field]: newTags }))
   }
 
+  const handleVoiceUpload = async (url: string) => {
+    if (!session?.user?.id) return;
+
+    // Update local state
+    setProfile(prev => prev ? { ...prev, voice_url: url } : null);
+
+    // Update Supabase (galaxy_profiles or profiles depending on where we store it)
+    // For now, assuming we update the main profile or sync it.
+    // Since VoiceRecorder handles the upload to storage, we just need to save the URL.
+
+    try {
+      const { error } = await supabase
+        .from('users') // Or galaxy_profiles if we are strictly separating
+        .update({ voice_url: url })
+        .eq('id', session.user.id);
+
+      if (error) throw error;
+      toast.success("Voice intro updated!");
+    } catch (e) {
+      console.error("Failed to update profile with voice url", e);
+      toast.error("Failed to link voice intro");
+    }
+  };
+
   const getAge = (dob: string) => {
     if (!dob) return null
     const birthDate = new Date(dob)
@@ -531,13 +558,13 @@ export default function ProfilePage() {
                   </h5> */}
         <QuickContactButtons />
         <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1 lg:mt-4 ">
-                          Your feedback helps us make BlindCharm better!
-                        </p>
+          Your feedback helps us make BlindCharm better!
+        </p>
       </div>
 
 
 
-      <main className="min-h-screen rounded-t-2xl pt-1 pb-4 md:pt-0 md:pb-8 bg-gray-50 dark:bg-gray-900 transition-all duration-500">
+      <main className="min-h-screen rounded-t-2xl pt-1 pb-4 md:pt-0 md:pb-8 bg-gray-50 dark:bg-black transition-all duration-500">
         <div className="max-w-md mx-auto px-4 py-1 md:max-w-2xl md:pt-8 space-y-6">
 
 
@@ -778,6 +805,21 @@ export default function ProfilePage() {
       )} */}
                 </div>
               </div>
+            </div>
+
+            {/* Voice Intro Section */}
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 md:p-6 shadow-lg mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Voice Intro</h3>
+                <span className="text-sm text-gray-500 dark:text-gray-400">15s to show your vibe</span>
+              </div>
+
+              {session?.user?.id && (
+                <VoiceRecorder
+                  userId={session.user.id}
+                  onUploadComplete={handleVoiceUpload}
+                />
+              )}
             </div>
 
             {/* Photo Gallery Section */}
@@ -1531,15 +1573,15 @@ export default function ProfilePage() {
                   <div>
                     <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">Account</h4>
                     <div className="space-y-3">
-                      
-                      <SettingsItem 
+
+                      <SettingsItem
                         icon={<Bell className="w-5 h-5" />}
                         title="Notification Settings"
                         subtitle="Manage your notification preferences"
                         onClick={() => router.push('/settings/notifications')}
-                        
+
                       />
-                      
+
                       <SettingsItem
                         icon={<Eye className="w-5 h-5" />}
                         title="Privacy Settings"
@@ -1612,7 +1654,7 @@ export default function ProfilePage() {
                       /> */}
                       <LogoutButton />
                       <p className='text-sm text-red-600 dark:text-red-400'>Please turn off the notification before logging out</p>
-                     
+
 
                       {/* <DeleteAccountButton /> */}
 

@@ -18,7 +18,7 @@
 //       },
 //       async authorize(credentials) {
 //         if (!credentials?.email || !credentials?.password) return null
-        
+
 //         // Authenticate with Supabase
 //         const { data, error } = await supabase.auth.signInWithPassword({
 //           email: credentials.email,
@@ -91,7 +91,7 @@ export const authOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
-        
+
         try {
           const { data, error } = await supabase.auth.signInWithPassword({
             email: credentials.email,
@@ -105,6 +105,7 @@ export const authOptions = {
               id: data.user.id,
               email: data.user.email || '',
               name: data.user.user_metadata?.full_name,
+              image: data.user.user_metadata?.avatar_url,
             }
           }
           return null
@@ -114,7 +115,7 @@ export const authOptions = {
         }
       }
     }),
-    
+
     // Phone Authentication
     CredentialsProvider({
       id: 'phone',
@@ -125,7 +126,7 @@ export const authOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.phone || !credentials?.firebaseUid) return null
-        
+
         try {
           // Find user by phone number in Supabase
           const { data: user, error } = await supabase
@@ -146,7 +147,8 @@ export const authOptions = {
               email: user.email || `${user.firebase_uid}@phone.blindcharm.com`,
               name: user.full_name || user.username,
               phone: user.phone_number,
-              isPhoneVerified: user.is_phone_verified
+              isPhoneVerified: user.is_phone_verified,
+              image: user.avatar_url,
             }
           }
           return null
@@ -164,6 +166,7 @@ export const authOptions = {
         token.email = user.email
         token.phone = user.phone
         token.isPhoneVerified = user.isPhoneVerified
+        token.image = user.image
       }
       return token
     },
@@ -172,6 +175,7 @@ export const authOptions = {
         session.user.id = token.id
         session.user.phone = token.phone
         session.user.isPhoneVerified = token.isPhoneVerified
+        session.user.image = token.image
       }
       return session
     }

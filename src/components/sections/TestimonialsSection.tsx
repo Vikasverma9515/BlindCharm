@@ -3,7 +3,6 @@
 
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
-import Image from 'next/image'
 
 const testimonials = [
   {
@@ -44,11 +43,10 @@ export default function TestimonialsSection() {
             >
               <div className="flex items-center mb-4">
                 <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                  <Image
+                  <img
                     src={testimonial.image}
                     alt={testimonial.author}
-                    fill
-                    className="object-cover"
+                    className="object-cover w-full h-full"
                   />
                 </div>
                 <div className="ml-4">

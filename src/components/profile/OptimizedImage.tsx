@@ -1,5 +1,4 @@
 // components/OptimizedImage.tsx
-import Image from 'next/image'
 import { useState } from 'react'
 
 interface OptimizedImageProps {

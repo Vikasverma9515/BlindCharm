@@ -1,266 +1,134 @@
-// src/app/privacy/page.tsx
-import { Lock, Shield, Eye, Database, Sparkles } from 'lucide-react'
-import SimpleTopNav from '@/components/shared/SimpleTopNav'
-import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
-import Footer from '@/components/shared/Footer'
+'use client';
+
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { ChevronLeft } from 'lucide-react';
 
 export default function PrivacyPage() {
+  const router = useRouter();
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-      <SimpleTopNav />
-      
-      <main className="pt-16">
-        {/* Hero Section */}
-        <section className="py-20 px-4 md:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full px-6 py-2 mb-8">
-              <Lock className="w-4 h-4" />
-              <span className="text-sm font-bold">PRIVACY POLICY</span>
-            </div>
-            
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-              Your Privacy
-              <span className="block text-red-600 dark:text-red-400">Matters to Us</span>
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-pink-500/30">
+
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors"
+          >
+            <ChevronLeft size={20} />
+            <span className="font-medium" style={{ fontFamily: 'var(--font-outfit)' }}>Back</span>
+          </button>
+          <span className="font-bold text-lg" style={{ fontFamily: 'var(--font-outfit)' }}>BlindCharm</span>
+          <div className="w-16" /> {/* Spacer for centering */}
+        </div>
+      </header>
+
+      <main className="pt-32 pb-20 px-6 max-w-3xl mx-auto">
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-12"
+        >
+          {/* Title Section */}
+          <div className="space-y-4 text-center mb-16">
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-playfair)' }}>
+              Privacy Policy
             </h1>
-            
-            <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-              This Privacy Policy explains how BlindCharm collects, uses, and protects your personal information.
-            </p>
-            
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Last updated: {new Date().toLocaleDateString()}
+            <p className="text-white/60" style={{ fontFamily: 'var(--font-outfit)' }}>
+              Last updated: December 30, 2024
             </p>
           </div>
-        </section>
 
-        {/* Content */}
-        <section className="py-20 px-4 md:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="prose prose-lg max-w-none text-gray-600 dark:text-gray-400">
-              
-              {/* Information We Collect */}
-              <div className="mb-12">
-                <div className="flex items-center gap-3 mb-6">
-                  <Database className="w-8 h-8 text-red-500" />
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 m-0">
-                    Information We Collect
-                  </h2>
-                </div>
-                
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                      Information You Provide
-                    </h3>
-                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                      <li>• Account information (name, email, password)</li>
-                      <li>• Profile information (interests, preferences, bio)</li>
-                      <li>• Messages and communications with other users</li>
-                      <li>• Photos and other content you upload</li>
-                      <li>• Feedback and support communications</li>
-                    </ul>
-                  </div>
+          {/* Content Sections */}
+          <div className="space-y-12 text-lg text-white/80 leading-relaxed" style={{ fontFamily: 'var(--font-outfit)' }}>
 
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                      Information We Collect Automatically
-                    </h3>
-                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                      <li>• Device information (IP address, browser type, operating system)</li>
-                      <li>• Usage data (pages visited, features used, time spent)</li>
-                      <li>• Location information (if you enable location services)</li>
-                      <li>• Cookies and similar tracking technologies</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>1. Introduction</h2>
+              <p>
+                We appreciate that you trust us with your information and we intend to always keep that trust. This starts with making sure you understand the information we collect, why we collect it, how it is used and your choices regarding your information. This Policy describes our privacy practices in plain language, keeping legal and technical jargon to a minimum.
+              </p>
+            </section>
 
-              {/* How We Use Information */}
-              <div className="mb-12">
-                <div className="flex items-center gap-3 mb-6">
-                  <Eye className="w-8 h-8 text-yellow-500" />
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 m-0">
-                    How We Use Your Information
-                  </h2>
-                </div>
-                
-                <div className="space-y-4 text-gray-600 dark:text-gray-400">
-                  <p>We use your information to:</p>
-                  <ul className="space-y-2">
-                    <li>• Provide and improve our dating services</li>
-                    <li>• Match you with compatible users</li>
-                    <li>• Facilitate communication between users</li>
-                    <li>• Ensure safety and security of our platform</li>
-                    <li>• Send you important updates and notifications</li>
-                    <li>• Analyze usage patterns to improve our services</li>
-                    <li>• Comply with legal obligations</li>
-                  </ul>
-                </div>
-              </div>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>2. Information We Collect</h2>
+              <p>
+                To help you make meaningful connections, we collect some information about you, such as basic profile details and the types of people you'd like to meet.
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-white/70">
+                <li><strong className="text-white">Profile Information:</strong> When you create an account, you provide us with your phone number, gender, date of birth, and other profile details.</li>
+                <li><strong className="text-white">Content:</strong> We collect photos and other content you upload.</li>
+                <li><strong className="text-white">Usage Information:</strong> We collect information about your activity on our services, such as how you use them (e.g., date and time you logged in, features you've been using, searches, clicks, and pages which have been shown to you).</li>
+                <li><strong className="text-white">Device Information:</strong> We collect information from and about the device(s) you use to access our services.</li>
+              </ul>
+            </section>
 
-              {/* Information Sharing */}
-              <div className="mb-12">
-                <div className="flex items-center gap-3 mb-6">
-                  <Shield className="w-8 h-8 text-red-600" />
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 m-0">
-                    Information Sharing
-                  </h2>
-                </div>
-                
-                <div className="space-y-4 text-gray-600 dark:text-gray-400">
-                  <p>We may share your information in the following circumstances:</p>
-                  <ul className="space-y-2">
-                    <li>• <strong>With Other Users:</strong> Profile information you choose to make visible</li>
-                    <li>• <strong>Service Providers:</strong> Third-party companies that help us operate our service</li>
-                    <li>• <strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
-                    <li>• <strong>Business Transfers:</strong> In connection with mergers or acquisitions</li>
-                    <li>• <strong>With Your Consent:</strong> When you explicitly agree to share information</li>
-                  </ul>
-                  
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-lg p-4 mt-6">
-                    <p className="text-red-700 dark:text-red-300 font-medium">
-                      <strong>Important:</strong> We never sell your personal information to third parties for marketing purposes.
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>3. How We Use Information</h2>
+              <p>
+                The main reason we use your information is to deliver and improve our services. Additionally, we use your info to help keep you safe.
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-white/70">
+                <li>To create and manage your account.</li>
+                <li>To provide you with customer support and respond to your requests.</li>
+                <li>To communicate with you about our services.</li>
+                <li>To detect and prevent fraud or other unauthorized or illegal activities.</li>
+              </ul>
+            </section>
 
-              {/* Data Security */}
-              <div className="mb-12">
-                <div className="flex items-center gap-3 mb-6">
-                  <Lock className="w-8 h-8 text-red-500" />
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 m-0">
-                    Data Security
-                  </h2>
-                </div>
-                
-                <div className="space-y-4 text-gray-600 dark:text-gray-400">
-                  <p>We implement industry-standard security measures to protect your information:</p>
-                  <ul className="space-y-2">
-                    <li>• Encryption of data in transit and at rest</li>
-                    <li>• Regular security audits and assessments</li>
-                    <li>• Access controls and authentication measures</li>
-                    <li>• Secure data centers and infrastructure</li>
-                    <li>• Employee training on data protection</li>
-                  </ul>
-                  
-                  <p>
-                    While we strive to protect your information, no method of transmission over the internet 
-                    is 100% secure. We encourage you to use strong passwords and be cautious about sharing 
-                    personal information.
-                  </p>
-                </div>
-              </div>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>4. How We Share Information</h2>
+              <p>
+                Since our goal is to help you make meaningful connections, the main sharing of users' information is, of course, with other users. We may also share some users' information with service providers and partners who assist us in operating the services.
+              </p>
+            </section>
 
-              {/* Your Rights */}
-              <div className="mb-12">
-                <div className="flex items-center gap-3 mb-6">
-                  <Sparkles className="w-8 h-8 text-yellow-500" />
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 m-0">
-                    Your Rights and Choices
-                  </h2>
-                </div>
-                
-                <div className="space-y-4 text-gray-600 dark:text-gray-400">
-                  <p>You have the following rights regarding your personal information:</p>
-                  <ul className="space-y-2">
-                    <li>• <strong>Access:</strong> Request a copy of your personal information</li>
-                    <li>• <strong>Correction:</strong> Update or correct inaccurate information</li>
-                    <li>• <strong>Deletion:</strong> Request deletion of your account and data</li>
-                    <li>• <strong>Portability:</strong> Request a copy of your data in a portable format</li>
-                    <li>• <strong>Opt-out:</strong> Unsubscribe from marketing communications</li>
-                    <li>• <strong>Restriction:</strong> Limit how we process your information</li>
-                  </ul>
-                  
-                  <p>
-                    To exercise these rights, please contact us through our support channels. 
-                    We will respond to your request within 30 days.
-                  </p>
-                </div>
-              </div>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>5. Your Rights</h2>
+              <p>
+                We want you to be in control of your information, so we have provided you with the following tools:
+              </p>
+              <ul className="list-disc pl-6 space-y-2 text-white/70">
+                <li><strong className="text-white">Access / Update tools:</strong> Tools and account settings that help you to access, rectify or delete information that you provided to us.</li>
+                <li><strong className="text-white">Device permissions:</strong> Mobile platforms have permission systems for specific types of device data and notifications, such as phone book and location services as well as push notifications.</li>
+                <li><strong className="text-white">Deletion:</strong> You can delete your account by using the corresponding functionality directly on the service.</li>
+              </ul>
+            </section>
 
-              {/* Data Retention */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  Data Retention
-                </h2>
-                <div className="space-y-4 text-gray-600 dark:text-gray-400">
-                  <p>
-                    We retain your information for as long as necessary to provide our services and 
-                    comply with legal obligations. When you delete your account, we will delete or 
-                    anonymize your personal information within 30 days, except where we are required 
-                    to retain it for legal purposes.
-                  </p>
-                </div>
-              </div>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>6. Security</h2>
+              <p>
+                We work hard to protect you from unauthorized access to or alteration, disclosure or destruction of your personal information. As with all technology companies, although we take steps to secure your information, we do not promise, and you should not expect, that your personal information will always remain secure.
+              </p>
+            </section>
 
-              {/* Cookies */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  Cookies and Tracking
-                </h2>
-                <div className="space-y-4 text-gray-600 dark:text-gray-400">
-                  <p>
-                    We use cookies and similar technologies to enhance your experience, analyze usage, 
-                    and provide personalized content. You can control cookie settings through your 
-                    browser preferences, though some features may not work properly if cookies are disabled.
-                  </p>
-                </div>
-              </div>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>7. Children's Privacy</h2>
+              <p>
+                Our services are restricted to users who are 18 years of age or older. We do not permit users under the age of 18 on our platform and we do not knowingly collect personal information from anyone under the age of 18.
+              </p>
+            </section>
 
-              {/* Children's Privacy */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  Children's Privacy
-                </h2>
-                <div className="space-y-4 text-gray-600 dark:text-gray-400">
-                  <p>
-                    BlindCharm is not intended for users under 18 years of age. We do not knowingly 
-                    collect personal information from children under 18. If we become aware that we 
-                    have collected such information, we will delete it immediately.
-                  </p>
-                </div>
-              </div>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>8. Changes to this Policy</h2>
+              <p>
+                Because we're always looking for new and innovative ways to help you build meaningful connections, this policy may change over time. We will notify you before any material changes take effect so that you have time to review the changes.
+              </p>
+            </section>
 
-              {/* Changes to Policy */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  Changes to This Policy
-                </h2>
-                <div className="space-y-4 text-gray-600 dark:text-gray-400">
-                  <p>
-                    We may update this Privacy Policy from time to time. We will notify you of any 
-                    material changes by posting the new policy on our website and sending you an 
-                    email notification. Your continued use of our services after such changes 
-                    constitutes acceptance of the updated policy.
-                  </p>
-                </div>
-              </div>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>9. Contact Us</h2>
+              <p>
+                If you have questions about this Privacy Policy, please contact us at privacy@blindcharm.com.
+              </p>
+            </section>
 
-              {/* Contact */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  Contact Us
-                </h2>
-                <div className="space-y-4 text-gray-600 dark:text-gray-400">
-                  <p>
-                    If you have any questions about this Privacy Policy or our data practices, 
-                    please contact us at:
-                  </p>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">BlindCharm Privacy Team</p>
-                    <p>Email: blindcharm@gmail.com</p>
-                    {/* <p>Address: [Your Company Address]</p> */}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
-        </section>
+
+        </motion.div>
       </main>
-
-      <Footer />
-      <SimpleBottomNav />
     </div>
-  )
+  );
 }

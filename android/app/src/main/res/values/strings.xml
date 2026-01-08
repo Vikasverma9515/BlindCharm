@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BlindCharm</string>
+    <string name="title_activity_main">BlindCharm</string>
+    <string name="package_name">com.blindcharm.app</string>
+    <string name="custom_url_scheme">com.blindcharm.app</string>
+</resources>
