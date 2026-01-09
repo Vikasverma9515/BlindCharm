@@ -143,6 +143,31 @@
     background: #FEF2F2;
   }
 
+  /* iOS Safe Area Utilities */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mt-safe {
+    margin-top: env(safe-area-inset-top);
+  }
+
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+
+  .h-safe {
+    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  .min-h-safe {
+    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
   /* Dark theme backgrounds */
   .dark .bg-app-gradient {
     background: #1F2937;
@@ -533,7 +558,7 @@ body {
 /* Essential Layout Spacing for Mobile Simulator */
 main {
   /* Always reserve space for bottom nav since we are mobile-first globally */
-  padding-bottom: 80px;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
   /* Remove default top padding to allow full-screen apps */
   padding-top: 0;
 }

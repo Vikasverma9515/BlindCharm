@@ -17,7 +17,7 @@ export default function TopNav() {
         <motion.header
             initial={{ y: -100 }}
             animate={{ y: 0 }}
-            className="w-full bg-black/80 backdrop-blur-xl px-4 py-3"
+            className="w-full bg-black/80 backdrop-blur-xl px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]"
         >
             <div className="max-w-md mx-auto flex items-center justify-between">
                 {/* Left: Logo / Brand */}
