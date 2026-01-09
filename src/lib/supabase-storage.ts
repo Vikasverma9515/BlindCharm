@@ -6,10 +6,10 @@
 import { supabase } from './supabase'
 import { auth } from './firebase'
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
-import { onAuthStateChanged } from 'firebase/auth'
+import { onAuthStateChanged, User } from 'firebase/auth'
 
 // Wait briefly for Firebase auth to initialize if needed
-async function waitForFirebaseUser(timeoutMs = 2000) {
+async function waitForFirebaseUser(timeoutMs = 2000): Promise<User | null> {
   const existing = auth.currentUser
   if (existing) return existing
 
