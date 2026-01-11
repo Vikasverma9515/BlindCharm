@@ -31,12 +31,20 @@ export default withAuth(
 
     // If user is authenticated and tries to access auth pages (login/register)
     if (isAuthenticated && isAuthPage) {
-      return NextResponse.redirect(new URL('/galaxy', req.url))
+      const url = new URL('/galaxy', req.url)
+      if (process.env.NODE_ENV === 'production') {
+        url.protocol = 'https:'
+      }
+      return NextResponse.redirect(url)
     }
 
     // If user is not authenticated and tries to access protected pages
     if (!isAuthenticated && isProtectedPage) {
-      return NextResponse.redirect(new URL('/login', req.url))
+      const url = new URL('/login', req.url)
+      if (process.env.NODE_ENV === 'production') {
+        url.protocol = 'https:'
+      }
+      return NextResponse.redirect(url)
     }
 
     return NextResponse.next()
