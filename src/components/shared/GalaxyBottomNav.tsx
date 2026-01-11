@@ -85,9 +85,9 @@ export default function GalaxyBottomNav() {
         <motion.nav
             initial={{ y: 100 }}
             animate={{ y: 0 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-white/10 pb-safe pt-2 px-2"
+            className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-white/10 pb-safe px-2"
         >
-            <div className="flex items-center justify-between max-w-md mx-auto h-16">
+            <div className="flex items-center justify-between max-w-md mx-auto h-12">
                 <NavItem
                     href="/galaxy"
                     icon={

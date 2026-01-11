@@ -115,7 +115,7 @@ export default function GalaxyOnboardingWizard({ onComplete }: GalaxyOnboardingW
                 throw new Error(result.error);
             }
 
-            toast.success("Welcome to BlindCharm! 🌌");
+
 
             setTimeout(() => {
                 if (onComplete) {
