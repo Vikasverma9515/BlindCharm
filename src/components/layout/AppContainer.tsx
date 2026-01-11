@@ -20,9 +20,9 @@ export default function AppContainer({ children }: { children: React.ReactNode }
             </div>
 
             {/* Mobile App Container */}
-            <div className="mx-auto max-w-[480px] min-h-screen bg-black relative shadow-2xl md:border-x md:border-white/5 flex flex-col">
-                <div className="min-h-screen bg-black text-white flex flex-col">
-                    <div className="flex-1 relative flex flex-col">
+            <div className="mx-auto max-w-[480px] min-h-[100dvh] bg-black relative shadow-2xl md:border-x md:border-white/5 flex flex-col">
+                <div className="h-[100dvh] bg-black text-white flex flex-col pt-safe pb-safe">
+                    <div className="flex-1 relative flex flex-col overflow-hidden">
                         {children}
                     </div>
                 </div>

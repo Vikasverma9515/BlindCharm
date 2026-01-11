@@ -76,7 +76,7 @@ export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComp
     const showEmptyState = !isLoading && (cards.length === 0 || currentIndex >= cards.length);
 
     return (
-        <div className="relative z-10 w-full h-full px-1.5 pt-1.5 pb-20"> {/* pb-20 space for floating buttons */}
+        <div className="relative z-10 w-full h-full px-1.5 pt-1.5 pb-32"> {/* pb-32 space for floating buttons */}
 
             {/* 1. Loading State */}
             {isLoading && (
@@ -158,7 +158,7 @@ export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComp
 
             {/* 4. STATIC CONTROLS - Floating at bottom */}
             {!isLoading && (
-                <div className="absolute bottom-36 left-0 right-0 px-8 z-[100] flex items-center justify-center gap-8 pointer-events-none">
+                <div className="absolute bottom-40 left-0 right-0 px-8 z-[100] flex items-center justify-center gap-8 pointer-events-none">
 
                     {/* Pass Button - Large & Red Accent */}
                     <button
