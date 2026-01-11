@@ -271,7 +271,6 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
         // className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-amber-400 backdrop-blur-xl border-b-4 border-primary-100/50 dark:border-gray-700/50 shadow-soft hidden md:block transition-colors duration-300 rounded-b-2xl"
       > */}
       <motion.header
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
         className={`fixed top-0 left-0 right-0 z-50 
              w-full 
              transition-all duration-300 
@@ -282,7 +281,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
           }
              md:hidden pt-safe`}
       >
-        <div className="flex justify-between items-center h-16 px-5 ">
+        <div className="flex justify-between items-center h-14 px-5 ">
           {/* Left side - Logo and Page Name */}
           <div className="flex items-center">
             <Link href={pathname.startsWith('/lobby') || pathname.startsWith('/matches') || pathname.startsWith('/whispers') || pathname.startsWith('/profile') ? '/lobby' : '/'} className="flex items-center space-x-3">
