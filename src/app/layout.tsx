@@ -168,6 +168,8 @@ export const metadata = {
   },
 };
 
+import AppContainer from '@/components/layout/AppContainer'
+
 export default function RootLayout({
   children,
 }: {
@@ -199,42 +201,31 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={fontClasses}>
-        {/* Desktop Background (Hidden on Mobile) */}
-        <div className="fixed inset-0 bg-zinc-950 -z-50 hidden md:flex items-center justify-center">
-          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#333_1px,transparent_1px)] [background-size:16px_16px]"></div>
-          <div className="text-zinc-800 font-mono text-xs tracking-widest uppercase">BlindCharm Mobile View</div>
-        </div>
-
-        {/* Mobile App Container */}
-        <div className="mx-auto max-w-[480px] min-h-screen bg-black relative shadow-2xl md:border-x md:border-white/5 flex flex-col">
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "Organization",
-                "url": "https://blindcharm.com",
-                "logo": "https://blindcharm.com/android-chrome-512x512.png"
-              }),
-            }}
-          />
-          <ThemeProvider>
-            <AuthProvider>
-              <FirebaseAuthProvider>
-                <NotificationProvider>
-                  <div className="min-h-screen bg-black text-white flex flex-col">
-                    <ErrorBoundary>
-                      <div className="flex-1 relative flex flex-col">
-                        {children}
-                        <Toaster />
-                      </div>
-                    </ErrorBoundary>
-                  </div>
-                </NotificationProvider>
-              </FirebaseAuthProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </div>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "url": "https://blindcharm.com",
+              "logo": "https://blindcharm.com/android-chrome-512x512.png"
+            }),
+          }}
+        />
+        <ThemeProvider>
+          <AuthProvider>
+            <FirebaseAuthProvider>
+              <NotificationProvider>
+                <ErrorBoundary>
+                  <AppContainer>
+                    {children}
+                  </AppContainer>
+                  <Toaster />
+                </ErrorBoundary>
+              </NotificationProvider>
+            </FirebaseAuthProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
