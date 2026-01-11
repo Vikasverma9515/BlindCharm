@@ -158,7 +158,7 @@ export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComp
 
             {/* 4. STATIC CONTROLS - Floating at bottom */}
             {!isLoading && (
-                <div className="absolute bottom-40 left-0 right-0 px-8 z-[100] flex items-center justify-center gap-8 pointer-events-none">
+                <div className="absolute bottom-[calc(4rem+env(safe-area-inset-bottom)+1rem)] left-0 right-0 px-8 z-[100] flex items-center justify-center gap-8 pointer-events-none">
 
                     {/* Pass Button - Large & Red Accent */}
                     <button

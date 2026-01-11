@@ -271,9 +271,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
         // className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-amber-400 backdrop-blur-xl border-b-4 border-primary-100/50 dark:border-gray-700/50 shadow-soft hidden md:block transition-colors duration-300 rounded-b-2xl"
       > */}
       <motion.header
-        // initial={{ y: -100, opacity: 0 }}
-        // animate={{ y: 0, opacity: 1 }}
-        style={{ paddingTop: 'env(safe-area-inset-top)' }} // ✅ Safe area padding
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
         className={`fixed top-0 left-0 right-0 z-50 
              w-full 
              transition-all duration-300 
@@ -282,7 +280,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
             ? 'bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-primary-100/50 dark:border-b-white/10 shadow-soft'
             : 'bg-transparent border-transparent'
           }
-             md:hidden`}
+             md:hidden pt-safe`}
       >
         <div className="flex justify-between items-center h-16 px-5 ">
           {/* Left side - Logo and Page Name */}

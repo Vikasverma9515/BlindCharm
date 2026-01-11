@@ -63,7 +63,7 @@ export default function PicksFeed({ initialPicks }: PicksFeedProps) {
     };
 
     return (
-        <div className="h-full w-full overflow-y-auto bg-black text-white p-4 pb-5 pt-5 flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="h-full w-full overflow-y-auto bg-black text-white p-4 pb-5 pt-[calc(env(safe-area-inset-top)+1.25rem)] flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {/* Header Section */}
             <div className="mb-4 px-2">
                 <div className="flex items-center justify-between">

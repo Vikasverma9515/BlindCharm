@@ -649,7 +649,7 @@ export default function GalaxyProfilePage() {
                 /* HINGE STYLE VIEW MODE */
                 <div className="flex flex-col min-h-full">
                     {/* Hinge-style Header */}
-                    <div className="flex items-center justify-between px-6 py-4 pt-6 sticky top-0 bg-black/80 backdrop-blur-md z-30">
+                    <div className="flex items-center justify-between px-6 pb-4 pt-[calc(env(safe-area-inset-top)+1.5rem)] sticky top-0 bg-black/80 backdrop-blur-md z-30">
                         <h1 className="text-xl font-bold tracking-tight text-white font-serif">BlindCharm</h1>
                         <div className="flex items-center gap-4">
                             <button

@@ -40,7 +40,7 @@ export default function ChatList({ initialMatches, initialRequests, userId }: Ch
 
         <div className="h-screen bg-black text-white flex flex-col">
             {/* Fixed Header */}
-            <div className="px-6 pt-6 pb-4 shrink-0 z-10 bg-black">
+            <div className="px-6 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-4 shrink-0 z-10 bg-black">
                 <h1 className="text-3xl font-bold mb-6">Messages</h1>
 
                 {/* Tabs */}

@@ -173,7 +173,7 @@ export default function SettingsPage() {
             className="fixed inset-0 z-[100] bg-black text-white flex flex-col font-sans overflow-hidden"
         >
             {/* Header */}
-            <div className="shrink-0 z-30 bg-black/80 backdrop-blur-md px-6 py-4 flex items-center gap-4 border-b border-white/5">
+            <div className="shrink-0 z-30 bg-black/80 backdrop-blur-md px-6 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center gap-4 border-b border-white/5">
                 <button
                     onClick={() => router.back()}
                     className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors text-white/80 hover:text-white"
