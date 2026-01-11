@@ -184,6 +184,7 @@ export const authOptions = {
     signIn: '/login',
   },
   debug: process.env.NODE_ENV === 'development',
+  trustHost: true,
 }
 
 const handler = NextAuth(authOptions)
