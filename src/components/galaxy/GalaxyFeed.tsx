@@ -9,6 +9,7 @@ import { Sparkles, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoryCard as StoryCardType } from '@/types/ai';
 import { supabase } from '@/lib/supabase';
+import { useExploreFeed } from '@/hooks/queries/useExploreFeed';
 
 interface GalaxyFeedProps {
     initialProfile: any;
@@ -19,102 +20,46 @@ interface GalaxyFeedProps {
 
 export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingParam, userId }: GalaxyFeedProps) {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
-    const [cards, setCards] = useState<StoryCardType[]>(initialFeed);
+
+    // 1. State Initialization
+    const [isLoading, setIsLoading] = useState(false); // Manual loading state for intent mode
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [mode, setMode] = useState<'classic' | 'intent'>('classic');
     const [isOnboarding, setIsOnboarding] = useState(isOnboardingParam);
     const [currentUserProfile, setCurrentUserProfile] = useState(initialProfile);
 
-    const fetchProfiles = useCallback(async (interestedIn: string[] = ['everyone']) => {
-        setIsLoading(true);
-        try {
-            // 1. Fetch Excluded Interactions
-            const { data: interactions } = await supabase
-                .from('galaxy_matches')
-                .select('user_a, user_b')
-                .or(`user_a.eq.${userId},user_b.eq.${userId}`)
-                .limit(5000);
+    // 2. React Query Hook (Dependent on currentUserProfile)
+    const {
+        data: feedData,
+        fetchNextPage,
+        hasNextPage,
+        isFetching,
+        refetch: refetchFeed
+    } = useExploreFeed(userId, currentUserProfile?.interested_in || ['everyone']);
 
-            const excludedIds = new Set([userId]);
-            if (interactions) {
-                interactions.forEach((i: any) => {
-                    if (i.user_a === userId) excludedIds.add(i.user_b);
-                    else excludedIds.add(i.user_a);
-                });
-            }
+    // 3. Intent Mode State
+    const [cardsState, setCardsState] = useState<StoryCardType[]>([]);
 
-            let query = supabase
-                .from('galaxy_profiles')
-                .select('*')
-                .neq('user_id', userId);
+    // 4. Derived State: Flatten pages into a single stack of cards
+    const derivedCards = mode === 'classic'
+        ? (feedData?.pages.flatMap((p: any) => p.cards).filter((c: any) => !!c) || [])
+        : (cardsState || []);
 
-            if (interestedIn && interestedIn.length > 0 && !interestedIn.includes('everyone')) {
-                query = query.in('gender', interestedIn);
-            }
+    const cards = derivedCards.length > 0 ? derivedCards : initialFeed;
 
-            // Fetch extra for client-side filtering
-            query = query.limit(200);
+    useEffect(() => {
+        // If we are in 'intent' mode, we use cardsState.
+        // If 'classic', cards are derived from feedData.
+        // No need to sync explicit state for classic unless we want to shuffle locally which SwipeDeck handles.
+    }, [feedData]);
 
-            const { data: profilesData, error: profilesError } = await query;
-
-            if (profilesError) throw profilesError;
-
-            if (profilesData && profilesData.length > 0) {
-                // Filter excluded interactions
-                const filteredProfiles = profilesData
-                    .filter((p: any) => !excludedIds.has(p.user_id))
-                    .slice(0, 50);
-
-                // Map to StoryCard format (mirroring server logic)
-                const mappedCards: StoryCardType[] = filteredProfiles.map((profile: any) => {
-                    const userData = profile.users || {}; // Assuming public view might not join users table client side if RLS is strict, but let's assume it works like before or we use what's in 'galaxy_profiles'
-
-                    return {
-                        user_id: profile.user_id,
-                        full_name: profile.full_name || 'BlindCharm User',
-                        age: profile.birth_date ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() : 25,
-                        birth_date: profile.birth_date,
-                        location: profile.location || 'Unknown',
-                        bio: profile.bio || '',
-                        about_me: profile.about_me || profile.bio || '',
-                        story_line: profile.about_me ? profile.about_me.substring(0, 100) : (profile.bio ? profile.bio.substring(0, 100) : "Ready to connect."),
-                        story_sentence: profile.bio ? profile.bio.substring(0, 100) : "Ready to connect.",
-                        photos: profile.photos && profile.photos.length > 0 ? profile.photos : [userData.profile_picture],
-                        photo_url: userData.profile_picture || '',
-                        visual_cue: "Galaxy Member",
-                        visual_proof_tags: profile.identity_signals ? profile.identity_signals.slice(0, 3) : (profile.interests ? profile.interests.slice(0, 3) : []),
-                        match_score: 80,
-                        voice_url: profile.voice_url,
-                        pronouns: profile.pronouns,
-                        height: profile.height,
-                        job_title: profile.job_title,
-                        company: profile.company,
-                        school: profile.school,
-                        gender: profile.gender,
-                        identity_signals: profile.identity_signals || [],
-                        interest_capsules: profile.interest_capsules || profile.interests || [],
-                        connection_style: profile.connection_style,
-                        prompts: profile.prompts || [],
-                        current_mood: profile.current_mood || 'Chill',
-                        energy_level: profile.energy_level,
-                        intent_history: profile.intent_history,
-                        avatar_url: userData?.profile_picture || profile.photos?.[0],
-                        theme: profile.card_theme || 'modern',
-                        color: profile.card_color || profile.primary_color || '#a855f7',
-                        mood: profile.current_mood || 'vibing',
-                        border: profile.card_border || 'thin',
-                        is_verified: userData.face_verified || false
-                    };
-                });
-                setCards(mappedCards.sort(() => Math.random() - 0.5));
-            }
-        } catch (err) {
-            console.error('Error fetching profiles:', err);
-        } finally {
-            setIsLoading(false);
+    const handleIndexChange = (index: number) => {
+        // Prefetch when within 5 cards of end
+        if (mode === 'classic' && hasNextPage && !isFetching && cards.length - index <= 5) {
+            console.log('⚡ Prefetching next batch...');
+            fetchNextPage();
         }
-    }, [userId]);
+    };
 
     // Realtime Profile Updates (Preferences)
 
@@ -138,7 +83,7 @@ export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingPa
                 ) {
                     console.log('🔄 Stale settings detected on mount, syncing feed...');
                     setCurrentUserProfile(freshProfile);
-                    fetchProfiles(freshProfile.interested_in);
+                    // fetchProfiles(freshProfile.interested_in); // Auto-handled by key change
                 }
             }
         };
@@ -156,14 +101,18 @@ export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingPa
                 const newProfile = payload.new as any;
                 console.log('🔄 Profile updated, refreshing feed...', newProfile.interested_in);
                 setCurrentUserProfile(newProfile);
-                fetchProfiles(newProfile.interested_in);
+                // When profile changes, we refetch the React Query
+                // Note: Changing currentUserProfile updates the key for useExploreFeed, so it might auto-fetch.
+                // But if we want to force it:
+                // queryClient.invalidateQueries(...) or just let the key change handle it.
+                // Since we pass `interested_in` to the hook, changing state triggers re-run!
             })
             .subscribe();
 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [userId, fetchProfiles]);
+    }, [userId]);
 
     const handleMatchesFound = (results: any[], query: string) => {
         setIsLoading(true);
@@ -173,7 +122,7 @@ export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingPa
 
             if (results.length === 0) {
                 // Should handle empty state, but AIMatchmaker handles it partially or we show empty deck
-                setCards([]);
+                setCardsState([]);
                 setMode('intent');
                 return;
             }
@@ -219,7 +168,7 @@ export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingPa
                 };
             });
 
-            setCards(mappedCards);
+            setCardsState(mappedCards);
             setMode('intent');
         } catch (error) {
             console.error('Failed to process intent results:', error);
@@ -230,7 +179,9 @@ export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingPa
 
     const handleRefresh = () => {
         setMode('classic');
-        fetchProfiles(currentUserProfile?.interested_in || ['everyone']);
+        // fetchProfiles(...) is not needed as switching mode to classic 
+        // renders the Query data, which is cached or refetches if stale.
+        refetchFeed();
     };
 
     if (isOnboarding) {
@@ -284,7 +235,7 @@ export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingPa
             <div className="relative z-10 w-full h-full flex flex-col">
                 <SwipeDeck
                     initialCards={cards}
-                    isLoading={isLoading}
+                    isLoading={mode === 'classic' ? (!feedData && isFetching) : isLoading}
                     onSwipeComplete={() => {
                         // If intent mode finishes, automatically switch back to classic feed
                         if (mode === 'intent') {
@@ -295,6 +246,7 @@ export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingPa
                         setIsDrawerOpen(true);
                     }}
                     onIntentTrigger={() => setIsDrawerOpen(true)}
+                    onIndexChange={handleIndexChange}
                 />
             </div>
 

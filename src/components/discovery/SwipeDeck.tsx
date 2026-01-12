@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { X, Heart, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { X, Heart, Sparkles, SlidersHorizontal, LucideKeySquare } from 'lucide-react';
 import StoryCard from '@/components/discovery/StoryCard';
 import { StoryCard as StoryCardType } from '@/types/ai';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -13,17 +13,25 @@ interface SwipeDeckProps {
     isLoading?: boolean;
     onSwipeComplete?: () => void;
     onIntentTrigger?: () => void;
+    onIndexChange?: (index: number) => void;
 }
 
-export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComplete, onIntentTrigger }: SwipeDeckProps) {
+export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComplete, onIntentTrigger, onIndexChange }: SwipeDeckProps) {
     const [cards, setCards] = useState<StoryCardType[]>(initialCards);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [exitX, setExitX] = useState<number | null>(null);
 
-    // Update cards when initialCards changes
+    // Smart Update: Handle appending data without resetting view
     useEffect(() => {
-        setCards(initialCards);
-        setCurrentIndex(0);
+        // 1. Initial Load or Reset (Filters changed)
+        if (cards.length === 0 || (initialCards.length > 0 && cards.length > 0 && initialCards[0].user_id !== cards[0].user_id)) {
+            setCards(initialCards);
+            setCurrentIndex(0);
+        } else {
+            // 2. Append / Update (Infinite Scroll)
+            // Just update the cards array, preserve current index
+            setCards(initialCards);
+        }
     }, [initialCards]);
 
     // Motion Values
@@ -43,7 +51,8 @@ export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComp
 
     const handleLike = async () => {
         if (!cards[currentIndex]) return;
-        const targetId = cards[currentIndex].user_id;
+        const targetId = cards[currentIndex]?.user_id;
+        if (!targetId) return;
 
         console.log('Liked user:', targetId);
         setTimeout(() => nextCard(), 200);
@@ -54,7 +63,8 @@ export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComp
 
     const handlePass = async () => {
         if (!cards[currentIndex]) return;
-        const targetId = cards[currentIndex].user_id;
+        const targetId = cards[currentIndex]?.user_id;
+        if (!targetId) return;
 
         console.log('Passed user:', targetId);
         setTimeout(() => nextCard(), 200);
@@ -66,9 +76,14 @@ export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComp
     const nextCard = () => {
         setExitX(null);
         x.set(0);
-        if (currentIndex < cards.length - 1) {
-            setCurrentIndex(prev => prev + 1);
+        const newIndex = currentIndex + 1;
+
+        if (newIndex < cards.length) {
+            setCurrentIndex(newIndex);
+            if (onIndexChange) onIndexChange(newIndex);
         } else {
+            // End of stack
+            setCurrentIndex(newIndex); // Increment to trigger empty state
             if (onSwipeComplete) onSwipeComplete();
         }
     };
@@ -158,7 +173,7 @@ export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComp
 
             {/* 4. STATIC CONTROLS - Floating at bottom */}
             {!isLoading && (
-                <div className="absolute bottom-[calc(4rem+env(safe-area-inset-bottom)+1rem)] left-0 right-0 px-8 z-[100] flex items-center justify-center gap-8 pointer-events-none">
+                <div className="absolute bottom-[calc(10rem+env(safe-area-inset-bottom))] left-0 right-0 px-8 z-[100] flex items-center justify-center gap-8 pointer-events-none">
 
                     {/* Pass Button - Large & Red Accent */}
                     <button
@@ -184,7 +199,7 @@ export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComp
                         disabled={showEmptyState}
                         className={`pointer-events-auto w-16 h-16 rounded-full bg-gradient-to-tr from-rose-500 to-red-600 shadow-xl shadow-rose-500/30 border-2 border-white/20 text-white flex items-center justify-center transition-all duration-300 ${showEmptyState ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110 hover:shadow-rose-500/50 active:scale-95 hover:from-rose-400 hover:to-red-500'}`}
                     >
-                        <Heart size={28} fill="currentColor" strokeWidth={2} />
+                        <LucideKeySquare size={28} fill="currentColor" strokeWidth={2} />
                     </button>
                 </div>
             )}

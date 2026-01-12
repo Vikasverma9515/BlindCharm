@@ -15,19 +15,26 @@ export default function LoginPage() {
   const handleAuthSuccess = async (phoneNumber: string) => {
     setAuthSuccess(true)
 
-    // Wait briefly for NextAuth session to establish
+    // Robust session check
     try {
       const { getSession } = await import('next-auth/react')
-      const start = Date.now()
       let session = await getSession()
-      while (!session && Date.now() - start < 2000) { // wait up to 2s
-        await new Promise(r => setTimeout(r, 200))
+
+      const start = Date.now()
+      while (!session && Date.now() - start < 4000) {
+        await new Promise(r => setTimeout(r, 500))
         session = await getSession()
       }
-    } catch { }
+    } catch (e) {
+      console.error(e)
+    }
 
-    // Navigate to galaxy
-    router.replace('/galaxy')
+    // Use window.location for a hard refresh/navigation to ensure cookies are attached to the new document request
+    // This is often more reliable than router.replace for initial login on some browsers
+    const params = new URLSearchParams(window.location.search);
+    const callbackUrl = params.get('callbackUrl') || '/galaxy';
+
+    window.location.href = callbackUrl;
   }
 
   const handleAuthError = (error: string) => {

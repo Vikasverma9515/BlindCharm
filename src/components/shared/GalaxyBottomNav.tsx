@@ -15,12 +15,20 @@ import Image from 'next/image';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
 import { supabase } from '@/lib/supabase';
 
+import { useUserProfile } from '@/hooks/queries/useUserProfile';
+import { useQueryClient } from '@tanstack/react-query';
+
 export default function GalaxyBottomNav() {
     const pathname = usePathname();
     const { data: session } = useSession();
     const userId = (session?.user as any)?.id;
     const unreadCount = useUnreadCount(userId);
 
+    // React Query for Profile Data (Cached & Shared)
+    const { data: profileData } = useUserProfile(userId);
+    const profileImage = profileData?.photos?.[0];
+
+    // Local state for picks notification (can be moved to query later if needed)
     const [hasPicksNotification, setHasPicksNotification] = useState(false);
 
     useEffect(() => {
@@ -56,7 +64,7 @@ export default function GalaxyBottomNav() {
                 .eq('user_a', userId)
                 .in('user_b', pickIds);
 
-            // Show dot ONLY if there are MORE picks than swipes (meaning unswiped ones exist)
+            // Show dot ONLY if there are MORE picks than swipes
             if ((swipedCount || 0) < picks.length) {
                 setHasPicksNotification(true);
             } else {
@@ -85,7 +93,7 @@ export default function GalaxyBottomNav() {
         <motion.nav
             initial={{ y: 100 }}
             animate={{ y: 0 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-white/10 pb-safe px-2"
+            className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-white/10 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] px-2"
         >
             <div className="flex items-center justify-between max-w-md mx-auto h-12">
                 <NavItem
@@ -121,10 +129,10 @@ export default function GalaxyBottomNav() {
                 <NavItem
                     href="/galaxy/profile"
                     icon={
-                        session?.user?.image ? (
+                        (profileImage || session?.user?.image) ? (
                             <div className={`relative w-7 h-7 rounded-full overflow-hidden border-2 ${isActive('/galaxy/profile') ? 'border-white' : 'border-white/20'}`}>
                                 <Image
-                                    src={session.user.image}
+                                    src={profileImage || session?.user?.image || ''}
                                     alt="Profile"
                                     fill
                                     className="object-cover"

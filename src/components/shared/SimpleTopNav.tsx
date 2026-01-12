@@ -279,7 +279,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
             ? 'bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-primary-100/50 dark:border-b-white/10 shadow-soft'
             : 'bg-transparent border-transparent'
           }
-             md:hidden pt-safe`}
+             md:hidden pt-[max(0px,env(safe-area-inset-top))]`}
       >
         <div className="flex justify-between items-center h-14 px-5 ">
           {/* Left side - Logo and Page Name */}

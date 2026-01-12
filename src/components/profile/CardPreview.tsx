@@ -178,7 +178,7 @@ export default function CardPreview({ profile, theme, color, mood, border }: Car
                             />
 
                             {/* Indicators (Straight & Short) */}
-                            <div className="absolute top-3 left-0 right-0 flex justify-center gap-1 z-30 px-10">
+                            <div className="absolute top-[calc(env(safe-area-inset-top)+1rem)] left-0 right-0 flex justify-center gap-1 z-30 px-10">
                                 {profile.photos.map((_: any, i: number) => (
                                     <div
                                         key={i}

@@ -38,7 +38,7 @@ export default function RequestDetailClient({ profile, matchId }: RequestDetailC
     return (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
             {/* Header */}
-            <div className="absolute top-0 left-0 right-0 p-4 z-50 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+            <div className="absolute top-0 left-0 right-0 pt-[calc(env(safe-area-inset-top)+1rem)] px-4 pb-4 z-50 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
                 <Link href="/galaxy/chat" className="p-2 rounded-full bg-black/40 backdrop-blur text-white hover:bg-black/60 transition-colors">
                     <ArrowLeft size={24} />
                 </Link>

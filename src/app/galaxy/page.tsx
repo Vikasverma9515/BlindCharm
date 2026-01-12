@@ -60,14 +60,19 @@ export default async function GalaxyEntryPage() {
                 *,
                 users!inner(face_verified)
             `)
-            .neq('user_id', userId);
+            .neq('user_id', userId)
+            .order('created_at', { ascending: false });
 
         if (interestedIn && interestedIn.length > 0 && !interestedIn.includes('everyone')) {
             query = query.in('gender', interestedIn);
         }
 
         // Fetch extra because we filter in JS
-        query = query.limit(200);
+        // Fetch a larger batch for the initial server load to increase chance of finding unswiped users
+        // Since we filter in memory, if the first 200 are all swiped, we show empty.
+        // A better approach would be to use a random offset, but ensuring consistency is hard.
+        // For now, we stick to 1000 which covers most casual sessions.
+        query = query.limit(1000);
 
         const { data: profilesData } = await query;
 

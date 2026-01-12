@@ -185,6 +185,7 @@ export const authOptions = {
   },
   debug: process.env.NODE_ENV === 'development',
   trustHost: true,
+  secret: process.env.NEXTAUTH_SECRET || "super-secret-fallback-dev-only",
 }
 
 const handler = NextAuth(authOptions)

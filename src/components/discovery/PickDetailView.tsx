@@ -37,7 +37,7 @@ export default function PickDetailView({ profile, onClose, onLike, onPass }: Pic
             {/* Close Button (Top Right) */}
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/20 transition-all"
+                className="absolute top-[calc(env(safe-area-inset-top)+1rem)] right-4 z-50 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/20 transition-all"
             >
                 <X size={24} />
             </button>

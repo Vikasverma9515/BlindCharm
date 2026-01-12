@@ -210,7 +210,7 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
         <div className="fixed inset-0 z-50 bg-black flex flex-col">
 
             {/* Header - Clean, no status indicators */}
-            <div className="shrink-0 h-16 bg-black border-b border-white/10 flex items-center justify-between px-4 pt-safe">
+            <div className="shrink-0 h-auto pb-3 bg-black border-b border-white/10 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Link
                         href="/galaxy/chat"

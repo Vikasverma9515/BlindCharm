@@ -97,6 +97,7 @@ import {
 import { Toaster } from 'sonner';
 import { NotificationProvider } from '@/components/notifications/NotificationProvider';
 import { FirebaseAuthProvider } from '@/providers/FirebaseAuthProvider'
+import QueryProvider from '@/providers/QueryProvider'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -216,12 +217,14 @@ export default function RootLayout({
           <AuthProvider>
             <FirebaseAuthProvider>
               <NotificationProvider>
-                <ErrorBoundary>
-                  <AppContainer>
-                    {children}
-                  </AppContainer>
-                  <Toaster />
-                </ErrorBoundary>
+                <QueryProvider>
+                  <ErrorBoundary>
+                    <AppContainer>
+                      {children}
+                    </AppContainer>
+                    <Toaster />
+                  </ErrorBoundary>
+                </QueryProvider>
               </NotificationProvider>
             </FirebaseAuthProvider>
           </AuthProvider>
