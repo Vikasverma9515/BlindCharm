@@ -4,11 +4,11 @@ import { usePathname } from 'next/navigation';
 
 export default function AppContainer({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    // Landing page ('/') gets full width, everything else gets mobile container
-    const isLandingPage = pathname === '/';
+    // Landing page ('/') and Blog pages ('/blog/*') get full width
+    const isMarketingPage = pathname === '/' || pathname?.startsWith('/blog');
 
-    if (isLandingPage) {
-        return <main className="min-h-screen bg-black">{children}</main>;
+    if (isMarketingPage) {
+        return <main className="min-h-screen w-full relative">{children}</main>;
     }
 
     return (
