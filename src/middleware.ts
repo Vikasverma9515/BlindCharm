@@ -31,29 +31,21 @@ export default withAuth(
       req.nextUrl.pathname.startsWith('/companion') ||
       req.nextUrl.pathname.startsWith('/join-lobby')
 
-    // 1. Authenticated User trying to access Auth Pages (Login/Register) -> Redirect to Galaxy
+    // 1. Authenticated User trying to access Auth Pages -> Redirect to Galaxy
     if (isAuthenticated && isAuthPage) {
-      const url = new URL('/galaxy', req.url)
-      if (process.env.NODE_ENV === 'production') {
-        url.protocol = 'https:'
-      }
+      const baseUrl = process.env.NODE_ENV === 'production' ? 'https://blindcharm.com' : req.url
+      const url = new URL('/galaxy', baseUrl)
       return NextResponse.redirect(url)
     }
 
     // 2. Unauthenticated User trying to access Protected Pages -> Redirect to Login with HTTPS Callback
     if (!isAuthenticated && isProtectedPage) {
-      const loginUrl = new URL('/login', req.url)
+      const baseUrl = process.env.NODE_ENV === 'production' ? 'https://blindcharm.com' : req.url
+      const loginUrl = new URL('/login', baseUrl)
 
-      // Force HTTPS for the login URL itself
-      if (process.env.NODE_ENV === 'production') {
-        loginUrl.protocol = 'https:'
-      }
-
-      // Construct the Callback URL (where they wanted to go)
-      const callbackUrl = new URL(req.nextUrl.pathname, req.url)
-      if (process.env.NODE_ENV === 'production') {
-        callbackUrl.protocol = 'https:'
-      }
+      // Construct the Callback URL correctly using the base URL
+      const callbackPath = req.nextUrl.pathname
+      const callbackUrl = new URL(callbackPath, baseUrl)
 
       loginUrl.searchParams.set('callbackUrl', callbackUrl.toString())
       return NextResponse.redirect(loginUrl)
