@@ -4,7 +4,7 @@
 
 BlindCharm is an **AI-First Social Discovery Platform** that reimagines online connection. By leveraging generative AI, spatial computing, and voice verification, we've moved beyond the "swipe loop" to create a universe where chemistry is authentic, and identity is expressive.
 
-![BlindCharm Hero](/public/hero-image.png)
+![BlindCharm Hero](/public/HeroAvatar/a1.svg)
 
 ## 🚀 The AI-First Experience
 
