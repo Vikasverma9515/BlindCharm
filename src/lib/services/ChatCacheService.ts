@@ -28,9 +28,9 @@ interface CacheEntry {
 class ChatCacheService {
   private cache = new Map<string, CacheEntry>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-  private readonly MAX_CACHE_SIZE = 50; // Maximum number of chat caches to keep
+  private readonly MAX_CACHE_SIZE = 20; // Reduced from 50 to 20 for better memory management
   private readonly MESSAGES_PER_PAGE = 50; // Number of messages to load per page
-  private readonly MAX_CACHED_MESSAGES = 200; // Maximum messages to keep in cache per chat
+  private readonly MAX_CACHED_MESSAGES = 100; // Reduced from 200 to 100 for better memory management
 
   /**
    * Get cache key for a chat
@@ -82,8 +82,8 @@ class ChatCacheService {
    * Cache messages for a chat
    */
   cacheMessages(
-    chatId: string, 
-    type: 'lobby' | 'match', 
+    chatId: string,
+    type: 'lobby' | 'match',
     messages: CachedMessage[],
     totalCount?: number
   ): void {
@@ -234,12 +234,12 @@ class ChatCacheService {
    * Preload messages for a chat (useful for anticipated navigation)
    */
   async preloadMessages(
-    chatId: string, 
+    chatId: string,
     type: 'lobby' | 'match',
     fetchFunction: () => Promise<CachedMessage[]>
   ): Promise<void> {
     const key = this.getCacheKey(chatId, type);
-    
+
     // Don't preload if already cached and valid
     if (this.cache.has(key) && this.isCacheValid(this.cache.get(key)!)) {
       return;

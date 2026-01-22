@@ -1,220 +1,173 @@
-// src/app/about-me/page.tsx
-import Link from 'next/link'
-import { Heart, Mail, Github, Linkedin, Instagram } from 'lucide-react'
-import SimpleTopNav from '@/components/shared/SimpleTopNav'
-import SimpleBottomNav from '@/components/shared/SimpleBottomNav'
-import Footer from '@/components/shared/Footer'
+'use client';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowLeft, Linkedin, Mail, Github, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-export default function AboutMePage() {
+export default function FounderPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-      <SimpleTopNav />
-      <div className="pb-18 md:pb-0">
-        <main className="pt-20 pb-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                About Me
-              </h1>
-              <p className="text-xl font-blindcharm-italic text-black dark:text-gray-300">
-                Hi, I'm <span className='font-blindcharm-brand text-sm text-red-500'>Vikas Verma</span>  - the creator behind <span className='font-blindcharm-brand text-sm text-red-500'>BlindCharm</span>
-                {/* <span><img src="/logo2.png" alt="" className='flex items-center mr-2 h-6 w-auto'/></span> */}
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <header className="border-b border-white/5 py-4 md:py-6 px-4 md:px-6 lg:px-12">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm md:text-base">
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
+            <span>Back to Home</span>
+          </Link>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="py-8 md:py-16 px-4 md:px-6 lg:px-12">
+        <div className="max-w-4xl mx-auto">
+          {/* Title */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12 md:mb-16"
+          >
+            <h1 className="font-heading font-black text-3xl md:text-5xl lg:text-6xl mb-3 md:mb-4 leading-tight px-2">
+              Meet the Founder
+            </h1>
+            <p className="text-gray-400 text-base md:text-lg lg:text-xl max-w-2xl mx-auto px-4">
+              The story behind BlindCharm and the vision to revolutionize online dating
+            </p>
+          </motion.div>
+
+          {/* Founder Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-16"
+          >
+            <div className="relative bg-white/5 rounded-3xl p-8 md:p-12 border border-white/10">
+              {/* Profile Section */}
+              <div className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-8">
+                {/* Avatar Placeholder */}
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center border-4 border-white/20 flex-shrink-0">
+                  <span className="text-5xl font-heading font-black">V</span>
+                </div>
+
+                <div className="flex-1 text-center md:text-left">
+                  <h2 className="font-heading font-bold text-3xl md:text-4xl mb-2">Vikas Verma</h2>
+                  <p className="text-gray-400 text-lg mb-4">Founder & Creator of BlindCharm</p>
+
+                  {/* Social Links */}
+                  <div className="flex gap-4 justify-center md:justify-start">
+                    <a
+                      href="https://www.linkedin.com/in/vikas-verma-264103275/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Linkedin className="w-5 h-5" />
+                      <span>LinkedIn</span>
+                    </a>
+                    <a
+                      href="mailto:vikasverma951582@gmail.com"
+                      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Mail className="w-5 h-5" />
+                      <span>Email</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Story */}
+              <div className="space-y-4 md:space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
+                <p className="text-base md:text-lg">
+                  Hi, I'm Vikas Verma, the founder of BlindCharm. I built this platform because I was tired of the superficial nature of modern dating apps.
+                </p>
+
+                <p>
+                  Like many of you, I experienced the frustration of endless swiping based on photos, matching with people who looked good on paper but had zero connection in real life. I realized that dating apps were optimized for engagement, not genuine connections.
+                </p>
+
+                <p>
+                  So I asked myself: <span className="text-white italic">"What if we flipped the script? What if personality and vibe came first?"</span>
+                </p>
+
+                <p>
+                  That's how BlindCharm was born. An AI-first dating platform where your energy, voice, and authenticity matter more than your job title or how tall you are.
+                </p>
+
+                <div className="border-l-4 border-white/20 pl-4 md:pl-6 py-3 md:py-4 my-6 md:my-8 italic text-gray-400 text-sm md:text-base">
+                  "Real connections don't come from filters. They come from vibes."
+                </div>
+
+                <p>
+                  BlindCharm uses AI to match you based on your current mood and personality—not a static profile you wrote months ago. Every day, you get fresh matches that align with who you are <span className="text-white">today</span>.
+                </p>
+
+                <p>
+                  Building BlindCharm has been an incredible journey, and I'm excited to keep innovating and creating a platform where people feel seen, heard, and genuinely connected.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Tech Stack & Vision */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"
+          >
+            {/* Vision */}
+            <div className="bg-white/5 rounded-2xl p-5 md:p-6 border border-white/10">
+              <h3 className="font-heading font-bold text-lg md:text-xl mb-3 md:mb-4">The Vision</h3>
+              <p className="text-gray-400 leading-relaxed text-sm md:text-base">
+                To create a dating platform that people actually want to delete—because they found their person.
+                A place where authentic connections happen through AI that understands you.
               </p>
             </div>
 
-            {/* Main Content */}
-            <div className="prose prose-lg max-w-none">
-              {/* Who Am I */}
-              <section className="mb-12">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-                  Who Am I?
-                </h2>
-                <div className="text-gray-600 dark:text-gray-300 space-y-4">
-                  <p>
-                    I'm a passionate full-stack developer with a love for creating meaningful digital experiences.
-                    With expertise in modern web technologies like React, Next.js, and TypeScript, I enjoy building
-                    applications that solve real-world problems and bring people together.
-                  </p>
-                  <p>
-                    When I'm not coding, you'll find me exploring new technologies, contributing to open-source projects,
-                    or thinking about how technology can create more authentic human connections in our increasingly
-                    digital world.
-                  </p>
-                </div>
-              </section>
-
-              {/* My Team */}
-              <section className="mb-12">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-                  My Team
-                </h2>
-                <div className="space-y-4">
-                  <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-lime-200 dark:bg-gray-800">
-                    <p className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 sm:flex-row flex-col justify-between">
-                      <div className='font-medium text-xl text-red-600 dark:text-red-400'>
-                        Devansh Verma
-                      </div>
-                      – Marketing & Outreach Lead
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      {/* The very first person to join BlindCharm and a driving force behind its growth,
-                      handling all marketing, outreach, and community engagement. */}
-                      Proud to have Devansh Verma as the first onboarded partner, leading marketing, outreach, and community growth strategies — ensuring the platform reaches the right audience and builds meaningful engagement.
-                    </p>
-                  </div>
-
-                  {/* Example future team member entry */}
-                  {/* 
-    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
-      <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
-        [Name] – [Role]
-      </p>
-      <p className="text-gray-600 dark:text-gray-400 text-sm">
-        Short description of their contribution to BlindCharm.
-      </p>
-    </div>
-    */}
-                </div>
-              </section>
-
-
-              {/* The Idea Behind BlindCharm */}
-              <section className="mb-12">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-                  The Idea Behind BlindCharm
-                </h2>
-                <div className="bg-red-50 dark:bg-gray-800 p-6 rounded-lg border border-red-100 dark:border-gray-700">
-                  <div className="flex items-start gap-4">
-                    <Heart className="w-6 h-6 text-red-500 mt-1 flex-shrink-0" />
-                    <div className="text-gray-700 dark:text-gray-300 space-y-4">
-                      <p>
-                        BlindCharm was born from a simple observation: most dating apps focus on superficial attraction
-                        rather than genuine compatibility. I wanted to create a platform where personality, interests,
-                        and authentic conversations take center stage.
-                      </p>
-                      <p>
-                        The concept is revolutionary yet simple - connect people based on who they are, not how they look.
-                        By removing photos from the initial matching process, BlindCharm encourages users to engage in
-                        meaningful conversations and discover compatibility through shared values, interests, and personalities.
-                      </p>
-                      <p>
-                        It's about bringing back the art of conversation and the excitement of getting to know someone
-                        for who they truly are - creating connections that are built on substance rather than surface-level attraction.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* Why I Built BlindCharm */}
-              <section className="mb-12">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-                  Why I Built BlindCharm
-                </h2>
-                <div className="text-gray-600 dark:text-gray-300 space-y-4">
-                  <p>
-                    In today's swipe-heavy dating culture, I noticed that meaningful connections were becoming increasingly
-                    rare. People were making split-second decisions based on photos alone, missing out on potentially
-                    amazing relationships with people who might not photograph well but have incredible personalities.
-                  </p>
-                  <p>
-                    I believe that the strongest relationships are built on emotional and intellectual compatibility,
-                    shared values, and genuine understanding. BlindCharm is my attempt to shift the focus back to these
-                    fundamental aspects of human connection.
-                  </p>
-                  <p>
-                    My goal is to create a platform where introverts can shine, where personality matters more than
-                    appearance, and where people can fall in love with minds and hearts before faces. It's about
-                    giving everyone a fair chance at finding their perfect match.
-                  </p>
-                </div>
-              </section>
-
-              {/* How to Connect */}
-              <section className="mb-12">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-                  Let's Connect
-                </h2>
-                <div className="text-gray-600 dark:text-gray-300 mb-6">
-                  <p>
-                    I love connecting with fellow developers, entrepreneurs, and anyone passionate about building
-                    meaningful technology. Whether you want to discuss BlindCharm, collaborate on projects, or just
-                    chat about tech and life, I'm always open to new connections.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <a
-                    href="mailto:vikas@blindcharm.com"
-                    className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-red-300 dark:hover:border-red-600 transition-colors"
-                  >
-                    <Mail className="w-5 h-5 text-red-500" />
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">Email</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">blindcharm@gmail.com</p>
-                    </div>
-                  </a>
-
-                  <a
-                    href="https://github.com/vikasverma9515"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-red-300 dark:hover:border-red-600 transition-colors"
-                  >
-                    <Github className="w-5 h-5 text-red-500" />
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">GitHub</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">@vikasverma9515</p>
-                    </div>
-                  </a>
-
-                  <a
-                    href="https://www.linkedin.com/in/vikas-verma-264103275/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-red-300 dark:hover:border-red-600 transition-colors"
-                  >
-                    <Linkedin className="w-5 h-5 text-red-500" />
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">LinkedIn</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Connect with me</p>
-                    </div>
-                  </a>
-                  <a
-                    href="https://www.instagram.com/bbaking_brain/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-red-300 dark:hover:border-red-600 transition-colors"
-                  >
-                    <Instagram className="w-5 h-5 text-red-500" />
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">Instagram</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">@bbaking_brain</p>
-                    </div>
-                  </a>
-                </div>
-              </section>
-
-              {/* Final Note */}
-              <section className="text-center">
-                <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
-                  <p className="text-gray-600 dark:text-gray-300 italic">
-                    "Technology should bring people closer together, not further apart. BlindCharm is my contribution
-                    to a world where authentic connections flourish and everyone has a chance to find their perfect match."
-                  </p>
-                  <p className="text-red-600 dark:text-red-400 font-medium mt-4">
-                    - Vikas Verma, Founder of BlindCharm
-                  </p>
-                </div>
-              </section>
+            {/* Tech Stack */}
+            <div className="bg-white/5 rounded-2xl p-5 md:p-6 border border-white/10">
+              <h3 className="font-heading font-bold text-lg md:text-xl mb-3 md:mb-4">Built With</h3>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-white/10 rounded-full text-xs md:text-sm">Next.js</span>
+                <span className="px-3 py-1 bg-white/10 rounded-full text-xs md:text-sm">TypeScript</span>
+                <span className="px-3 py-1 bg-white/10 rounded-full text-xs md:text-sm">Supabase</span>
+                <span className="px-3 py-1 bg-white/10 rounded-full text-xs md:text-sm">AI/ML</span>
+                <span className="px-3 py-1 bg-white/10 rounded-full text-xs md:text-sm">Tailwind CSS</span>
+              </div>
             </div>
-          </div>
-        </main>
+          </motion.div>
 
-        <Footer />
-      </div>
-      <SimpleBottomNav />
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="text-center mt-12 md:mt-16"
+          >
+            <p className="text-gray-400 mb-6 text-sm md:text-base">
+              Want to connect or share feedback?
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+              {/* <Link
+                href="/contact"
+                className="bg-white text-black font-bold px-6 md:px-8 py-3 md:py-4 rounded-full hover:bg-gray-200 transition-colors text-sm md:text-base"
+              >
+                Get in Touch
+              </Link> */}
+              <a
+                href="https://www.linkedin.com/in/vikas-verma-264103275/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white/10 text-white font-bold px-6 md:px-8 py-3 md:py-4 rounded-full hover:bg-white/20 transition-colors border border-white/20 flex items-center justify-center gap-2 text-sm md:text-base"
+              >
+                Connect on LinkedIn
+                <ExternalLink className="w-3 h-3 md:w-4 md:h-4" />
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </main>
     </div>
-  )
+  );
 }

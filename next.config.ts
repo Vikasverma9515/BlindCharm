@@ -30,8 +30,8 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: true, // process.env.NODE_ENV === 'development',
-  runtimeCaching: [
+  disable: process.env.NODE_ENV === 'development', // Disable PWA in development
+  runtimeCaching: process.env.NODE_ENV === 'development' ? [] : [
     {
       urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
       handler: 'CacheFirst',
@@ -149,7 +149,7 @@ module.exports = withPWA({
   },
   // Font optimization settings
   experimental: {
-    optimizeCss: true,
+    optimizeCss: process.env.NODE_ENV === 'production', // Only optimize CSS in production
   },
   // Add headers for better font loading and PWA
   async headers() {

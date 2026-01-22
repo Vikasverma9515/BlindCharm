@@ -4,8 +4,17 @@ import { usePathname } from 'next/navigation';
 
 export default function AppContainer({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    // Landing page ('/') and Blog pages ('/blog/*') get full width
-    const isMarketingPage = pathname === '/' || pathname?.startsWith('/blog');
+    // Landing page ('/') and other public/marketing pages get full width
+    const isMarketingPage =
+        pathname === '/' ||
+        pathname?.startsWith('/blog') ||
+        pathname?.startsWith('/founder') ||
+        pathname?.startsWith('/contact') ||
+        pathname?.startsWith('/terms') ||
+        pathname?.startsWith('/privacy') ||
+        pathname?.startsWith('/safety-center') ||
+        pathname?.startsWith('/community-guidelines') ||
+        pathname?.startsWith('/dating-tips');
 
     if (isMarketingPage) {
         return <main className="min-h-screen w-full relative">{children}</main>;
@@ -22,7 +31,7 @@ export default function AppContainer({ children }: { children: React.ReactNode }
             {/* Mobile App Container */}
             <div className="mx-auto max-w-[480px] min-h-[100dvh] bg-black relative shadow-2xl md:border-x md:border-white/5 flex flex-col">
                 <div className="h-[100dvh] bg-black text-white flex flex-col">
-                    <div className="flex-1 relative flex flex-col overflow-hidden">
+                    <div className="flex-1 relative flex flex-col overflow-y-auto">
                         {children}
                     </div>
                 </div>

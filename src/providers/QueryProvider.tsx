@@ -10,8 +10,8 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
                 defaultOptions: {
                     queries: {
                         // Aggressive caching for a "fast" feel
-                        staleTime: 1000 * 60 * 5, // 5 minutes
-                        gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
+                        staleTime: process.env.NODE_ENV === 'development' ? 1000 * 60 : 1000 * 60 * 5, // 1 min (dev) vs 5 mins (prod)
+                        gcTime: process.env.NODE_ENV === 'development' ? 1000 * 60 * 5 : 1000 * 60 * 30, // 5 mins (dev) vs 30 mins (prod)
                         refetchOnWindowFocus: false,
                         retry: 1,
                     },

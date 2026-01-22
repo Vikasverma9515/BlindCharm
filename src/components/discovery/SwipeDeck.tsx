@@ -199,7 +199,7 @@ export default function SwipeDeck({ initialCards, isLoading = false, onSwipeComp
                         disabled={showEmptyState}
                         className={`pointer-events-auto w-16 h-16 rounded-full bg-gradient-to-tr from-rose-500 to-red-600 shadow-xl shadow-rose-500/30 border-2 border-white/20 text-white flex items-center justify-center transition-all duration-300 ${showEmptyState ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110 hover:shadow-rose-500/50 active:scale-95 hover:from-rose-400 hover:to-red-500'}`}
                     >
-                        <LucideKeySquare size={28} fill="currentColor" strokeWidth={2} />
+                        <Heart size={28} fill="currentColor" strokeWidth={2} />
                     </button>
                 </div>
             )}
