@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import VibeTypingAnimation from '@/components/landing/VibeTypingAnimation';
-import { ShieldCheck, Shield, Headset } from 'lucide-react';
+import GalaxyDemo from '@/components/landing/GalaxyDemo';
+import DailyPicksDemo from '@/components/landing/DailyPicksDemo';
+import { ShieldCheck, Shield, Headset, Zap, Sparkles } from 'lucide-react';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -106,103 +107,152 @@ export default function LandingPage() {
               Where AI understands your mood <span className="text-white italic">today</span>, not a bio you wrote months ago.
             </p>
             <p className="text-white font-medium">
-              Real connections don't come from filters. They come from vibes.
+              Real connections don&apos;t come from filters. They come from vibes.
             </p>
           </div>
         </div>
       </section>
 
       {/* --- HOW IT WORKS SECTION --- */}
-      <section className="py-20 md:py-32 px-6 md:px-12 bg-black">
-        <div className="max-w-5xl mx-auto">
+      <section className="py-20 md:py-32 px-6 md:px-12 bg-black overflow-hidden">
+        <div className="max-w-6xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-20">
             <h2 className="font-heading font-black text-4xl md:text-5xl lg:text-6xl mb-4">
               How it works
             </h2>
             <p className="text-gray-400 text-lg md:text-xl">
-              Three simple steps to find your match
+              Experience the future of social discovery
             </p>
           </div>
 
-          {/* Step 1: Swipe */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
-            <div className="order-2 md:order-1">
-              <div className="mb-4">
-                <span className="text-gray-500 font-mono text-sm">01</span>
-                <h3 className="font-heading font-bold text-3xl md:text-4xl mt-2">
-                  Explore profiles
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            {/* Steps Content */}
+            <div className="space-y-16 order-2 lg:order-1">
+
+              {/* Step 1 */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="relative pl-8 border-l-2 border-white/10"
+              >
+                <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-zinc-800 border-2 border-black" />
+                <span className="text-gray-500 font-mono text-sm mb-2 block">01</span>
+                <h3 className="font-heading font-bold text-2xl md:text-3xl mb-3 text-white">
+                  Explore Profiles
                 </h3>
-              </div>
-              <p className="text-gray-400 text-lg leading-relaxed">
-                Browse through authentic profiles in the Galaxy feed. Each card shows who they really are—voice notes, personality, and real vibes.
-              </p>
+                <p className="text-gray-400 text-lg leading-relaxed">
+                  No more static photos. Hear their voice, feel their vibe, and see their personality shine through rich, dynamic cards.
+                </p>
+              </motion.div>
+
+              {/* Step 2 */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="relative pl-8 border-l-2 border-white/10"
+              >
+                <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-purple-500 border-2 border-black shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                <span className="text-purple-400 font-mono text-sm mb-2 block">02</span>
+                <h3 className="font-heading font-bold text-2xl md:text-3xl mb-3 text-white">
+                  Describe Your Vibe
+                </h3>
+                <p className="text-gray-400 text-lg leading-relaxed">
+                  Looking for &quot;someone reckless&quot; or &quot;a chill coffee date&quot;? Just type it. Our AI understands energy, not just keywords.
+                </p>
+              </motion.div>
+
+              {/* Step 3 */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="relative pl-8 border-l-2 border-white/10"
+              >
+                <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-yellow-400 border-2 border-black shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+                <span className="text-yellow-400 font-mono text-sm mb-2 block">03</span>
+                <h3 className="font-heading font-bold text-2xl md:text-3xl mb-3 text-white">
+                  Get Matched
+                </h3>
+                <p className="text-gray-400 text-lg leading-relaxed">
+                  We curate matches that fit your current mood. Because who you are today changes tomorrow.
+                </p>
+              </motion.div>
+
             </div>
-            <div className="order-1 md:order-2 flex justify-center">
-              {/* Phone Mockup 1 */}
-              <div className="relative w-[280px] h-[570px] bg-zinc-900 rounded-[3rem] border-4 border-zinc-800 overflow-hidden shadow-2xl">
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-10" />
-                {/* Screenshot */}
-                <div className="w-full h-full">
-                  <Image
-                    src="/photos/m1.png"
-                    alt="Profile swipe"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+
+            {/* Interactive Demo */}
+            <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
+              <div className="relative">
+                {/* Glow Effect */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-900/20 blur-[100px] rounded-full pointer-events-none" />
+
+                <GalaxyDemo />
               </div>
             </div>
           </div>
 
-          {/* Step 2: Vibe Search (Typing Animation) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
-            <div className="flex justify-center">
-              <VibeTypingAnimation />
-            </div>
-            <div>
-              <div className="mb-4">
-                <span className="text-gray-500 font-mono text-sm">02</span>
-                <h3 className="font-heading font-bold text-3xl md:text-4xl mt-2">
-                  Describe your vibe
-                </h3>
-              </div>
-              <p className="text-gray-400 text-lg leading-relaxed">
-                Tell our AI what energy you're looking for. "Someone adventurous and spontaneous" or "deep conversations over coffee"—we'll find them.
-              </p>
-            </div>
-          </div>
+        </div>
+      </section>
 
-          {/* Step 3: Match */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div className="order-2 md:order-1">
-              <div className="mb-4">
-                <span className="text-gray-500 font-mono text-sm">03</span>
-                <h3 className="font-heading font-bold text-3xl md:text-4xl mt-2">
-                  Get matched
-                </h3>
+      {/* --- DAILY PICKS SECTION --- */}
+      <section className="py-20 md:py-32 px-6 md:px-12 bg-black overflow-hidden border-t border-white/5">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+
+            {/* Demo Content (Left) */}
+            <div className="order-2 lg:order-1 flex justify-center lg:justify-start">
+              <div className="relative">
+                {/* Glow Effect */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-900/20 blur-[100px] rounded-full pointer-events-none" />
+                <DailyPicksDemo />
               </div>
-              <p className="text-gray-400 text-lg leading-relaxed">
-                AI curates profiles that match your current mood and energy. Every match is personalized to who you are today, not yesterday.
-              </p>
             </div>
-            <div className="order-1 md:order-2 flex justify-center">
-              {/* Phone Mockup 2 */}
-              <div className="relative w-[280px] h-[570px] bg-zinc-900 rounded-[3rem] border-4 border-zinc-800 overflow-hidden shadow-2xl">
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-10" />
-                {/* Screenshot */}
-                <div className="w-full h-full">
-                  <Image
-                    src="/photos/m3.png"
-                    alt="Curated matches"
-                    fill
-                    className="object-cover"
-                  />
+
+            {/* Text Content (Right) */}
+            <div className="space-y-8 order-1 lg:order-2">
+              <div className="inline-block">
+                <span className="text-blue-400 font-mono text-sm tracking-widest uppercase">Start Fresh</span>
+              </div>
+
+              <h2 className="font-heading font-black text-4xl md:text-5xl leading-tight text-white">
+                Fresh matches,<br />
+                <span className="text-gray-500">every single day.</span>
+              </h2>
+
+              <p className="text-gray-400 text-lg md:text-xl leading-relaxed">
+                Why swipe endlessly? Wake up to a curated selection of profiles chosen just for you based on your evolving vibe.
+              </p>
+
+              <div className="space-y-6 pt-4">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-full bg-white/5 border border-white/10">
+                    <Sparkles size={24} className="text-purple-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bold text-lg">AI-Powered Curation</h4>
+                    <p className="text-gray-500 text-sm mt-1">Our AI analyzes thousands of signals to find people who match your energy.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-full bg-white/5 border border-white/10">
+                    <Zap size={24} className="text-yellow-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bold text-lg">Deep Insights</h4>
+                    <p className="text-gray-500 text-sm mt-1">Don&apos;t just see a photo. See *why* you matched—shared interests, energy levels, and vibe compatibility.</p>
+                  </div>
                 </div>
               </div>
+
             </div>
+
           </div>
         </div>
       </section>
@@ -216,6 +266,7 @@ export default function LandingPage() {
             alt="Connection"
             fill
             className="object-cover opacity-100"
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black" />
         </div>
@@ -226,7 +277,7 @@ export default function LandingPage() {
               What makes us different
             </h2>
             <p className="text-gray-400 text-lg md:text-xl">
-              We're not like other dating apps
+              We&apos;re not like other dating apps
             </p>
           </div>
 
@@ -355,7 +406,7 @@ export default function LandingPage() {
               </div>
               <h3 className="font-heading font-bold text-xl mb-2">Full Control</h3>
               <p className="text-gray-400 text-sm">
-                Report, block, or unmatch anytime. You're always in control
+                Report, block, or unmatch anytime. You&apos;re always in control
               </p>
             </div>
 

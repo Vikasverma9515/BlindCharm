@@ -201,7 +201,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" className="dark">
-      <body className={fontClasses}>
+      <body className={`${fontClasses} bg-black min-h-screen text-white antialiased selection:bg-purple-500/30`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
