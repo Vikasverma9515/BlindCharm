@@ -35,54 +35,12 @@ export default async function GalaxyEntryPage() {
     let initialFeed: StoryCardType[] = [];
 
     if (!isOnboarding) {
-        // A. Fetch Interactions (Swipes, Matches, Blocks) - GLOBAL
-        // We must fetch ALL interactions where I am involved to exclude them
-        const { data: interactions } = await supabaseAdmin
-            .from('galaxy_matches')
-            .select('user_a, user_b')
-            .or(`user_a.eq.${userId},user_b.eq.${userId}`)
-            .limit(5000);
+        // Load from persistent swipe queue
+        const { getSwipeQueueAction } = await import('@/app/galaxy/actions');
+        const queueProfiles = await getSwipeQueueAction(10);
 
-        const excludedIds = new Set([userId]); // Always exclude self
-        if (interactions) {
-            interactions.forEach((i: any) => {
-                // Exclude the OTHER person
-                if (i.user_a === userId) excludedIds.add(i.user_b);
-                else excludedIds.add(i.user_a);
-            });
-        }
-
-        const interestedIn = profile?.interested_in || ['everyone'];
-
-        let query = supabaseAdmin
-            .from('galaxy_profiles')
-            .select(`
-                *,
-                users!inner(face_verified)
-            `)
-            .neq('user_id', userId)
-            .order('created_at', { ascending: false });
-
-        if (interestedIn && interestedIn.length > 0 && !interestedIn.includes('everyone')) {
-            query = query.in('gender', interestedIn);
-        }
-
-        // Fetch extra because we filter in JS
-        // Fetch a larger batch for the initial server load to increase chance of finding unswiped users
-        // Since we filter in memory, if the first 200 are all swiped, we show empty.
-        // A better approach would be to use a random offset, but ensuring consistency is hard.
-        // For now, we stick to 1000 which covers most casual sessions.
-        query = query.limit(1000);
-
-        const { data: profilesData } = await query;
-
-        if (profilesData) {
-            // Filter excluded IDs
-            const filteredProfiles = profilesData
-                .filter((p: any) => !excludedIds.has(p.user_id))
-                .slice(0, 50); // Take top 50 valid ones
-
-            initialFeed = filteredProfiles.map((p: any) => {
+        if (queueProfiles && queueProfiles.length > 0) {
+            initialFeed = queueProfiles.map((p: any) => {
                 const userData = p.users || {};
                 return {
                     user_id: p.user_id,
@@ -118,9 +76,9 @@ export default async function GalaxyEntryPage() {
                     color: p.card_color || p.primary_color || '#a855f7',
                     mood: p.current_mood || 'vibing',
                     border: p.card_border || 'thin',
-                    is_verified: userData.face_verified || false // Add verification status
+                    is_verified: userData.face_verified || false
                 };
-            }).sort(() => Math.random() - 0.5);
+            });
         }
     }
 

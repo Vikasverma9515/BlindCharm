@@ -60,12 +60,12 @@ export async function searchByVibeAction(userQuery: string) {
         // 3. Call RPC for similarity search
         const { data: candidates, error } = await supabaseAdmin.rpc('match_profiles_by_vibe_v2', {
             query_embedding: queryEmbedding,
-            match_threshold: 0.1, // Drastically lower threshold to ensure results
-            match_count: 20,
+            match_threshold: 0.1, // Lower threshold to ensure results
+            match_count: 10, // Reduced to 10 profiles for curated results
             user_gender_preference: genderPref,
             min_age: minAge,
             max_age: maxAge,
-            exclude_user_ids: [userId] // Only exclude self, ignore previous swipes for now to fix empty results
+            exclude_user_ids: excludedIds // Exclude self and already-swiped profiles
         });
 
         if (error) {

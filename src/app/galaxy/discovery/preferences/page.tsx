@@ -8,6 +8,8 @@ import { useSession } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { useDiscovery } from '@/context/DiscoveryContext';
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 export default function PreferencesPage() {
     const router = useRouter();
@@ -234,36 +236,23 @@ export default function PreferencesPage() {
                         label="Age Range"
                         valueLabel={`${localFilters.minAge} - ${localFilters.maxAge}`}
                     >
-                        <div className="relative h-6 flex items-center">
-                            <div className="absolute w-full h-1 bg-white/10 rounded-full"></div>
-                            <div
-                                className="absolute h-1 bg-red-600 rounded-full"
-                                style={{
-                                    left: `${Math.min(((localFilters.minAge - 18) / (100 - 18)) * 100, ((localFilters.maxAge - 18) / (100 - 18)) * 100)}%`,
-                                    width: `${Math.abs(((localFilters.maxAge - 18) / (100 - 18)) * 100 - ((localFilters.minAge - 18) / (100 - 18)) * 100)}%`
-                                }}
-                            />
-                            <input
-                                type="range"
-                                min={18} max={100}
-                                value={localFilters.minAge}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    if (val < localFilters.maxAge) setLocalFilters({ ...localFilters, minAge: val });
-                                }}
-                                className="absolute w-full h-8 bg-transparent appearance-none pointer-events-none z-20 cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
-                            />
-                            <input
-                                type="range"
-                                min={18} max={100}
-                                value={localFilters.maxAge}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    if (val > localFilters.minAge) setLocalFilters({ ...localFilters, maxAge: val });
-                                }}
-                                className="absolute w-full h-8 bg-transparent appearance-none pointer-events-none z-20 cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
-                            />
-                        </div>
+                        <Slider
+                            range
+                            min={18}
+                            max={100}
+                            value={[localFilters.minAge, localFilters.maxAge]}
+                            onChange={(value) => {
+                                if (Array.isArray(value)) {
+                                    setLocalFilters({ ...localFilters, minAge: value[0], maxAge: value[1] });
+                                }
+                            }}
+                            trackStyle={[{ backgroundColor: '#ef4444', height: 4 }]}
+                            handleStyle={[
+                                { backgroundColor: '#fff', border: 'none', width: 24, height: 24, marginTop: -10, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
+                                { backgroundColor: '#fff', border: 'none', width: 24, height: 24, marginTop: -10, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }
+                            ]}
+                            railStyle={{ backgroundColor: 'rgba(255,255,255,0.1)', height: 4 }}
+                        />
                     </RangeSettingItem>
 
                     {/* Height Range */}
@@ -272,36 +261,23 @@ export default function PreferencesPage() {
                         label="Height"
                         valueLabel={`${(localFilters.minHeight || 150)} - ${(localFilters.maxHeight || 220)} cm`}
                     >
-                        <div className="relative h-6 flex items-center">
-                            <div className="absolute w-full h-1 bg-white/10 rounded-full"></div>
-                            <div
-                                className="absolute h-1 bg-red-600 rounded-full"
-                                style={{
-                                    left: `${Math.min((((localFilters.minHeight || 150) - 140) / (220 - 140)) * 100, (((localFilters.maxHeight || 220) - 140) / (220 - 140)) * 100)}%`,
-                                    width: `${Math.abs((((localFilters.maxHeight || 220) - 140) / (220 - 140)) * 100 - (((localFilters.minHeight || 150) - 140) / (220 - 140)) * 100)}%`
-                                }}
-                            />
-                            <input
-                                type="range"
-                                min={140} max={220}
-                                value={localFilters.minHeight || 150}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    if (val < (localFilters.maxHeight || 220)) setLocalFilters({ ...localFilters, minHeight: val });
-                                }}
-                                className="absolute w-full h-8 bg-transparent appearance-none pointer-events-none z-20 cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
-                            />
-                            <input
-                                type="range"
-                                min={140} max={220}
-                                value={localFilters.maxHeight || 220}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    if (val > (localFilters.minHeight || 150)) setLocalFilters({ ...localFilters, maxHeight: val });
-                                }}
-                                className="absolute w-full h-8 bg-transparent appearance-none pointer-events-none z-20 cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
-                            />
-                        </div>
+                        <Slider
+                            range
+                            min={140}
+                            max={220}
+                            value={[localFilters.minHeight || 150, localFilters.maxHeight || 220]}
+                            onChange={(value) => {
+                                if (Array.isArray(value)) {
+                                    setLocalFilters({ ...localFilters, minHeight: value[0], maxHeight: value[1] });
+                                }
+                            }}
+                            trackStyle={[{ backgroundColor: '#ef4444', height: 4 }]}
+                            handleStyle={[
+                                { backgroundColor: '#fff', border: 'none', width: 24, height: 24, marginTop: -10, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
+                                { backgroundColor: '#fff', border: 'none', width: 24, height: 24, marginTop: -10, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }
+                            ]}
+                            railStyle={{ backgroundColor: 'rgba(255,255,255,0.1)', height: 4 }}
+                        />
                     </RangeSettingItem>
 
                 </SettingSection>
@@ -322,21 +298,21 @@ export default function PreferencesPage() {
                         valueLabel={localFilters.globalMode ? 'Global' : `${localFilters.maxDistance} km`}
                         disabled={localFilters.globalMode}
                     >
-                        <div className="relative h-6 flex items-center">
-                            <div className="absolute w-full h-1 bg-white/10 rounded-full"></div>
-                            <div
-                                className="absolute h-1 bg-red-600 rounded-full"
-                                style={{ width: `${(localFilters.maxDistance / 200) * 100}%` }}
-                            />
-                            <input
-                                type="range"
-                                min={5} max={200} step={5}
-                                value={localFilters.maxDistance}
-                                onChange={(e) => setLocalFilters({ ...localFilters, maxDistance: parseInt(e.target.value) })}
-                                className="absolute w-full h-8 bg-transparent appearance-none pointer-events-auto z-20 cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
-                                disabled={localFilters.globalMode}
-                            />
-                        </div>
+                        <Slider
+                            min={5}
+                            max={200}
+                            step={5}
+                            value={localFilters.maxDistance}
+                            onChange={(value) => {
+                                if (typeof value === 'number') {
+                                    setLocalFilters({ ...localFilters, maxDistance: value });
+                                }
+                            }}
+                            disabled={localFilters.globalMode}
+                            trackStyle={{ backgroundColor: '#ef4444', height: 4 }}
+                            handleStyle={{ backgroundColor: '#fff', border: 'none', width: 24, height: 24, marginTop: -10, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                            railStyle={{ backgroundColor: 'rgba(255,255,255,0.1)', height: 4 }}
+                        />
                     </RangeSettingItem>
                 </SettingSection>
 

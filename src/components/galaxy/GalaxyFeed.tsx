@@ -54,6 +54,14 @@ export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingPa
     }, [feedData]);
 
     const handleIndexChange = (index: number) => {
+        // Mark profile as viewed for analytics
+        if (cards[index]) {
+            // Dynamic import to avoid bundling issues
+            import('@/app/galaxy/actions').then(({ markProfileViewedAction }) => {
+                markProfileViewedAction(cards[index].user_id);
+            });
+        }
+
         // Prefetch when within 5 cards of end
         if (mode === 'classic' && hasNextPage && !isFetching && cards.length - index <= 5) {
             console.log('⚡ Prefetching next batch...');

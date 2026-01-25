@@ -251,6 +251,14 @@ export async function swipeAction(targetId: string, action: 'like' | 'pass') {
             user_b: targetId,
             status: 'rejected'
         });
+
+        // Also mark as swiped in queue
+        await supabaseAdmin
+            .from('galaxy_swipe_queue')
+            .update({ swiped_at: new Date().toISOString() })
+            .eq('user_id', userId)
+            .eq('profile_id', targetId);
+
         return { match: false };
     }
 
@@ -274,6 +282,13 @@ export async function swipeAction(targetId: string, action: 'like' | 'pass') {
 
             if (error) throw error;
 
+            // Mark as swiped in queue
+            await supabaseAdmin
+                .from('galaxy_swipe_queue')
+                .update({ swiped_at: new Date().toISOString() })
+                .eq('user_id', userId)
+                .eq('profile_id', targetId);
+
             // TODO: Trigger Notification here (or rely on DB trigger)
 
             return { match: true, matchId: reverseLike.id };
@@ -288,6 +303,14 @@ export async function swipeAction(targetId: string, action: 'like' | 'pass') {
                 });
 
             if (error) throw error;
+
+            // Mark as swiped in queue
+            await supabaseAdmin
+                .from('galaxy_swipe_queue')
+                .update({ swiped_at: new Date().toISOString() })
+                .eq('user_id', userId)
+                .eq('profile_id', targetId);
+
             return { match: false };
         }
     }
@@ -811,4 +834,187 @@ export async function toggleUserPauseAction(targetId: string, shouldPause: boole
 
     if (error) throw error;
     return { success: true };
+}
+
+// --- Swipe Queue Management ---
+
+/**
+ * Get the next batch of profiles from the user's swipe queue
+ * If no queue exists, generates a new one
+ */
+export async function getSwipeQueueAction(limit: number = 10) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) throw new Error('Not authenticated');
+    const userId = session.user.id;
+
+    // Get next unswiped profiles from queue
+    const { data: queueItems } = await supabaseAdmin
+        .from('galaxy_swipe_queue')
+        .select('profile_id, queue_position')
+        .eq('user_id', userId)
+        .is('swiped_at', null)
+        .order('queue_position', { ascending: true })
+        .limit(limit);
+
+    if (!queueItems || queueItems.length === 0) {
+        // Generate new queue
+        console.log('📋 No queue found, generating new queue...');
+        return await generateSwipeQueueAction(limit);
+    }
+
+    console.log(`📋 Found ${queueItems.length} profiles in queue`);
+
+    // Load full profiles
+    const profileIds = queueItems.map(q => q.profile_id);
+    const { data: profiles } = await supabaseAdmin
+        .from('galaxy_profiles')
+        .select(`*, users!inner(face_verified, profile_picture)`)
+        .in('user_id', profileIds);
+
+    if (!profiles || profiles.length === 0) return [];
+
+    // Sort by queue position to maintain order
+    const profileMap = new Map(profiles.map(p => [p.user_id, p]));
+    const orderedProfiles = queueItems
+        .map(q => profileMap.get(q.profile_id))
+        .filter(p => p != null);
+
+    return orderedProfiles;
+}
+
+/**
+ * Generate new entries for the swipe queue
+ * Fetches profiles based on user preferences and adds them to queue
+ */
+export async function generateSwipeQueueAction(count: number = 10) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) throw new Error('Not authenticated');
+    const userId = session.user.id;
+
+    console.log(`🎲 Generating ${count} new queue entries...`);
+
+    // Get max position to append new entries
+    const { data: maxPos } = await supabaseAdmin
+        .from('galaxy_swipe_queue')
+        .select('queue_position')
+        .eq('user_id', userId)
+        .order('queue_position', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    let startPosition = (maxPos?.queue_position || 0) + 1;
+
+    // Fetch excluded IDs (interactions + existing queue)
+    const { data: interactions } = await supabaseAdmin
+        .from('galaxy_matches')
+        .select('user_a, user_b')
+        .or(`user_a.eq.${userId},user_b.eq.${userId}`)
+        .limit(5000);
+
+    const excludedIds = new Set([userId]);
+    if (interactions) {
+        interactions.forEach((i: any) => {
+            if (i.user_a === userId) excludedIds.add(i.user_b);
+            else excludedIds.add(i.user_a);
+        });
+    }
+
+    // Also exclude profiles already in queue
+    const { data: existingQueue } = await supabaseAdmin
+        .from('galaxy_swipe_queue')
+        .select('profile_id')
+        .eq('user_id', userId);
+
+    if (existingQueue) {
+        existingQueue.forEach(q => excludedIds.add(q.profile_id));
+    }
+
+    console.log(`🚫 Excluding ${excludedIds.size} profiles`);
+
+    // Fetch user preferences
+    const { data: userProfile } = await supabaseAdmin
+        .from('galaxy_profiles')
+        .select('interested_in, gender')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    const interestedIn = userProfile?.interested_in || ['everyone'];
+
+    // Fetch candidates
+    let query = supabaseAdmin
+        .from('galaxy_profiles')
+        .select('user_id')
+        .neq('user_id', userId)
+        .eq('is_paused', false);
+
+    if (!interestedIn.includes('everyone')) {
+        query = query.in('gender', interestedIn);
+    }
+
+    query = query.limit(500);
+
+    const { data: candidates } = await query;
+
+    if (!candidates || candidates.length === 0) {
+        console.log('⚠️ No candidates found');
+        return [];
+    }
+
+    // Filter excluded and shuffle for variety
+    const validCandidates = candidates
+        .filter(c => !excludedIds.has(c.user_id))
+        .sort(() => Math.random() - 0.5)
+        .slice(0, count);
+
+    console.log(`✅ Selected ${validCandidates.length} new profiles for queue`);
+
+    if (validCandidates.length === 0) return [];
+
+    // Insert into queue
+    const queueInserts = validCandidates.map((c, index) => ({
+        user_id: userId,
+        profile_id: c.user_id,
+        queue_position: startPosition + index
+    }));
+
+    const { error: insertError } = await supabaseAdmin
+        .from('galaxy_swipe_queue')
+        .insert(queueInserts);
+
+    if (insertError) {
+        console.error('❌ Queue insert failed:', insertError);
+        throw insertError;
+    }
+
+    // Return full profiles
+    const profileIds = validCandidates.map(c => c.user_id);
+    const { data: profiles } = await supabaseAdmin
+        .from('galaxy_profiles')
+        .select(`*, users!inner(face_verified, profile_picture)`)
+        .in('user_id', profileIds);
+
+    // Maintain the shuffled order by mapping back
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+    const orderedProfiles = validCandidates
+        .map(c => profileMap.get(c.user_id))
+        .filter(p => p != null);
+
+    return orderedProfiles || [];
+}
+
+/**
+ * Mark a profile as viewed in the queue
+ * Used for analytics and tracking user engagement
+ */
+export async function markProfileViewedAction(profileId: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return; // Silent fail
+    const userId = session.user.id;
+
+    await supabaseAdmin
+        .from('galaxy_swipe_queue')
+        .update({ viewed_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .eq('profile_id', profileId)
+        .is('viewed_at', null); // Only update if not already viewed
 }

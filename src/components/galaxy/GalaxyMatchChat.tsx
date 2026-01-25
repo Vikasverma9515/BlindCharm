@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Send, Loader2, ChevronLeft, MoreVertical, Mic, X, UserMinus, UserX, MessageCircle, Flag, Shield } from 'lucide-react'
+import { Send, Loader2, ChevronLeft, MoreVertical, Mic, X, UserMinus, UserX, MessageCircle, Flag, Shield, Smile } from 'lucide-react'
 import { useGalaxyChat } from '@/hooks/useGalaxyChat'
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder'
 import { uploadVoiceMessage, getVoiceMessageUrl } from '@/lib/voice-upload'
@@ -11,6 +11,10 @@ import MatchProfileView from './MatchProfileView'
 import UnmatchConfirmationModal from './UnmatchConfirmationModal'
 import BlockConfirmationModal from './BlockConfirmationModal'
 import ReportUserModal from './ReportUserModal'
+import ReactionPicker from '../chat/ReactionPicker'
+import GIFPicker from '../chat/GIFPicker'
+import MessageWithReactions from '../chat/MessageWithReactions'
+import { useMessageReactions } from '@/hooks/useMessageReactions'
 import { unmatchAction, blockMatchAction } from '@/app/galaxy/actions'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -37,6 +41,8 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
     const [showBlockModal, setShowBlockModal] = useState(false)
     const [showReportModal, setShowReportModal] = useState(false)
     const [isReported, setIsReported] = useState(false)
+    const [showingReactionsFor, setShowingReactionsFor] = useState<string | null>(null)
+    const [showGIFPicker, setShowGIFPicker] = useState(false)
 
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -49,7 +55,11 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
         loading,
         error,
         sendMessage: sendChatMessage,
-        sendVoiceMessage: sendVoice
+        sendVoiceMessage: sendVoice,
+        sendGIFMessage: sendGIF,
+        loadMoreMessages,
+        hasMoreMessages,
+        isLoadingMore
     } = useGalaxyChat({
         matchId,
         userId: currentUserId,
@@ -207,10 +217,10 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black flex flex-col h-[100dvh] supports-[height:100cqh]:h-[100cqh]">
 
-            {/* Header - Clean, no status indicators */}
-            <div className="shrink-0 h-auto pb-3 bg-black border-b border-white/10 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
+            {/* Header - Fixed at top like WhatsApp */}
+            <div className="fixed top-0 left-0 right-0 z-50 h-auto pb-3 bg-black border-b border-white/10 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Link
                         href="/galaxy/chat"
@@ -303,7 +313,7 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
 
             {/* Reported Warning Banner */}
             {isReported && (
-                <div className="bg-red-900/10 border-b border-red-500/10 backdrop-blur-sm px-4 py-2 flex items-center justify-center gap-2">
+                <div className="fixed top-[calc(env(safe-area-inset-top)+5rem)] left-0 right-0 z-40 bg-red-900/10 border-b border-red-500/10 backdrop-blur-sm px-4 py-2 flex items-center justify-center gap-2">
                     <Shield className="w-3 h-3 text-red-400" />
                     <span className="text-xs font-medium text-red-300/80">
                         Be careful, you've reported this profile.
@@ -311,15 +321,25 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
                 </div>
             )}
 
-            {/* Messages Area */}
+            {/* Messages Area - Add top padding for fixed header */}
             <div
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto overscroll-contain chat-scrollbar"
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain chat-scrollbar scroll-smooth"
                 style={{
                     WebkitOverflowScrolling: 'touch',
+                    paddingTop: isReported ? 'calc(env(safe-area-inset-top) + 8rem)' : 'calc(env(safe-area-inset-top) + 5rem)'
+                }}
+                onScroll={() => {
+                    const container = messagesContainerRef.current;
+                    if (!container) return;
+
+                    // If scrolled near top, load more messages
+                    if (container.scrollTop < 100 && hasMoreMessages && !isLoadingMore) {
+                        loadMoreMessages();
+                    }
                 }}
             >
-                <div className="min-h-full flex flex-col justify-end px-4 py-4">
+                <div className="min-h-full flex flex-col justify-end px-3 py-2">
                     {loading && messages.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center">
                             <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
@@ -356,9 +376,31 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
                             </p>
                         </div>
                     ) : (
-                        <div className="space-y-3 pt-2">
+                        <div className="">
+                            {/* Loading indicator for pagination */}
+                            {isLoadingMore && (
+                                <div className="flex justify-center py-2">
+                                    <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+                                </div>
+                            )}
+
+                            {/* Optional: Show "no more messages" when reached the end */}
+                            {!hasMoreMessages && messages.length > 20 && (
+                                <div className="flex justify-center py-2">
+                                    <span className="text-xs text-white/30">No more messages</span>
+                                </div>
+                            )}
                             {messages.map((message, i) => {
                                 const isOwnMessage = message.sender_id === currentUserId;
+                                const nextMessage = messages[i + 1];
+
+                                // Group messages if next message is from same sender and within 5 minutes
+                                const isGroupedWithNext = nextMessage &&
+                                    nextMessage.sender_id === message.sender_id &&
+                                    (new Date(nextMessage.created_at).getTime() - new Date(message.created_at).getTime() < 5 * 60 * 1000);
+
+                                const showTimestamp = !isGroupedWithNext;
+                                const marginBottom = isGroupedWithNext ? 'mb-[2px]' : 'mb-3';
 
                                 return (
                                     <motion.div
@@ -366,32 +408,30 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.2 }}
                                         key={message.id || i}
-                                        className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                                        className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} ${marginBottom}`}
                                     >
-                                        <div className={`max-w-[75%] flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-                                            {message.type === 'voice' ? (
+                                        {message.type === 'voice' ? (
+                                            <div className={`max-w-[75%] flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
                                                 <VoiceMessageBubble
                                                     audioUrl={message.content}
                                                     duration={message.metadata?.duration || 0}
                                                     isOwnMessage={isOwnMessage}
                                                 />
-                                            ) : (
-                                                <div
-                                                    className={`px-4 py-3 ${isOwnMessage
-                                                        ? 'bg-gradient-to-br from-purple-600 to-purple-500 text-white rounded-[20px] rounded-tr-md'
-                                                        : 'bg-white/10 text-white rounded-[20px] rounded-tl-md'
-                                                        }`}
-                                                >
-                                                    <p className="text-[15px] leading-snug break-words">{message.content}</p>
-                                                </div>
-                                            )}
-
-                                            {formatTime(message.created_at) && (
-                                                <span className="text-[11px] text-white/30 mt-1.5 px-3 font-medium">
-                                                    {formatTime(message.created_at)}
-                                                </span>
-                                            )}
-                                        </div>
+                                                {showTimestamp && formatTime(message.created_at) && (
+                                                    <span className="text-[11px] text-white/30 mt-0.5 px-3 font-medium">
+                                                        {formatTime(message.created_at)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <MessageWithReactions
+                                                message={message}
+                                                isOwnMessage={isOwnMessage}
+                                                currentUserId={currentUserId}
+                                                formatTime={formatTime}
+                                                showTimestamp={showTimestamp}
+                                            />
+                                        )}
                                     </motion.div>
                                 );
                             })}
@@ -464,13 +504,22 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
                                 )}
                             </button>
                         ) : (
-                            <button
-                                type="button"
-                                onClick={handleStartVoiceRecording}
-                                className="w-11 h-11 rounded-full flex items-center justify-center transition-all bg-white/10 hover:bg-purple-600 text-white hover:scale-105 active:scale-95"
-                            >
-                                <Mic className="w-5 h-5" />
-                            </button>
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowGIFPicker(true)}
+                                    className="w-11 h-11 rounded-full flex items-center justify-center transition-all bg-white/10 hover:bg-purple-600 text-white hover:scale-105 active:scale-95"
+                                >
+                                    <Smile className="w-5 h-5" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleStartVoiceRecording}
+                                    className="w-11 h-11 rounded-full flex items-center justify-center transition-all bg-white/10 hover:bg-purple-600 text-white hover:scale-105 active:scale-95"
+                                >
+                                    <Mic className="w-5 h-5" />
+                                </button>
+                            </>
                         )}
                     </form>
                 )}
@@ -504,6 +553,19 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
                 reportedUserId={otherUserId}
                 reportedUserName={otherUser?.username || 'User'}
                 onSuccess={() => setIsReported(true)}
+            />
+
+            {/* GIF Picker */}
+            <GIFPicker
+                isOpen={showGIFPicker}
+                onClose={() => setShowGIFPicker(false)}
+                onSelectGIF={async (gifUrl, gifId) => {
+                    try {
+                        await sendGIF(gifUrl, gifId);
+                    } catch (error) {
+                        console.error('Failed to send GIF:', error);
+                    }
+                }}
             />
         </div>
     );
