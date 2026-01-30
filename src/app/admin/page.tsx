@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Shield, Users, AlertTriangle, Activity } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import AdminOverview from '@/components/galaxy/admin/AdminOverview';
-import UserTable from '@/components/galaxy/admin/UserTable';
-import ReportsFeed from '@/components/galaxy/admin/ReportsFeed';
+import AdminOverview from '@/features/ai-dating/components/galaxy/admin/AdminOverview';
+import UserTable from '@/features/ai-dating/components/galaxy/admin/UserTable';
+import ReportsFeed from '@/features/ai-dating/components/galaxy/admin/ReportsFeed';
 
 import { useSession } from 'next-auth/react';
 

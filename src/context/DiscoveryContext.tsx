@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { FilterState } from '@/components/discovery/DiscoveryFilters';
+import { FilterState } from '@/features/ai-dating/components/discovery/DiscoveryFilters';
 
 interface DiscoveryContextType {
     filters: FilterState;

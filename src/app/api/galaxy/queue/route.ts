@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { getSwipeQueueAction } from '@/app/galaxy/actions';
+import { getSwipeQueueAction } from '@/app/(ai-dating)/galaxy/actions';
 
 export async function POST(request: NextRequest) {
     try {

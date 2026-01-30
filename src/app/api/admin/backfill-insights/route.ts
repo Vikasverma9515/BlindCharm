@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { generateMatchInsightAction } from '@/app/galaxy/actions';
+import { generateMatchInsightAction } from '@/app/(ai-dating)/galaxy/actions';
 
 // Helper for delay
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
