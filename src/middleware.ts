@@ -33,14 +33,14 @@ export default withAuth(
 
     // 1. Authenticated User trying to access Auth Pages -> Redirect to Galaxy
     if (isAuthenticated && isAuthPage) {
-      const baseUrl = process.env.NODE_ENV === 'production' ? 'https://blindcharm.com' : req.url
+      const baseUrl = req.nextUrl.origin
       const url = new URL('/galaxy', baseUrl)
       return NextResponse.redirect(url)
     }
 
     // 2. Unauthenticated User trying to access Protected Pages -> Redirect to Login with HTTPS Callback
     if (!isAuthenticated && isProtectedPage) {
-      const baseUrl = process.env.NODE_ENV === 'production' ? 'https://blindcharm.com' : req.url
+      const baseUrl = req.nextUrl.origin
       const loginUrl = new URL('/login', baseUrl)
 
       // Construct the Callback URL correctly using the base URL
