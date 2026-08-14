@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Heart, ChevronRight } from 'lucide-react';
+import { DEMO_MODE } from '@/lib/demoData';
 
 interface ChatListProps {
     initialMatches: any[];
@@ -20,6 +21,8 @@ export default function ChatList({ initialMatches, initialRequests, userId }: Ch
 
     // Realtime Subscriptions
     useEffect(() => {
+        if (DEMO_MODE) return;
+
         const channel = supabase
             .channel('galaxy_chat_list_updates')
             // Listen for changes to MY matches (as user_a or user_b)

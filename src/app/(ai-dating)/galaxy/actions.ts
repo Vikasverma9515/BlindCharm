@@ -5,6 +5,7 @@ import { UserIntent, StoryCard } from '@/types/ai';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { DEMO_MODE } from '@/lib/demoData';
 
 // Initialize Groq on the server
 // This will automatically pick up GROQ_API_KEY from process.env
@@ -228,6 +229,11 @@ export async function generateMatchInsightAction(userProfile: any, candidateProf
 }
 
 export async function swipeAction(targetId: string, action: 'like' | 'pass') {
+    if (DEMO_MODE) {
+        // No live DB to write to; just acknowledge the swipe.
+        return { match: false };
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) throw new Error('Not authenticated');
 
@@ -343,6 +349,8 @@ export async function resetUserHistoryAction() {
 
 // Unmatch a Galaxy match
 export async function unmatchAction(matchId: string) {
+    if (DEMO_MODE) return { success: true };
+
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error('Unauthorized');
 
@@ -364,6 +372,8 @@ export async function unmatchAction(matchId: string) {
 
 // Block a Galaxy match
 export async function blockMatchAction(matchId: string) {
+    if (DEMO_MODE) return { success: true };
+
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error('Unauthorized');
 
@@ -385,6 +395,8 @@ export async function blockMatchAction(matchId: string) {
 
 // Respond to an incoming request (Accept/Reject)
 export async function respondToRequestAction(matchId: string, action: 'accept' | 'reject') {
+    if (DEMO_MODE) return { success: true };
+
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error('Unauthorized');
 
@@ -495,6 +507,8 @@ export async function unblockUserAction(matchId: string) {
 
 // Report a user
 export async function reportUserAction(reportedId: string, reason: string, details?: string) {
+    if (DEMO_MODE) return { success: true };
+
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) throw new Error('Not authenticated');
     const reporterId = session.user.id;

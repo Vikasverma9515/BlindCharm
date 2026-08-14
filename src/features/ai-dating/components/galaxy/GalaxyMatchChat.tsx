@@ -16,6 +16,7 @@ import GIFPicker from '@/components/chat/GIFPicker'
 import MessageWithReactions from '@/components/chat/MessageWithReactions'
 import { useMessageReactions } from '@/hooks/useMessageReactions'
 import { unmatchAction, blockMatchAction } from '@/app/(ai-dating)/galaxy/actions'
+import { DEMO_MODE, getMockProfile } from '@/lib/demoData'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -71,6 +72,18 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
 
     useEffect(() => {
         const fetchMatchCtx = async () => {
+            if (DEMO_MODE) {
+                const mockProfile = getMockProfile(otherUserId);
+                if (mockProfile) {
+                    setOtherUser({
+                        username: mockProfile.full_name,
+                        profile_picture: mockProfile.photo_url,
+                    });
+                    setOtherUserFullProfile(mockProfile);
+                }
+                return;
+            }
+
             // Fetch profile
             const { data: profile } = await supabase
                 .from('galaxy_profiles')
@@ -112,6 +125,7 @@ export default function GalaxyMatchChat({ matchId, currentUserId, otherUserId }:
         if (!matchId || !currentUserId) return;
 
         const markAsRead = async () => {
+            if (DEMO_MODE) return;
             try {
                 await supabase.rpc('mark_messages_read', {
                     match_id_param: matchId,

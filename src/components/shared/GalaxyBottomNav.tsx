@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 
 import { useUserProfile } from '@/hooks/queries/useUserProfile';
 import { useQueryClient } from '@tanstack/react-query';
+import { DEMO_MODE } from '@/lib/demoData';
 
 export default function GalaxyBottomNav() {
     const pathname = usePathname();
@@ -32,7 +33,7 @@ export default function GalaxyBottomNav() {
     const [hasPicksNotification, setHasPicksNotification] = useState(false);
 
     useEffect(() => {
-        if (!userId) return;
+        if (!userId || DEMO_MODE) return;
 
         const checkPicks = async () => {
             const today = new Date().toISOString().split('T')[0];

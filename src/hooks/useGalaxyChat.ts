@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { chatCacheService, CachedMessage } from '@/lib/services/ChatCacheService';
+import { DEMO_MODE, DEMO_MESSAGES } from '@/lib/demoData';
 
 export function useGalaxyChat({
     matchId,
@@ -27,6 +28,9 @@ export function useGalaxyChat({
         limit: number = pageSize,
         before?: string
     ): Promise<{ messages: any[]; hasMore: boolean }> => {
+        if (DEMO_MODE) {
+            return { messages: DEMO_MESSAGES[matchId] || [], hasMore: false };
+        }
         try {
             let query = supabase
                 .from('match_messages')
@@ -132,7 +136,7 @@ export function useGalaxyChat({
 
     // Set up real-time subscription
     useEffect(() => {
-        if (!enabled || !matchId || !initialLoadComplete) return;
+        if (DEMO_MODE || !enabled || !matchId || !initialLoadComplete) return;
 
         const channel = supabase
             .channel(`match_messages:${matchId}`)
@@ -199,6 +203,11 @@ export function useGalaxyChat({
 
         setMessages(prev => [...prev, optimisticMsg]);
 
+        if (DEMO_MODE) {
+            // Keep the optimistic message as-is; nothing to persist.
+            return;
+        }
+
         const { data, error } = await supabase
             .from('match_messages')
             .insert({
@@ -250,6 +259,8 @@ export function useGalaxyChat({
         };
 
         setMessages(prev => [...prev, optimisticMsg]);
+
+        if (DEMO_MODE) return optimisticMsg;
 
         const { data, error } = await supabase
             .from('match_messages')
@@ -306,6 +317,8 @@ export function useGalaxyChat({
         };
 
         setMessages(prev => [...prev, optimisticMsg]);
+
+        if (DEMO_MODE) return optimisticMsg;
 
         const { data, error } = await supabase
             .from('match_messages')

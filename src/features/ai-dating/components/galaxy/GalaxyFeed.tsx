@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { StoryCard as StoryCardType } from '@/types/ai';
 import { supabase } from '@/lib/supabase';
 import { useExploreFeed } from '@/hooks/queries/useExploreFeed';
+import { DEMO_MODE } from '@/lib/demoData';
 
 interface GalaxyFeedProps {
     initialProfile: any;
@@ -72,7 +73,7 @@ export default function GalaxyFeed({ initialProfile, initialFeed, isOnboardingPa
     // Realtime Profile Updates (Preferences)
 
     useEffect(() => {
-        if (!userId) return;
+        if (DEMO_MODE || !userId) return;
 
         // Backup: Fetch latest profile on mount to ensure we have fresh settings
         // This handles cases where Router Cache might be stale after navigation

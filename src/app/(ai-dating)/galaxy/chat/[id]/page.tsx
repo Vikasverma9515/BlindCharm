@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { redirect } from 'next/navigation';
 import GalaxyMatchChat from '@/features/ai-dating/components/galaxy/GalaxyMatchChat';
+import { DEMO_MODE, DEMO_MATCH_PARTICIPANTS } from '@/lib/demoData';
 
 interface ChatPageProps {
     params: Promise<{ id: string }>;
@@ -18,6 +19,26 @@ export default async function GalaxyChatRoomPage({ params }: ChatPageProps) {
     }
 
     const userId = (session.user as any).id;
+
+    if (DEMO_MODE) {
+        const participants = DEMO_MATCH_PARTICIPANTS[matchId];
+        if (!participants) {
+            return (
+                <div className="h-screen bg-black text-white flex items-center justify-center">
+                    <p>Match not found.</p>
+                </div>
+            );
+        }
+        return (
+            <div className="h-full w-full bg-black">
+                <GalaxyMatchChat
+                    matchId={matchId}
+                    currentUserId={userId}
+                    otherUserId={participants.otherUserId}
+                />
+            </div>
+        );
+    }
 
     // Fetch Match to verify access
     const { data: match } = await supabaseAdmin

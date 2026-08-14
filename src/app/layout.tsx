@@ -97,6 +97,7 @@ import {
 import { Toaster } from 'sonner';
 import { NotificationProvider } from '@/components/notifications/NotificationProvider';
 import { FirebaseAuthProvider } from '@/providers/FirebaseAuthProvider'
+import DemoAutoLogin from '@/components/shared/DemoAutoLogin'
 import QueryProvider from '@/providers/QueryProvider'
 
 export const viewport: Viewport = {
@@ -215,6 +216,7 @@ export default function RootLayout({
         />
         <ThemeProvider>
           <AuthProvider>
+            <DemoAutoLogin />
             <FirebaseAuthProvider>
               <NotificationProvider>
                 <QueryProvider>

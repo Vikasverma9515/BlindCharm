@@ -73,6 +73,7 @@
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { createClient } from '@supabase/supabase-js'
+import { DEMO_MODE, DEMO_USER_ID, DEMO_CURRENT_USER_PROFILE } from '@/lib/demoData'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -81,6 +82,23 @@ const supabase = createClient(
 
 export const authOptions = {
   providers: [
+    // Demo Authentication (used while the real DB is unavailable, e.g. for portfolio demos).
+    // authorize() never touches Supabase, so it works even if the tables are gone.
+    CredentialsProvider({
+      id: 'demo',
+      name: 'Demo',
+      credentials: {},
+      async authorize() {
+        if (!DEMO_MODE) return null
+        return {
+          id: DEMO_USER_ID,
+          email: 'demo@blindcharm.app',
+          name: DEMO_CURRENT_USER_PROFILE.full_name,
+          image: DEMO_CURRENT_USER_PROFILE.photos[0],
+        }
+      }
+    }),
+
     // Email/Password Authentication
     CredentialsProvider({
       id: 'credentials',

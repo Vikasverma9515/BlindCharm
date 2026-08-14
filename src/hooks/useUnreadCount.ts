@@ -2,12 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { DEMO_MODE, DEMO_REQUESTS } from '@/lib/demoData';
 
 export function useUnreadCount(userId: string | undefined) {
     const [totalUnread, setTotalUnread] = useState(0);
 
     useEffect(() => {
         if (!userId) return;
+
+        if (DEMO_MODE) {
+            setTotalUnread(DEMO_REQUESTS.length);
+            return;
+        }
 
         // Fetch initial unread count AND pending requests
         const fetchTotalCount = async () => {

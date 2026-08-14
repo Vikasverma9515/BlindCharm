@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import GalaxyFeed from '@/features/ai-dating/components/galaxy/GalaxyFeed';
 import { redirect } from 'next/navigation';
 import { StoryCard as StoryCardType } from '@/types/ai';
+import { DEMO_MODE, DEMO_CURRENT_USER_PROFILE, MOCK_STORY_CARDS } from '@/lib/demoData';
 
 // Next.js Server Component
 export default async function GalaxyEntryPage() {
@@ -15,6 +16,17 @@ export default async function GalaxyEntryPage() {
     }
 
     const userId = (session.user as any).id;
+
+    if (DEMO_MODE) {
+        return (
+            <GalaxyFeed
+                initialProfile={{ ...DEMO_CURRENT_USER_PROFILE, onboarding_completed: true }}
+                initialFeed={MOCK_STORY_CARDS as unknown as StoryCardType[]}
+                isOnboardingParam={false}
+                userId={userId}
+            />
+        );
+    }
 
     console.log('🚀 Galaxy Server Init for User:', userId);
 

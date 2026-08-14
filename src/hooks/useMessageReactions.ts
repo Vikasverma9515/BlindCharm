@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { DEMO_MODE } from '@/lib/demoData';
 
 interface Reaction {
     id: string;
@@ -45,7 +46,7 @@ export function useMessageReactions(messageId: string, currentUserId: string) {
     // Load reactions for message
     const loadReactions = async () => {
         // Skip for temporary messages (optimistic updates)
-        if (messageId.startsWith('temp-')) {
+        if (messageId.startsWith('temp-') || DEMO_MODE) {
             return;
         }
 
@@ -64,6 +65,11 @@ export function useMessageReactions(messageId: string, currentUserId: string) {
         // Cannot react to temporary messages
         if (messageId.startsWith('temp-')) {
             console.warn('Cannot react to temporary message');
+            return;
+        }
+
+        if (DEMO_MODE) {
+            setReactions(prev => [...prev, { id: `demo-${Date.now()}`, message_id: messageId, user_id: currentUserId, emoji, created_at: new Date().toISOString() }]);
             return;
         }
 
@@ -90,6 +96,11 @@ export function useMessageReactions(messageId: string, currentUserId: string) {
     // Remove reaction
     const removeReaction = async (emoji: string) => {
         if (messageId.startsWith('temp-')) return;
+
+        if (DEMO_MODE) {
+            setReactions(prev => prev.filter(r => !(r.emoji === emoji && r.user_id === currentUserId)));
+            return;
+        }
 
         setLoading(true);
         try {
@@ -134,7 +145,7 @@ export function useMessageReactions(messageId: string, currentUserId: string) {
 
     // Real-time subscription for reactions
     useEffect(() => {
-        if (messageId.startsWith('temp-')) return;
+        if (messageId.startsWith('temp-') || DEMO_MODE) return;
 
         const channel = supabase
             .channel(`reactions:${messageId}`)

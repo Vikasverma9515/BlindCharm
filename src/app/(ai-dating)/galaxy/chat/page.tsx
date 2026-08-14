@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import ChatList from '@/features/ai-dating/components/galaxy/ChatList';
 import { redirect } from 'next/navigation';
+import { DEMO_MODE, DEMO_MATCHES, DEMO_REQUESTS } from '@/lib/demoData';
 
 export default async function GalaxyChatListPage() {
     const session = await getServerSession(authOptions);
@@ -13,6 +14,17 @@ export default async function GalaxyChatListPage() {
     }
 
     const userId = (session.user as any).id;
+
+    if (DEMO_MODE) {
+        return (
+            <ChatList
+                initialMatches={DEMO_MATCHES}
+                initialRequests={DEMO_REQUESTS}
+                userId={userId}
+            />
+        );
+    }
+
     let initialMatches: any[] = [];
     let initialRequests: any[] = [];
 

@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { updateProfileAction } from '@/app/actions/profile';
 import GalaxyContactSupport from '@/features/ai-dating/components/galaxy/profile/GalaxyContactSupport';
+import { DEMO_MODE, DEMO_CURRENT_USER_PROFILE } from '@/lib/demoData';
 
 export default function GalaxyProfilePage() {
     const router = useRouter();
@@ -101,6 +102,13 @@ export default function GalaxyProfilePage() {
     const fetchProfile = async () => {
         try {
             setLoading(true);
+
+            if (DEMO_MODE) {
+                setIsVerified(true);
+                setProfile(prev => ({ ...prev, ...DEMO_CURRENT_USER_PROFILE }));
+                return;
+            }
+
             // Fetch from galaxy_profiles
             const { data: galaxyData, error: galaxyError } = await supabase
                 .from('galaxy_profiles')

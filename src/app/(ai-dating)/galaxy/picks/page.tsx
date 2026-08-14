@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import PicksFeed from '@/features/ai-dating/components/galaxy/PicksFeed';
 import { redirect } from 'next/navigation';
 import { generateMatchInsightAction } from '@/app/(ai-dating)/galaxy/actions';
+import { DEMO_MODE, DEMO_PICKS } from '@/lib/demoData';
 
 
 export default async function GalaxyPicksPage() {
@@ -15,6 +16,11 @@ export default async function GalaxyPicksPage() {
     }
 
     const userId = (session.user as any).id;
+
+    if (DEMO_MODE) {
+        return <PicksFeed initialPicks={DEMO_PICKS} />;
+    }
+
     let finalPicks: any[] = [];
     const today = new Date().toISOString().split('T')[0];
 

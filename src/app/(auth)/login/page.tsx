@@ -2,15 +2,28 @@
 'use client'
 import PhoneAuth from '@/components/auth/PhoneAuth'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import { signIn } from 'next-auth/react'
+import { DEMO_MODE } from '@/lib/demoData'
 
 export default function LoginPage() {
   const router = useRouter()
   const [authSuccess, setAuthSuccess] = useState(false)
+
+  // Demo mode: skip the phone-auth UI entirely and sign in as the demo user.
+  useEffect(() => {
+    if (!DEMO_MODE) return
+    setAuthSuccess(true)
+    signIn('demo', { redirect: false }).then(() => {
+      const params = new URLSearchParams(window.location.search)
+      const callbackUrl = params.get('callbackUrl') || '/galaxy'
+      window.location.href = callbackUrl
+    })
+  }, [])
 
   const handleAuthSuccess = async (phoneNumber: string) => {
     setAuthSuccess(true)
