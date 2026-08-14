@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import LobbyChat from '@/features/blind-dating/components/lobby/LobbyChat'
 import { Loader2, Users, Clock, Heart, BookHeart, MessagesSquare, MessageCircle, Info, ArrowLeft, Weight, Settings, LucideVolumeOff, LucideMove3D, HeartIcon } from 'lucide-react'
-import { Message, LobbyParticipant, User } from '@/types/lobby'
+import { Message, LobbyParticipant, User, Lobby } from '@/types/lobby'
+import { DEMO_MODE, DEMO_LOBBIES, DEMO_LOBBY_PARTICIPANTS, DEMO_LOBBY_MESSAGES, DEMO_LOBBY_USER } from '@/lib/demoData'
 import { MatchingService } from '@/lib/services/MatchingService'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { MatchSuccessModal } from '@/features/blind-dating/components/lobby/MatchSuccessModal'
@@ -204,7 +205,7 @@ const generateRandomName = (userId: string, gender?: string): string => {
       }
 
       // Then sync with database if user is logged in
-      if (session?.user?.id && lobbyId) {
+      if (session?.user?.id && lobbyId && !DEMO_MODE) {
         try {
           const { data, error } = await supabase
             .from('lobby_participants')
@@ -260,6 +261,7 @@ const generateRandomName = (userId: string, gender?: string): string => {
 
   const checkAdminStatus = async () => {
     if (!session?.user?.id) return
+    if (DEMO_MODE) { setIsAdmin(false); return }
 
     try {
       const { data, error } = await supabase
@@ -597,6 +599,10 @@ const generateRandomName = (userId: string, gender?: string): string => {
   };
 
   const fetchLobby = async () => {
+    if (DEMO_MODE) {
+      setLobby((DEMO_LOBBIES.find((l) => l.id === lobbyId) as unknown as Lobby) || null)
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('lobbies')
@@ -613,6 +619,10 @@ const generateRandomName = (userId: string, gender?: string): string => {
   };
 
   const fetchParticipants = async () => {
+    if (DEMO_MODE) {
+      setParticipants((DEMO_LOBBY_PARTICIPANTS[lobbyId] || []) as unknown as LobbyParticipant[])
+      return
+    }
     try {
       console.log('🔄 Fetching participants for lobby:', lobbyId);
       const { data, error } = await supabase
@@ -714,6 +724,10 @@ const generateRandomName = (userId: string, gender?: string): string => {
   }, [participants, lobbyId]);
 
   const fetchMessages = async () => {
+    if (DEMO_MODE) {
+      setMessages((DEMO_LOBBY_MESSAGES[lobbyId] || []) as unknown as Message[])
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('lobby_messages')
@@ -764,6 +778,7 @@ const generateRandomName = (userId: string, gender?: string): string => {
   useEffect(() => {
     const checkLobbyAccess = async () => {
       if (!session?.user?.id) return;
+      if (DEMO_MODE) return;
 
       try {
         // Check if user is already matched
@@ -804,6 +819,15 @@ const generateRandomName = (userId: string, gender?: string): string => {
 
   useEffect(() => {
     if (!session?.user?.id || !lobbyId) return
+
+    if (DEMO_MODE) {
+      const lobbyMock = DEMO_LOBBIES.find((l) => l.id === lobbyId)
+      setLobby((lobbyMock as unknown as Lobby) || null)
+      setParticipants((DEMO_LOBBY_PARTICIPANTS[lobbyId] || []) as unknown as LobbyParticipant[])
+      setMessages((DEMO_LOBBY_MESSAGES[lobbyId] || []) as unknown as Message[])
+      setLoading(false)
+      return
+    }
 
     console.log('🔗 Setting up real-time subscriptions for lobby:', lobbyId);
     console.log('👤 Current user ID:', session.user.id);
@@ -1010,7 +1034,7 @@ const generateRandomName = (userId: string, gender?: string): string => {
 
   // Broadcast subscription for match notifications
   useEffect(() => {
-    if (!session?.user?.id || !lobbyId) return;
+    if (DEMO_MODE || !session?.user?.id || !lobbyId) return;
 
     const channelName = `match_notifications_${session.user.id}`;
     console.log('🔗 Subscribing to broadcast channel:', channelName);

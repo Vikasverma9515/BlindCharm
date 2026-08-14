@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { DEMO_MODE, DEMO_LOBBY_USER } from '@/lib/demoData'
 import {
   Home,
   Users,
@@ -94,6 +95,7 @@ export default function SimpleBottomNav() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!session?.user?.id) return
+      if (DEMO_MODE) { setUserProfile(DEMO_LOBBY_USER); return }
 
       try {
         const { data, error } = await supabase
@@ -120,6 +122,7 @@ export default function SimpleBottomNav() {
 
     const loadCounts = async () => {
       if (!session?.user?.id) return
+      if (DEMO_MODE) { setConnectPendingCount(0); return }
       try {
         const { count, error } = await supabase
           .from('lobby_connect_requests')
@@ -135,7 +138,7 @@ export default function SimpleBottomNav() {
 
     loadCounts()
 
-    if (session?.user?.id) {
+    if (session?.user?.id && !DEMO_MODE) {
       channel = supabase
         .channel(`lobby_connect_dot_${session.user.id}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'lobby_connect_requests', filter: `to_user_id=eq.${session.user.id}` }, () => {

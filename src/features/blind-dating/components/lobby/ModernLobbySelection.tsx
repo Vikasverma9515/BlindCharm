@@ -21,6 +21,7 @@ import FloatingContactButton from '@/components/contact/FloatingContactButton'
 import { Search, X } from 'lucide-react'
 import { Share2, Copy, MessageCircle, ExternalLink } from 'lucide-react'
 import ConnectRequests from './ConnectRequests'
+import { DEMO_MODE, DEMO_LOBBIES, DEMO_LOBBY_USER } from '@/lib/demoData'
 
 
 
@@ -387,6 +388,7 @@ ${lobbyUrl}
   useEffect(() => {
     const fetchProfile = async () => {
       if (!session?.user?.id) return
+      if (DEMO_MODE) { setProfile(DEMO_LOBBY_USER); return }
       const { data } = await supabase
         .from('users')
         .select('full_name,username,email')
@@ -441,6 +443,10 @@ ${lobbyUrl}
   }, [session])
 
   const fetchActiveLobbies = async () => {
+    if (DEMO_MODE) {
+      setActiveLobbies(DEMO_LOBBIES)
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('lobbies')
@@ -471,6 +477,7 @@ ${lobbyUrl}
 
   const checkUserLobbyStatus = async () => {
     if (!session?.user?.id) return
+    if (DEMO_MODE) return // stays null until handleJoinLobby sets it locally
 
     try {
       const { data, error } = await supabase
@@ -489,6 +496,7 @@ ${lobbyUrl}
 
   const checkAdminStatus = async () => {
     if (!session?.user?.id) return
+    if (DEMO_MODE) { setIsAdmin(false); return }
 
     try {
       const { data, error } = await supabase
@@ -514,6 +522,12 @@ ${lobbyUrl}
     // Clear any previous errors
     setError(null)
     setLoading(lobbyId)
+
+    if (DEMO_MODE) {
+      setUserJoinedLobbyId(lobbyId)
+      setLoading(null)
+      return
+    }
 
     try {
       // First check if user is already in a lobby
@@ -578,6 +592,12 @@ ${lobbyUrl}
     // Clear any previous errors
     setError(null)
     setLoading(lobbyId)
+
+    if (DEMO_MODE) {
+      setUserJoinedLobbyId(null)
+      setLoading(null)
+      return
+    }
 
     try {
       const { error } = await supabase

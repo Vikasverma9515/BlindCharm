@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { chatCacheService, CachedMessage } from '@/lib/services/ChatCacheService';
+import { DEMO_MODE, DEMO_LOBBY_MESSAGES } from '@/lib/demoData';
 
 interface UseChatOptions {
   chatId: string;
@@ -50,6 +51,10 @@ export function useChat({
     limit: number = pageSize,
     before?: string
   ): Promise<{ messages: CachedMessage[]; hasMore: boolean }> => {
+    if (DEMO_MODE) {
+      const mock = type === 'lobby' ? (DEMO_LOBBY_MESSAGES[chatId] || []) : [];
+      return { messages: mock as unknown as CachedMessage[], hasMore: false };
+    }
     try {
       let query = supabase
         .from(type === 'lobby' ? 'lobby_messages' : 'private_messages')
@@ -196,6 +201,20 @@ export function useChat({
   const sendMessage = useCallback(async (content: string) => {
     if (!userId || !content.trim()) return;
 
+    if (DEMO_MODE) {
+      const newMessage: CachedMessage = {
+        id: `demo-${Date.now()}`,
+        content: content.trim(),
+        user_id: userId,
+        [type === 'lobby' ? 'lobby_id' : 'chat_id']: chatId,
+        created_at: new Date().toISOString(),
+        user: { id: userId, username: 'You', gender: 'other', profile_picture: null, additional_photo_1: null, additional_photo_2: null },
+        timestamp: Date.now()
+      } as unknown as CachedMessage;
+      setMessages(prev => [...prev, newMessage]);
+      return;
+    }
+
     try {
       const messageData = {
         [type === 'lobby' ? 'lobby_id' : 'chat_id']: chatId,
@@ -222,7 +241,7 @@ export function useChat({
 
   // Set up real-time subscription
   useEffect(() => {
-    if (!enabled || !chatId || !initialLoadComplete) return;
+    if (DEMO_MODE || !enabled || !chatId || !initialLoadComplete) return;
 
     const tableName = type === 'lobby' ? 'lobby_messages' : 'private_messages';
     const filterColumn = type === 'lobby' ? 'lobby_id' : 'chat_id';

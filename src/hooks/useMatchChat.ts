@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { uploadVoiceMessage, getVoiceMessageUrl } from '@/lib/voice-upload';
 import { getRandomChallenge } from '@/lib/voiceChallenges';
+import { DEMO_MODE, DEMO_BLIND_MATCH_MESSAGES } from '@/lib/demoData';
 
 // Match-specific message interface
 export interface MatchMessage {
@@ -108,6 +109,9 @@ export function useMatchChat({
         limit: number = pageSize,
         before?: string
     ): Promise<{ messages: MatchMessage[]; hasMore: boolean }> => {
+        if (DEMO_MODE) {
+            return { messages: (DEMO_BLIND_MATCH_MESSAGES[matchId] || []) as unknown as MatchMessage[], hasMore: false };
+        }
         try {
             let query = supabase
                 .from('match_messages')
@@ -293,6 +297,22 @@ export function useMatchChat({
             return;
         }
 
+        if (DEMO_MODE) {
+            const newMessage: MatchMessage = {
+                id: `demo-${Date.now()}`,
+                content: content.trim(),
+                sender_id: userId,
+                match_id: matchId,
+                created_at: new Date().toISOString(),
+                type,
+                metadata,
+                sender: { id: userId, username: 'You', profile_picture: null },
+                timestamp: Date.now()
+            };
+            setMessages(prev => [...prev, newMessage]);
+            return;
+        }
+
         try {
             const messageData = {
                 match_id: matchId,
@@ -435,7 +455,7 @@ export function useMatchChat({
     // Update the real-time subscription useEffect in useMatchChat.ts
 
     useEffect(() => {
-        if (!enabled || !matchId || !userId) return;
+        if (DEMO_MODE || !enabled || !matchId || !userId) return;
 
         console.log('🔗 Setting up real-time subscription for match:', matchId, 'for user:', userId);
 
@@ -559,6 +579,8 @@ export function useMatchChat({
         if (!userId || !matchId) {
             throw new Error('Missing user ID or match ID');
         }
+
+        if (DEMO_MODE) return;
 
         try {
             console.log('🚫 Blocking user for match:', matchId);
@@ -689,6 +711,7 @@ const fetchCurrentChallenge = useCallback(async () => {
     console.log('❌ Cannot fetch challenges - missing userId or matchId:', { userId, matchId });
     return;
   }
+  if (DEMO_MODE) return;
 
   try {
     console.log('🔍 Fetching current challenges for user:', userId, 'in match:', matchId);
@@ -1080,7 +1103,7 @@ const fetchCurrentChallenge = useCallback(async () => {
 
     // Replace the existing challenge subscription useEffect with this enhanced version
     useEffect(() => {
-        if (!enabled || !matchId || !userId) return;
+        if (DEMO_MODE || !enabled || !matchId || !userId) return;
 
         console.log('🎯 Setting up ENHANCED challenge subscription for match:', matchId, 'user:', userId);
 

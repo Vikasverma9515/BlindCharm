@@ -27,6 +27,7 @@ import { Roboto } from 'next/font/google'
 import { Anton } from 'next/font/google'
 import { boldonse, righteous, specialGothic } from '@/app/fonts'
 import { supabase } from '@/lib/supabase'
+import { DEMO_MODE, DEMO_LOBBY_USER } from '@/lib/demoData'
 import FloatingContactButton from '../contact/FloatingContactButton'
 
 
@@ -73,6 +74,7 @@ export default function SimpleTopNav({ pageName, actionButton }: SimpleTopNavPro
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!session?.user?.id) return
+      if (DEMO_MODE) { setUserProfile(DEMO_LOBBY_USER); return }
 
       try {
         const { data, error } = await supabase

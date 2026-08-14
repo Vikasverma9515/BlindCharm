@@ -13,6 +13,7 @@ import ReelStyleLobby from '@/features/blind-dating/components/lobby/ReelStyleLo
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { ensureProfileCompletedField } from '@/lib/migrations'
+import { DEMO_MODE } from '@/lib/demoData'
 
 function LobbyContent() {
   const { activeLobby } = useLobby()
@@ -41,6 +42,11 @@ export default function LobbyPage() {
     const checkProfileCompletion = async () => {
       if (status === 'loading') return
       if (!session?.user?.id) {
+        setProfileCheckLoading(false)
+        return
+      }
+
+      if (DEMO_MODE) {
         setProfileCheckLoading(false)
         return
       }

@@ -27,6 +27,9 @@ export default function LandingPage() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-6">
+          <Link href="/lobby" className="hidden md:block font-medium text-sm tracking-wide text-gray-300 hover:text-white transition-colors">
+            Classic Lobby
+          </Link>
           <Link href="/login" className="hidden md:block font-medium text-sm tracking-wide text-gray-300 hover:text-white transition-colors">
             Login
           </Link>
@@ -453,6 +456,11 @@ export default function LandingPage() {
           >
             Get Started Free
           </button>
+          <div className="mt-6">
+            <Link href="/lobby" className="text-sm text-gray-500 hover:text-white underline decoration-white/20 transition-colors">
+              Prefer the classic lobby experience? Try it here
+            </Link>
+          </div>
         </div>
       </section>
 

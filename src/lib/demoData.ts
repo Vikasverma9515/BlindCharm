@@ -255,3 +255,217 @@ export const DEMO_PICKS = RAW_PROFILES.slice(0, 3).map((p, index) => {
         ...card,
     };
 });
+
+// ---------------------------------------------------------------------------
+// Classic "lobby" (blind-dating) flow — /lobby, /matches, /whispers, etc.
+// Separate shape from the galaxy StoryCard data above since this flow's
+// components expect the `users` table shape (username, gender, profile_picture).
+// ---------------------------------------------------------------------------
+
+function toLobbyUser(p: MockProfile) {
+    return {
+        id: p.user_id,
+        username: p.full_name.split(' ')[0],
+        full_name: p.full_name,
+        gender: p.gender as 'male' | 'female' | 'other',
+        bio: p.bio,
+        interests: p.interests,
+        profile_picture: p.photo,
+        additional_photo_1: p.photos[1] || null,
+        additional_photo_2: null,
+        is_admin: false,
+    };
+}
+
+export const DEMO_LOBBY_USER = {
+    id: DEMO_USER_ID,
+    username: DEMO_CURRENT_USER_PROFILE.full_name.split(' ')[0],
+    full_name: DEMO_CURRENT_USER_PROFILE.full_name,
+    gender: 'male' as const,
+    bio: DEMO_CURRENT_USER_PROFILE.bio,
+    interests: DEMO_CURRENT_USER_PROFILE.interests,
+    profile_picture: DEMO_CURRENT_USER_PROFILE.photos[0],
+    additional_photo_1: DEMO_CURRENT_USER_PROFILE.photos[1] || null,
+    additional_photo_2: null,
+    is_admin: false,
+};
+
+export const DEMO_LOBBIES = [
+    {
+        id: 'demo-lobby-1',
+        theme: 'Dating',
+        name: 'Coffee & Conversations',
+        description: 'A relaxed lobby for people who overthink their coffee order as much as their texts.',
+        image_url: null,
+        participant_count: 5,
+        male_count: 2,
+        female_count: 3,
+        status: 'waiting' as const,
+        cycle_id: null,
+        created_at: '2026-08-14T10:00:00Z',
+        ends_at: '2026-08-14T22:00:00Z',
+    },
+    {
+        id: 'demo-lobby-2',
+        theme: 'Music Lovers',
+        name: 'Friday Night Mixer',
+        description: 'For people whose Spotify Wrapped is a personality trait.',
+        image_url: null,
+        participant_count: 4,
+        male_count: 2,
+        female_count: 2,
+        status: 'waiting' as const,
+        cycle_id: null,
+        created_at: '2026-08-14T12:00:00Z',
+        ends_at: '2026-08-15T00:00:00Z',
+    },
+];
+
+// lobbyId -> other participants (the demo user joins on top of these)
+export const DEMO_LOBBY_PARTICIPANTS: Record<string, any[]> = {
+    'demo-lobby-1': ['demo-profile-1', 'demo-profile-2', 'demo-profile-3', 'demo-profile-5'].map((id, i) => {
+        const p = RAW_PROFILES.find((rp) => rp.user_id === id)!;
+        return {
+            id: `demo-lp-${id}`,
+            lobby_id: 'demo-lobby-1',
+            user_id: id,
+            status: 'waiting',
+            joined_at: '2026-08-14T10:0' + i + ':00Z',
+            blur_profile: true,
+            user: toLobbyUser(p),
+        };
+    }),
+    'demo-lobby-2': ['demo-profile-4', 'demo-profile-6', 'demo-profile-5'].map((id, i) => {
+        const p = RAW_PROFILES.find((rp) => rp.user_id === id)!;
+        return {
+            id: `demo-lp-${id}`,
+            lobby_id: 'demo-lobby-2',
+            user_id: id,
+            status: 'waiting',
+            joined_at: '2026-08-14T12:0' + i + ':00Z',
+            blur_profile: true,
+            user: toLobbyUser(p),
+        };
+    }),
+};
+
+export const DEMO_LOBBY_MESSAGES: Record<string, any[]> = {
+    'demo-lobby-1': [
+        { id: 'lm1', lobby_id: 'demo-lobby-1', user_id: 'demo-profile-1', content: 'Hey everyone! Excited to be here 👋', created_at: '2026-08-14T10:05:00Z', user: toLobbyUser(RAW_PROFILES[0]) },
+        { id: 'lm2', lobby_id: 'demo-lobby-1', user_id: 'demo-profile-2', content: 'Same! Anyone else already regretting their coffee order today?', created_at: '2026-08-14T10:06:00Z', user: toLobbyUser(RAW_PROFILES[1]) },
+        { id: 'lm3', lobby_id: 'demo-lobby-1', user_id: 'demo-profile-3', content: 'Always. Cortado gang where you at', created_at: '2026-08-14T10:07:00Z', user: toLobbyUser(RAW_PROFILES[2]) },
+        { id: 'lm4', lobby_id: 'demo-lobby-1', user_id: DEMO_USER_ID, content: 'Filter coffee purist here, sorry not sorry', created_at: '2026-08-14T10:08:00Z', user: DEMO_LOBBY_USER },
+    ],
+    'demo-lobby-2': [
+        { id: 'lm1', lobby_id: 'demo-lobby-2', user_id: 'demo-profile-4', content: 'What are we all listening to this week?', created_at: '2026-08-14T12:05:00Z', user: toLobbyUser(RAW_PROFILES[3]) },
+        { id: 'lm2', lobby_id: 'demo-lobby-2', user_id: DEMO_USER_ID, content: 'Embarrassingly stuck on one album on repeat', created_at: '2026-08-14T12:06:00Z', user: DEMO_LOBBY_USER },
+    ],
+};
+
+export const DEMO_LOBBY_QUESTIONS: Record<string, any[]> = {
+    'demo-lobby-1': [
+        { id: 'q1', girl_id: 'demo-profile-1', lobby_id: 'demo-lobby-1', question_text: 'What does your ideal weekend look like?', question_type: 'written', created_at: '2026-08-14T10:10:00Z', updated_at: '2026-08-14T10:10:00Z' },
+        { id: 'q2', girl_id: 'demo-profile-3', lobby_id: 'demo-lobby-1', question_text: 'Pick one: mountains or beach?', question_type: 'mcq', options: ['Mountains', 'Beach'], correct_answer: 'Mountains', created_at: '2026-08-14T10:12:00Z', updated_at: '2026-08-14T10:12:00Z' },
+    ],
+};
+
+export const DEMO_LOBBY_ANSWERS: Record<string, any[]> = {
+    'demo-lobby-1': [
+        { id: 'a1', question_id: 'q1', boy_id: 'demo-profile-2', lobby_id: 'demo-lobby-1', answer_text: 'Farmers market, a long run, then doing absolutely nothing.', points_awarded: 8, is_reviewed: true, created_at: '2026-08-14T10:15:00Z', updated_at: '2026-08-14T10:15:00Z', boy: toLobbyUser(RAW_PROFILES[1]) },
+    ],
+};
+
+// Blind-dating "matches" list (distinct system from the galaxy matches above)
+export const DEMO_BLIND_MATCHES = [
+    {
+        id: 'demo-blind-match-1',
+        otherUser: { id: 'demo-profile-5', username: 'Ishita', profile_picture: RAW_PROFILES[4].photo },
+        lastMessage: { content: "I'd love to see your sketches sometime", created_at: '2026-08-14T15:20:00Z' },
+        created_at: '2026-08-14T09:00:00Z',
+        bothRevealed: false,
+        status: 'active',
+    },
+];
+
+// matchId -> full match record (both directions, since either side could be "me")
+export const DEMO_BLIND_MATCH_DETAIL: Record<string, any> = {
+    'demo-blind-match-1': {
+        id: 'demo-blind-match-1',
+        user1_id: DEMO_USER_ID,
+        user2_id: 'demo-profile-5',
+        status: 'active',
+        created_at: '2026-08-14T09:00:00Z',
+        user1_revealed: false,
+        user2_revealed: false,
+        user1: { id: DEMO_USER_ID, username: DEMO_LOBBY_USER.username, profile_picture: DEMO_LOBBY_USER.profile_picture },
+        user2: { id: 'demo-profile-5', username: 'Ishita', profile_picture: RAW_PROFILES[4].photo },
+    },
+};
+
+export const DEMO_BLIND_MATCH_MESSAGES: Record<string, any[]> = {
+    'demo-blind-match-1': [
+        { id: 'bm1', match_id: 'demo-blind-match-1', sender_id: 'demo-profile-5', content: "Hey! I have no idea what you look like but I already like your energy from the lobby chat 😄", created_at: '2026-08-14T09:10:00Z', type: 'text', sender: { id: 'demo-profile-5', username: 'Ishita', profile_picture: RAW_PROFILES[4].photo } },
+        { id: 'bm2', match_id: 'demo-blind-match-1', sender_id: DEMO_USER_ID, content: "Ha, likewise. This blind thing is oddly nice, no profile-judging pressure", created_at: '2026-08-14T09:12:00Z', type: 'text', sender: { id: DEMO_USER_ID, username: DEMO_LOBBY_USER.username, profile_picture: null } },
+        { id: 'bm3', match_id: 'demo-blind-match-1', sender_id: 'demo-profile-5', content: "I'd love to see your sketches sometime", created_at: '2026-08-14T15:20:00Z', type: 'text', sender: { id: 'demo-profile-5', username: 'Ishita', profile_picture: RAW_PROFILES[4].photo } },
+    ],
+};
+
+// Full profile shown once both sides "reveal"
+export const DEMO_BLIND_MATCH_REVEALED_PROFILE = {
+    id: 'demo-profile-5',
+    username: 'Ishita',
+    full_name: 'Ishita Kapoor',
+    profile_picture: RAW_PROFILES[4].photo,
+    bio: RAW_PROFILES[4].bio,
+    interests: RAW_PROFILES[4].interests,
+    age: RAW_PROFILES[4].age,
+    occupation: RAW_PROFILES[4].job_title,
+    height: RAW_PROFILES[4].height,
+    location: RAW_PROFILES[4].location,
+    photos: RAW_PROFILES[4].photos,
+    face_verified: true,
+    college_verified: true,
+    college_name: RAW_PROFILES[4].school,
+};
+
+export const DEMO_WHISPERS = [
+    {
+        id: 'w1',
+        user_id: 'demo-profile-3',
+        content: "Told my date I 'don't really watch TV' to sound interesting. Rewatched an entire show that same night.",
+        is_anonymous: true,
+        mood: 'funny',
+        category: 'confession',
+        likes_count: 42,
+        comments_count: 6,
+        created_at: '2026-08-14T08:00:00Z',
+        background_theme: 'sunset',
+        user: { username: 'Anonymous', profile_picture: null },
+    },
+    {
+        id: 'w2',
+        user_id: 'demo-profile-1',
+        content: 'Sometimes the best part of a first date is realizing you can just be quiet together and it still feels good.',
+        is_anonymous: false,
+        mood: 'wholesome',
+        category: 'thought',
+        likes_count: 128,
+        comments_count: 14,
+        created_at: '2026-08-13T20:00:00Z',
+        background_theme: 'lavender',
+        user: { username: 'Meera', profile_picture: RAW_PROFILES[0].photo },
+    },
+    {
+        id: 'w3',
+        user_id: 'demo-profile-6',
+        content: "Matched with someone, talked for three weeks straight, met up — turns out we're just really good friends. Not mad about it.",
+        is_anonymous: true,
+        mood: 'reflective',
+        category: 'story',
+        likes_count: 67,
+        comments_count: 9,
+        created_at: '2026-08-13T14:00:00Z',
+        background_theme: 'midnight',
+        user: { username: 'Anonymous', profile_picture: null },
+    },
+];

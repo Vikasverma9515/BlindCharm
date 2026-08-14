@@ -1266,6 +1266,7 @@ import {
 } from 'lucide-react'
 import { User, LobbyParticipant, Question, Answer } from '@/types/lobby'
 import { supabase } from '@/lib/supabase'
+import { DEMO_MODE, DEMO_LOBBY_QUESTIONS, DEMO_LOBBY_ANSWERS } from '@/lib/demoData'
 
 interface GirlQuestionSystemProps {
   lobbyId: string
@@ -1314,6 +1315,11 @@ export default function GirlQuestionSystem({
         return;
       }
 
+      if (DEMO_MODE) {
+        setUserGender('male');
+        return;
+      }
+
       try {
         console.log("🔍 Fetching gender for user ID:", currentUser.id);
         
@@ -1358,10 +1364,18 @@ export default function GirlQuestionSystem({
 
   // Fetch questions and answers
   useEffect(() => {
+    if (!lobbyId) return
+
+    if (DEMO_MODE) {
+      fetchQuestions()
+      fetchAnswers()
+      return
+    }
+
     if (lobbyId) {
       fetchQuestions()
       fetchAnswers()
-      
+
       // Set up real-time subscriptions with more specific event handling
       const questionsSubscription = supabase
         .channel(`questions-${lobbyId}`)
@@ -1420,6 +1434,10 @@ export default function GirlQuestionSystem({
   }, [answers, participants])
 
   const fetchQuestions = async () => {
+    if (DEMO_MODE) {
+      setQuestions(DEMO_LOBBY_QUESTIONS[lobbyId] || [])
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('girl_questions')
@@ -1435,6 +1453,10 @@ export default function GirlQuestionSystem({
   }
 
   const fetchAnswers = async () => {
+    if (DEMO_MODE) {
+      setAnswers(DEMO_LOBBY_ANSWERS[lobbyId] || [])
+      return
+    }
     try {
       const { data, error } = await supabase
         .from('question_answers')
@@ -1578,20 +1600,28 @@ export default function GirlQuestionSystem({
       // Written answers start with 0 points, to be reviewed by girls
 
       const answerData = {
+        id: `demo-answer-${Date.now()}`,
         question_id: questionId,
         boy_id: currentUser.id,
         lobby_id: lobbyId,
         answer_text: answerText,
         option_index: optionIndex,
         points_awarded: points,
-        is_reviewed: question.question_type === 'mcq'
+        is_reviewed: question.question_type === 'mcq',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        boy: { id: currentUser.id, username: currentUser.username, profile_picture: currentUser.profile_picture, gender: currentUser.gender },
       }
 
-      const { error } = await supabase
-        .from('question_answers')
-        .insert([answerData])
+      if (DEMO_MODE) {
+        setAnswers(prev => [...prev, answerData as unknown as Answer])
+      } else {
+        const { error } = await supabase
+          .from('question_answers')
+          .insert([answerData])
 
-      if (error) throw error
+        if (error) throw error
+      }
 
       // Add haptic feedback
       if (navigator.vibrate) {

@@ -2,9 +2,12 @@
 
 import { supabase } from '@/lib/supabase';
 import { Whisper, WhisperComment, WhisperReaction } from '@/types/whispers';
+import { DEMO_MODE, DEMO_WHISPERS } from '@/lib/demoData';
 
 export class WhisperService {
   static async getWhispers() {
+    if (DEMO_MODE) return DEMO_WHISPERS;
+
     const { data, error } = await supabase
       .from('whispers')
       .select(`
@@ -119,6 +122,13 @@ export class WhisperService {
 
 
   static async toggleLike(whisperId: string, userId: string) {
+    if (DEMO_MODE) {
+      const whisper = DEMO_WHISPERS.find((w) => w.id === whisperId);
+      if (!whisper) throw new Error('Whisper not found');
+      (whisper as any)._liked = !(whisper as any)._liked;
+      whisper.likes_count += (whisper as any)._liked ? 1 : -1;
+      return whisper;
+    }
     try {
       // Check if reaction exists
       const { data: existingReaction, error: checkError } = await supabase
@@ -186,6 +196,10 @@ export class WhisperService {
   }
 
   static async checkUserLike(whisperId: string, userId: string) {
+    if (DEMO_MODE) {
+      const whisper = DEMO_WHISPERS.find((w) => w.id === whisperId);
+      return !!(whisper as any)?._liked;
+    }
     try {
       const { data, error } = await supabase
         .from('whisper_reactions')

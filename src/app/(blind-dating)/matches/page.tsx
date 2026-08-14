@@ -228,6 +228,7 @@ import SimpleTopNav from '@/components/shared/SimpleTopNav';
 import SimpleBottomNav from '@/components/shared/SimpleBottomNav';
 import { VoiceService } from '@/lib/services/VoiceService';
 import toast from 'react-hot-toast';
+import { DEMO_MODE, DEMO_BLIND_MATCHES } from '@/lib/demoData';
 
 interface MatchPreview {
   id: string;
@@ -272,6 +273,8 @@ export default function MatchesPage() {
     if (!session?.user?.id) return;
     fetchMatches();
     // fetchIncomingLikes();
+
+    if (DEMO_MODE) return;
 
     // Set up real-time subscription for match updates
     const channel = supabase
@@ -320,6 +323,11 @@ export default function MatchesPage() {
   // };
 
   const fetchMatches = async () => {
+    if (DEMO_MODE) {
+      setMatches(DEMO_BLIND_MATCHES as unknown as MatchPreview[]);
+      setLoading(false);
+      return;
+    }
     try {
       const { data: matchData, error } = await supabase
         .from('matches')

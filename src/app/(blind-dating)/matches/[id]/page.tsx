@@ -25,6 +25,7 @@ import { getRandomChallenge } from '@/lib/voiceChallenges'
 import { VoiceChallenge } from '@/hooks/useMatchChat'
 import PersonalizedChallengeCard from '@/components/chat/VoiceChallenge/PersonalizedChallengeCard'
 import SuccessPopup from '@/components/chat/SuccessPopup'
+import { DEMO_MODE, DEMO_BLIND_MATCH_DETAIL, DEMO_BLIND_MATCH_REVEALED_PROFILE } from '@/lib/demoData'
 
 
 
@@ -287,6 +288,28 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
   const fetchRevealStatus = async () => {
     if (!matchId || !session?.user?.id) return;
 
+    if (DEMO_MODE) {
+      const mock = DEMO_BLIND_MATCH_DETAIL[matchId];
+      if (!mock) return;
+      const isCurrentUser1 = mock.user1_id === session.user.id;
+      setIsUser1(isCurrentUser1);
+      const revealed = isCurrentUser1 ? mock.user1_revealed : mock.user2_revealed;
+      setHasRevealed(revealed);
+      const both = mock.user1_revealed && mock.user2_revealed;
+      setBothRevealed(both);
+      setOtherUserProfile(prev => ({
+        ...prev,
+        id: DEMO_BLIND_MATCH_REVEALED_PROFILE.id,
+        face_verified: DEMO_BLIND_MATCH_REVEALED_PROFILE.face_verified,
+        college_verified: DEMO_BLIND_MATCH_REVEALED_PROFILE.college_verified,
+        college_name: DEMO_BLIND_MATCH_REVEALED_PROFILE.college_name,
+        username: DEMO_BLIND_MATCH_REVEALED_PROFILE.username,
+        profile_picture: both ? DEMO_BLIND_MATCH_REVEALED_PROFILE.profile_picture : (prev?.profile_picture ?? null),
+        ...(both ? DEMO_BLIND_MATCH_REVEALED_PROFILE : {}),
+      }));
+      return;
+    }
+
     try {
       // First, fetch the match reveal status
       const { data: matchData, error: matchError } = await supabase
@@ -372,6 +395,14 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
 
 
   const fetchMatch = async () => {
+    if (DEMO_MODE) {
+      const mock = DEMO_BLIND_MATCH_DETAIL[matchId];
+      if (mock) {
+        setMatch(mock as unknown as Match);
+      }
+      setLoading(false);
+      return;
+    }
     try {
       const { data: matchData, error } = await supabase
         .from('matches')
@@ -415,6 +446,18 @@ export default function MatchChatPage({ params }: { params: Promise<{ id: string
     if (!matchId || !session?.user?.id) return;
     const isCurrentUser1 = match?.user1_id === session.user.id;
     const updateField = isCurrentUser1 ? 'user1_revealed' : 'user2_revealed';
+
+    if (DEMO_MODE) {
+      const mock = DEMO_BLIND_MATCH_DETAIL[matchId];
+      if (mock) {
+        // Mutate the shared mock so it stays consistent across polling.
+        mock.user1_revealed = true;
+        mock.user2_revealed = true; // simulate the other side revealing too, for a satisfying demo
+      }
+      setHasRevealed(true);
+      fetchRevealStatus();
+      return;
+    }
 
     const { error } = await supabase
       .from('matches')
