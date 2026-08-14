@@ -29,7 +29,12 @@ export default function AppContainer({ children }: { children: React.ReactNode }
             </div>
 
             {/* Mobile App Container */}
-            <div className="mx-auto max-w-[480px] min-h-[100dvh] bg-black relative shadow-2xl md:border-x md:border-white/5 flex flex-col">
+            {/* transform makes this the containing block for every `fixed` descendant (modals, chat,
+                bottom nav, etc.) so they anchor to this 480px frame instead of the real viewport. */}
+            <div
+                className="mx-auto max-w-[480px] min-h-[100dvh] bg-black relative shadow-2xl md:border-x md:border-white/5 flex flex-col"
+                style={{ transform: 'translateZ(0)' }}
+            >
                 <div className="h-[100dvh] bg-black text-white flex flex-col">
                     <div className="flex-1 relative flex flex-col overflow-y-auto">
                         {children}
